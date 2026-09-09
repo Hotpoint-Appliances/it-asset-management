@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# local dev asset-files storage (ASSET_FILES_BASE_PATH)
+/.data
+
 # vercel
 .vercel
 

@@ -8,6 +8,9 @@ description: Phase 4 — core asset CRUD, image/file upload to disk, and QR code
 Prerequisite skills: [[itam-conventions]], [[itam-schema-reference]], [[itam-design-system]].
 Depends on `phase-3-core-data` (all dropdown/lookup data must already be manageable).
 
+Before starting the Steps below, run [[phase-completion-check]] against `phase-3-core-data`'s
+exit criteria.
+
 ## Objective
 
 Full CRUD for the `assets` table itself: list, filter, search, create, edit, view detail, plus

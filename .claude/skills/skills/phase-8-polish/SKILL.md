@@ -7,6 +7,10 @@ description: Phase 8 — final theming/responsive/accessibility pass, error boun
 
 Prerequisite skills: [[itam-design-system]]. Depends on phases 1–7 being functionally complete.
 
+Before starting the Checklist below, run [[phase-completion-check]] against `phase-7-notifications`'s
+exit criteria (the closest predecessor — phases 1–6 were each already gated on entry by their
+own successor phase).
+
 ## Objective
 
 Close the gap between "functionally complete" and "production-feel" before calling the MVP

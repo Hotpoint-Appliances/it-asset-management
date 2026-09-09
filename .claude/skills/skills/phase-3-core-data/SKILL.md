@@ -8,6 +8,9 @@ description: Phase 3 — CRUD management for supporting/lookup tables (categorie
 Prerequisite skills: [[itam-conventions]], [[itam-schema-reference]], [[itam-design-system]].
 Depends on `phase-2-auth` (RBAC) being complete.
 
+Before starting the Steps below, run [[phase-completion-check]] against `phase-2-auth`'s exit
+criteria.
+
 ## Objective
 
 Admin-facing CRUD for every table the `assets` table depends on, so Phase 4 (asset management)

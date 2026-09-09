@@ -8,6 +8,9 @@ description: Phase 6 — dashboard widgets and exceljs data exports. Depends on 
 Prerequisite skills: [[itam-conventions]], [[itam-schema-reference]], [[itam-design-system]].
 Depends on `phase-5-asset-lifecycle` (needs audit log, maintenance, disposal data to report on).
 
+Before starting the Steps below, run [[phase-completion-check]] against
+`phase-5-asset-lifecycle`'s exit criteria.
+
 ## Objective
 
 A dashboard landing page giving an at-a-glance fleet overview, plus exportable reports

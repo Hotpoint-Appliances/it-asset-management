@@ -8,6 +8,9 @@ description: Phase 2 — JWT session auth with jose, password hashing with bcryp
 Prerequisite skills: [[itam-conventions]], [[itam-schema-reference]]. Depends on
 `phase-1-foundation` being complete (DB pool, app shell).
 
+Before starting the Steps below, run [[phase-completion-check]] against `phase-1-foundation`'s
+exit criteria.
+
 ## Objective
 
 Working login/logout, session persistence via signed JWT (no server-side session table), and

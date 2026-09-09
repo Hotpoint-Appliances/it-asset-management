@@ -9,6 +9,9 @@ Prerequisite skills: [[itam-conventions]], [[itam-schema-reference]], [[itam-des
 Read `docs/asset-lifecycle-flow.md` in full before starting this phase — it defines the state
 machine and transition rules this phase implements. Depends on `phase-4-asset-management`.
 
+Before starting the Steps below, run [[phase-completion-check]] against
+`phase-4-asset-management`'s exit criteria.
+
 ## Objective
 
 All the actions that happen to an asset *after* creation: transfers, condition/status changes,

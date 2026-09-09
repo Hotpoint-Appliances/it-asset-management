@@ -31,20 +31,25 @@ No ORM is introduced. All queries go through a thin `lib/db` query layer using `
 
 ```
 /app
+  page.tsx                     # root route — renders AppShell directly (Phase 1 decision, no
+                                # separate homepage; Phase 2 adds the auth gate in front of it)
   /(auth)/login/page.tsx
   /(dashboard)/dashboard/page.tsx
   /(dashboard)/assets/...
   /api/...                     # route handlers, one folder per resource
+  /api/health/route.ts          # DB connectivity check (Phase 1)
 /components
+  providers.tsx                # ThemeProvider (next-themes) + TanStack QueryClientProvider
   /ui/                         # shadcn-style primitives (button, input, dialog, table, ...)
   /assets/                     # asset-specific components
-  /layout/                     # shell, sidebar, topbar
+  /layout/                     # AppShell, Sidebar, Topbar, ThemeToggle, nav-items
 /lib
+  utils.ts                     # cn() helper (clsx + tailwind-merge) used by every ui primitive
   /db/                         # pg pool + query functions, one file per table/domain
   /auth/                       # jose session helpers, password hashing
   /validation/                 # request payload schemas
   /email/                      # msal-node + Graph email senders
-/store                         # zustand stores
+/store                         # zustand stores (index.ts holds useUIStore; add slices, not new stores)
 /types                         # shared TypeScript types (mirror schema.sql tables)
 /schema/schema.sql              # source of truth for DB structure
 /docs                          # flow docs, ERD notes

@@ -10,8 +10,14 @@ when development starts.
    - `itam-conventions` — stack, folder structure, naming, env vars
    - `itam-schema-reference` — schema design decisions (companion to `schema/schema.sql`)
    - `itam-design-system` — shadcn/ui-style look and feel, dark/light mode
+   - `phase-completion-check` — generic procedure every `phase-N` (N > 1) skill runs first, to
+     verify the prior phase's exit criteria are actually met before starting new work. Exists
+     because each phase is typically executed in its own conversation/context window (see
+     "Model routing" below) — a fresh context can't trust its own memory of what a prior phase
+     completed.
 
-2. **Phases** (execute in order — each depends on the previous):
+2. **Phases** (execute in order — each depends on the previous, and each runs
+   `phase-completion-check` against its predecessor before starting its own Steps):
 
    | Phase | Skill | Delivers |
    |---|---|---|

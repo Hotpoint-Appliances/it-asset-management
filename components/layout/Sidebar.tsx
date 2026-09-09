@@ -1,0 +1,16 @@
+import { Boxes } from "lucide-react";
+import { SidebarNav } from "./SidebarNav";
+
+export function Sidebar() {
+  return (
+    <aside className="hidden md:flex md:w-64 md:flex-col md:border-r md:border-border md:bg-sidebar md:text-sidebar-foreground">
+      <div className="flex h-16 items-center gap-2 border-b border-border px-4">
+        <Boxes className="h-5 w-5" />
+        <span className="text-sm font-semibold">IT Asset Manager</span>
+      </div>
+      <div className="flex-1 overflow-y-auto p-3">
+        <SidebarNav />
+      </div>
+    </aside>
+  );
+}

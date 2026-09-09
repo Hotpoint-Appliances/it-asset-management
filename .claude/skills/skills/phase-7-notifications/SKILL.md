@@ -8,6 +8,9 @@ description: Phase 7 — email notifications via MSAL/Microsoft Graph, in-app no
 Prerequisite skills: [[itam-conventions]], [[itam-schema-reference]]. Depends on
 `phase-6-dashboard-reporting` (reuses its warranty-expiring and in-repair queries as triggers).
 
+Before starting the Steps below, run [[phase-completion-check]] against
+`phase-6-dashboard-reporting`'s exit criteria.
+
 ## Objective
 
 In-app notifications (`notifications` table) plus outbound email via `@azure/msal-node` +
