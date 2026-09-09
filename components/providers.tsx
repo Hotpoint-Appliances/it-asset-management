@@ -15,7 +15,12 @@ export function Providers({
   const [queryClient] = React.useState(() => new QueryClient());
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
       <QueryClientProvider client={queryClient}>
         <SessionProvider user={session}>{children}</SessionProvider>
       </QueryClientProvider>

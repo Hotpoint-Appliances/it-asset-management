@@ -17,7 +17,9 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
     <nav className="flex flex-1 flex-col gap-1">
       {visibleItems.map((item) => {
         const active =
-          pathname === item.href || pathname.startsWith(`${item.href}/`);
+          item.href === "/"
+            ? pathname === "/"
+            : pathname === item.href || pathname.startsWith(`${item.href}/`);
         const Icon = item.icon;
         return (
           <Link

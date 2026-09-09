@@ -24,3 +24,8 @@ export async function withTransaction<T>(
     client.release();
   }
 }
+
+/** Postgres unique_violation (23505) — e.g. a duplicate email on `users`. */
+export function isUniqueViolation(err: unknown): boolean {
+  return typeof err === "object" && err !== null && "code" in err && err.code === "23505";
+}

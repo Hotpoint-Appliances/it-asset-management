@@ -34,30 +34,54 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts �
                                  # redirect only (login gate), added in Phase 2
 /app
   page.tsx                     # root route — renders AppShell directly (Phase 1 decision, no
-                                # separate homepage; Phase 2 adds the auth gate in front of it)
+                                # separate homepage; Phase 2 adds the auth gate in front of it).
+                                # Deliberately NOT inside the (dashboard) group below — it did its
+                                # own requireSession()+AppShell before that group existed and was
+                                # left as-is rather than folded in for an unrelated refactor.
   /(auth)/login/page.tsx        # Phase 2
-  /(dashboard)/dashboard/page.tsx
-  /(dashboard)/assets/...
+  /(dashboard)/layout.tsx       # requireSession() + <AppShell> — added Phase 3 so pages stop
+                                 # each wrapping themselves in AppShell individually
+  /(dashboard)/settings/layout.tsx   # + requireRole(["admin"]) + SettingsNav sub-nav (Phase 3)
+  /(dashboard)/settings/{categories,locations,departments,vendors,conditions,statuses,users}/
+                                 # lookup-table CRUD (Phase 3) — page.tsx + a client *Manager.tsx
+  /(dashboard)/assets/...       # Phase 4, renders inside the same (dashboard) group
   /403/page.tsx                 # target of lib/auth/session.ts's requireRole() (Phase 2)
-  /api/...                     # route handlers, one folder per resource
+  /api/...                     # route handlers, one folder per resource (REST-ish, kebab-case
+                                # plural nouns even where the UI groups routes under /settings —
+                                # e.g. /api/asset-conditions, not /api/settings/asset-conditions)
   /api/health/route.ts          # DB connectivity check (Phase 1)
   /api/auth/{login,logout}/route.ts   # Phase 2
-  /api/users/route.ts           # GET-only in Phase 2 (RBAC/dept-scoping proof); Phase 3 extends it
+  /api/users/route.ts           # GET-only in Phase 2 (RBAC/dept-scoping proof); POST added Phase 3
+  /api/users/[id]/route.ts      # PATCH: edit, or {isActive} to deactivate/reactivate (Phase 3)
 /components
   providers.tsx                # ThemeProvider (next-themes) + TanStack QueryClientProvider
-  /ui/                         # shadcn-style primitives (button, input, dialog, table, ...)
+  /ui/                         # shadcn-style primitives: button, input, select, dialog, sheet,
+                                # table, badge, dropdown-menu, card, skeleton, toast, ...
+  /shared/                     # cross-module components: TreePicker, EmptyState (Phase 3)
   /assets/                     # asset-specific components
   /auth/                        # LoginForm etc. (Phase 2)
-  /layout/                     # AppShell, Sidebar, Topbar, ThemeToggle, UserMenu, nav-items
+  /layout/                     # AppShell, Sidebar, Topbar, SettingsNav, ThemeToggle, UserMenu, nav-items
 /lib
   utils.ts                     # cn() helper (clsx + tailwind-merge) used by every ui primitive
-  /db/                         # pg pool + query functions, one file per table/domain
-  /auth/                       # jose session helpers (session.ts, session-context.tsx), password hashing
-  /validation/                 # request payload schemas (hand-rolled — no zod in the fixed deps)
+  tree.ts                      # buildTree/flattenForSelect/collectDescendantIds — shared by every
+                                # self-referencing lookup table (categories, locations) (Phase 3)
+  /db/                         # pg pool + query functions, one file per table/domain;
+                                # refCheck.ts's assertNotReferencedByAssets() guards every lookup
+                                # table's DELETE against a live asset FK (Phase 3)
+  /auth/                       # jose session helpers (session.ts, session-context.tsx), password
+                                # hashing; api.ts's getApiSession()/requireApiRole() is the route-
+                                # handler counterpart (401/403 JSON, not a redirect) (Phase 3)
+  /validation/                 # request payload schemas (hand-rolled — no zod in the fixed deps);
+                                # helpers.ts holds the small shared field-validation primitives
   /email/                      # msal-node + Graph email senders
 /scripts/seed-admin.ts          # first-admin bootstrap, npm run seed:admin (Phase 2)
-/store                         # zustand stores (index.ts holds useUIStore; add slices, not new stores)
-/types                         # shared TypeScript types (mirror schema.sql tables)
+/store                         # zustand stores (index.ts holds useUIStore: mobileNavOpen + the
+                                # toasts slice backing components/ui/Toast.tsx; add slices, not
+                                # new stores)
+/types                         # shared TypeScript types (mirror schema.sql tables) — populated
+                                # from Phase 3 on for shapes used across lib/db, API routes, and
+                                # multiple components; narrow/local types (e.g. AuthUser) stay in
+                                # their lib/db file instead
 /schema/schema.sql              # source of truth for DB structure
 /docs                          # flow docs, ERD notes
 ```

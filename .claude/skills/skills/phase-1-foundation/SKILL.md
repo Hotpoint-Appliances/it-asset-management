@@ -102,5 +102,5 @@ shell — the base every later phase builds pages into.
 - `app/api/health/route.ts` — `GET` health check querying `SELECT 1`.
 - `app/page.tsx` — root route renders `AppShell` directly (see Root route decision above).
 - `.env.example`, `.env.local` (gitignored — real local dev values, not committed).
-- `.data/asset-files/` (gitignored) — local dev value for `ASSET_FILES_BASE_PATH`; production
+production
   deployments point this at a real server path instead (e.g. `D:\itam-files`).

@@ -1,14 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import {
-  LayoutDashboard,
-  Boxes,
-  FolderTree,
-  MapPin,
-  Building2,
-  FileBarChart,
-  Settings,
-  UsersRound,
-} from "lucide-react";
+import { LayoutDashboard, Boxes, FileBarChart, Settings } from "lucide-react";
 import type { RoleName } from "@/lib/auth/session";
 
 export interface NavItem {
@@ -19,13 +10,11 @@ export interface NavItem {
   roles?: RoleName[];
 }
 
+// Categories/Locations/Departments/Users live under Settings (phase-3-core-data) rather than as
+// their own top-level items — keeps the sidebar from growing one entry per lookup table.
 export const navItems: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Dashboard", href: "/", icon: LayoutDashboard },
   { label: "Assets", href: "/assets", icon: Boxes },
-  { label: "Categories", href: "/categories", icon: FolderTree },
-  { label: "Locations", href: "/locations", icon: MapPin },
-  { label: "Departments", href: "/departments", icon: Building2 },
-  { label: "Users", href: "/users", icon: UsersRound, roles: ["admin"] },
   { label: "Reports", href: "/reports", icon: FileBarChart },
   { label: "Settings", href: "/settings", icon: Settings, roles: ["admin"] },
 ];
