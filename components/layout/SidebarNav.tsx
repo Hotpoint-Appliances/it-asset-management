@@ -4,13 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { navItems } from "./nav-items";
+import { useSession } from "@/lib/auth/session-context";
 
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const session = useSession();
+  const visibleItems = navItems.filter(
+    (item) => !item.roles || (session && item.roles.includes(session.roleName)),
+  );
 
   return (
     <nav className="flex flex-1 flex-col gap-1">
-      {navItems.map((item) => {
+      {visibleItems.map((item) => {
         const active =
           pathname === item.href || pathname.startsWith(`${item.href}/`);
         const Icon = item.icon;

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "seed:admin": "node scripts/seed-admin.ts"
   },
   "dependencies": {
     "@azure/msal-node": "^6.0.0",

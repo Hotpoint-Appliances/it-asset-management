@@ -1,7 +1,10 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { requireSession } from "@/lib/auth/session";
 
-export default function Home() {
+export default async function Home() {
+  await requireSession();
+
   return (
     <AppShell>
       <Card>

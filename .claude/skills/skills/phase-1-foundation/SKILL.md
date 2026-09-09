@@ -63,9 +63,10 @@ shell — the base every later phase builds pages into.
    **Root route (`/`) decision:** no separate marketing/landing page. `app/page.tsx` renders the
    app shell directly with a placeholder dashboard body (e.g. "Dashboard — coming soon" inside a
    `Card`). There is no auth yet in this phase, so the shell is unguarded — Phase 2 adds the
-   login gate/redirect (`middleware.ts` or a layout check) in front of this same shell rather
-   than replacing it. Do not build a distinct public homepage; it would be discarded once
-   Phase 2's redirect logic lands.
+   login gate/redirect in front of this same shell rather than replacing it (as `proxy.ts` —
+   Next.js 16 renamed `middleware.ts` to `proxy.ts`, see `phase-2-auth`'s Produces — plus a
+   defense-in-depth check in the page itself). Do not build a distinct public homepage; it
+   would be discarded once Phase 2's redirect logic lands.
 9. **Base `/components/ui` primitives**: `Button`, `Input`, `Card`, `Badge`, `Skeleton` at
    minimum — enough for later phases to start building on immediately. Additional primitives
    (`Dialog`, `Table`, `DropdownMenu`, etc.) can be added in the phase that first needs them.

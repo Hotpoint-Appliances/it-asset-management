@@ -30,25 +30,32 @@ No ORM is introduced. All queries go through a thin `lib/db` query layer using `
 ## Folder structure
 
 ```
+proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts — auth-presence
+                                 # redirect only (login gate), added in Phase 2
 /app
   page.tsx                     # root route — renders AppShell directly (Phase 1 decision, no
                                 # separate homepage; Phase 2 adds the auth gate in front of it)
-  /(auth)/login/page.tsx
+  /(auth)/login/page.tsx        # Phase 2
   /(dashboard)/dashboard/page.tsx
   /(dashboard)/assets/...
+  /403/page.tsx                 # target of lib/auth/session.ts's requireRole() (Phase 2)
   /api/...                     # route handlers, one folder per resource
   /api/health/route.ts          # DB connectivity check (Phase 1)
+  /api/auth/{login,logout}/route.ts   # Phase 2
+  /api/users/route.ts           # GET-only in Phase 2 (RBAC/dept-scoping proof); Phase 3 extends it
 /components
   providers.tsx                # ThemeProvider (next-themes) + TanStack QueryClientProvider
   /ui/                         # shadcn-style primitives (button, input, dialog, table, ...)
   /assets/                     # asset-specific components
-  /layout/                     # AppShell, Sidebar, Topbar, ThemeToggle, nav-items
+  /auth/                        # LoginForm etc. (Phase 2)
+  /layout/                     # AppShell, Sidebar, Topbar, ThemeToggle, UserMenu, nav-items
 /lib
   utils.ts                     # cn() helper (clsx + tailwind-merge) used by every ui primitive
   /db/                         # pg pool + query functions, one file per table/domain
-  /auth/                       # jose session helpers, password hashing
-  /validation/                 # request payload schemas
+  /auth/                       # jose session helpers (session.ts, session-context.tsx), password hashing
+  /validation/                 # request payload schemas (hand-rolled — no zod in the fixed deps)
   /email/                      # msal-node + Graph email senders
+/scripts/seed-admin.ts          # first-admin bootstrap, npm run seed:admin (Phase 2)
 /store                         # zustand stores (index.ts holds useUIStore; add slices, not new stores)
 /types                         # shared TypeScript types (mirror schema.sql tables)
 /schema/schema.sql              # source of truth for DB structure

@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, Boxes, Bell, UserCircle2 } from "lucide-react";
+import { Menu, Boxes, Bell } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import {
   Sheet,
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/Sheet";
 import { ThemeToggle } from "./ThemeToggle";
 import { SidebarNav } from "./SidebarNav";
+import { UserMenu } from "./UserMenu";
 import { useUIStore } from "@/store";
 
 export function Topbar() {
@@ -43,9 +44,7 @@ export function Topbar() {
           <Bell className="h-4 w-4" />
         </Button>
         <ThemeToggle />
-        <Button variant="ghost" size="icon" aria-label="User menu">
-          <UserCircle2 className="h-5 w-5" />
-        </Button>
+        <UserMenu />
       </div>
     </header>
   );

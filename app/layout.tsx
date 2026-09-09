@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { getSession } from "@/lib/auth/session";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,7 +20,9 @@ export const metadata: Metadata = {
   description: "Internal IT asset tracking and lifecycle management",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const session = await getSession();
+
   return (
     <html
       lang="en"
@@ -27,7 +30,21 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
-        <Providers>{children}</Providers>
+        <Providers
+          session={
+            session
+              ? {
+                  userId: session.userId,
+                  fullName: session.fullName,
+                  email: session.email,
+                  roleName: session.roleName,
+                  departmentId: session.departmentId,
+                }
+              : null
+          }
+        >
+          {children}
+        </Providers>
       </body>
     </html>
   );
