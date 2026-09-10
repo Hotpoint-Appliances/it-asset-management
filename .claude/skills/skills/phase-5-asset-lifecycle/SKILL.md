@@ -49,6 +49,17 @@ asset detail page.
    `asset_audit_log` (newest first), rendering `action_type`, human-readable field/old/new
    values, `note`, performed-by user name, timestamp. This is the payoff of the unified audit
    log design — one query, one component, covers every action type.
+7. **Soft delete (data-entry correction only — not disposal, not Phase 4 scope)** — admin-only
+   action, added here rather than Phase 4 because it belongs with this phase's other
+   asset-ending, confirmation-gated actions. Sets `assets.deleted_at = now()` and writes a
+   `deleted` `asset_audit_log` row (mutating a tracked column always gets an audit row, per
+   [[itam-schema-reference]], even though the row becomes unreachable through the normal
+   timeline once the asset itself is excluded from every query — it stays in the DB for
+   forensic purposes). Per [[itam-schema-reference]] point 6: **never** conflate this with
+   disposal — a confirmation `Dialog` must say plainly that this is for correcting a mistaken
+   entry, not for retiring a real asset (disposal is step 5, above). Expose as
+   `DELETE /api/assets/[id]`; every `lib/db/assets.ts` query from Phase 4 already filters on
+   `deleted_at IS NULL`, so no read-path changes are needed here.
 
 ## Exit criteria
 
@@ -56,13 +67,18 @@ asset detail page.
   checking the timeline UI after each action.
 - Disposal is unreachable via the generic status-change path; only via the dedicated flow.
 - Maintenance → status prompts work end-to-end (in_progress → in_repair, completed → restore).
+- Soft delete is admin-only, distinct from disposal in its confirmation copy, and a
+  soft-deleted asset disappears from the list/detail/API immediately (already true by
+  construction, since Phase 4's queries filter on `deleted_at IS NULL` — verify it stays true).
 
 ## Produces (for later phases to reference)
 
-- `lib/db/{auditLog,maintenance,disposals}.ts`
-- Transfer/condition/status/disposal `Dialog` components (reusable from the asset list row
-  actions too, not just the detail page)
+- `lib/db/{auditLog,maintenance,disposals}.ts`; `lib/db/assets.ts` extended with a soft-delete
+  function
+- Transfer/condition/status/disposal/delete `Dialog` components (reusable from the asset list
+  row actions too, not just the detail page)
 - Audit log timeline component
+- `app/api/assets/[id]/route.ts` extended with `DELETE`
 
 ## Related skills
 

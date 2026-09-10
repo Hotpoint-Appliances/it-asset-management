@@ -12,13 +12,19 @@ import { ThemeToggle } from "./ThemeToggle";
 import { SidebarNav } from "./SidebarNav";
 import { UserMenu } from "./UserMenu";
 import { useUIStore } from "@/store";
+import { cn } from "@/lib/utils";
 
-export function Topbar() {
+export function Topbar({ className }: { className?: string }) {
   const mobileNavOpen = useUIStore((s) => s.mobileNavOpen);
   const setMobileNavOpen = useUIStore((s) => s.setMobileNavOpen);
 
   return (
-    <header className="border-border bg-background sticky top-0 z-40 flex h-16 items-center gap-3 border-b px-4">
+    <header
+      className={cn(
+        "border-border bg-background sticky top-0 z-40 flex h-16 items-center gap-3 border-b px-4",
+        className,
+      )}
+    >
       <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
         <SheetTrigger asChild>
           <Button
