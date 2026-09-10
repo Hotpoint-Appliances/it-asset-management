@@ -22,7 +22,11 @@ first when starting any implementation work on the IT Asset Management System.
 - `pg` — raw PostgreSQL queries (no ORM — write SQL directly against `schema/schema.sql`)
 - `@azure/msal-node` + Microsoft Graph — email notifications
 - Dev: Tailwind CSS, Prettier, TypeScript, ESLint, `@types/qrcode` (added Phase 4 — the `qrcode`
-  package ships no types of its own)
+  package ships no types of its own), `playwright` (added as a persisted devDependency during
+  Phase 4's completion verification, plus the Chromium binary via `npx playwright install
+  chromium` — the earlier in-phase attempt used an ephemeral `npx` invocation that hung once and
+  left no trace in `package.json`; installing it for real means later phases don't need to
+  reinstall from scratch to do their own live-browser exit-criteria checks)
 - UI pattern: shadcn/ui style (Radix primitives + Tailwind) — see `itam-design-system` skill
 - Barcode/QR: `qrcode` (QR) for asset tag labels — see `phase-4-asset-management`
 

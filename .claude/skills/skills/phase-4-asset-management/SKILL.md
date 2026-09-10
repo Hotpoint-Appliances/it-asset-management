@@ -179,6 +179,26 @@ the way this phase's asset pages do).
   owner-mode toggle correctly swapping `UserTypeahead` for the free-text fields, and the mobile
   layout collapsing to one column per [[itam-design-system]].
 
+## Re-verified independently before Phase 5 (via `phase-completion-check`)
+
+All exit criteria above were re-checked from scratch in a later session, against the live repo
+rather than this file's own claims: every "Produces" file exists and isn't a stub; `tsc --noEmit`
+and `npm run lint` both still clean; the DB (`assets`/`asset_audit_log`/`asset_attachments`
+tables) and `ASSET_FILES_BASE_PATH` disk contents match what the exit criteria describe having
+been left behind (one test asset, two audit rows, one uploaded image, zero attachments after the
+delete-and-confirm check); `assets.deleted_at` exists and every `lib/db/assets.ts` query already
+filters on it, confirming Phase 5's Step 7 assumption holds. Playwright (now a persisted
+devDependency — see `itam-conventions`) drove a fresh admin session (minted the same way, via
+`jose` + `JWT_SECRET`) through list/create/detail/edit/label with zero console/page errors,
+re-confirmed the QR data URI on the label route, re-confirmed the Status multi-select filter
+updates the URL to `?statusId=1` with no errors, and added two checks the original pass's writeup
+didn't spell out explicitly: a viewer in a different department gets 404 (not 403) on both the
+page route and the API for an asset outside their department, and the image route serves
+`Content-Type: image/png`. Also re-confirmed duplicate `asset_tag` -> 409 and a bad
+`categoryId` -> 400 live (the validator's "owner or assigned user required" check must be
+satisfied first, or both cases collapse to the same 400 for an unrelated reason — worth knowing
+if re-testing this by hand). No code changes were needed; the phase holds up.
+
 ## Explicitly out of scope for this phase (Phase 5 handles these)
 
 - Transfer actions (location/department/owner change as a dedicated workflow with audit
