@@ -141,7 +141,9 @@ export function AssetForm({
   const [form, setForm] = React.useState<FormState>(() => initialState(asset, defaultStatusId));
   const [imageFile, setImageFile] = React.useState<File | null>(null);
   const [imagePreview, setImagePreview] = React.useState<string | null>(
-    asset?.imagePath ? `/api/assets/${asset.id}/image` : null,
+    asset?.imagePath
+      ? `/api/assets/${asset.id}/image?v=${encodeURIComponent(asset.imagePath)}`
+      : null,
   );
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);

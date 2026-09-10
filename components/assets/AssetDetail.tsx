@@ -122,7 +122,7 @@ export function AssetDetail({
           {asset.imagePath ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={`/api/assets/${asset.id}/image`}
+              src={`/api/assets/${asset.id}/image?v=${encodeURIComponent(asset.imagePath)}`}
               alt=""
               className="border-border h-32 w-32 shrink-0 rounded-md border object-cover"
             />
