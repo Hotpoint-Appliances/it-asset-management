@@ -41,7 +41,10 @@ export interface AssetWithRelations extends Asset {
   createdByName: string;
 }
 
-/** Slim row shape for the asset list table — avoids shipping every column to the client. */
+/** Slim row shape for the asset list table — avoids shipping every column to the client.
+ * Carries locationId/departmentId/assignedUserId/ownerEmail (not just the *Name display
+ * columns) so the list row's Transfer dialog (phase-5-asset-lifecycle) can prefill from here
+ * without a second fetch, per itam-design-system's "row actions gain Transfer/Dispose". */
 export interface AssetListItem {
   id: string;
   assetTag: string;
@@ -50,10 +53,14 @@ export interface AssetListItem {
   categoryName: string;
   statusName: string;
   conditionName: string;
+  locationId: number;
   locationName: string;
+  departmentId: number;
   departmentName: string;
+  assignedUserId: string | null;
   assignedUserName: string | null;
   ownerName: string | null;
+  ownerEmail: string | null;
 }
 
 export interface AssetInput {

@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiSession, requireApiRole } from "@/lib/auth/api";
-import { getAssetById, updateAsset, setAssetImagePath } from "@/lib/db/assets";
-import { validateAssetInput, assetInputFromFormData } from "@/lib/validation/assets";
+import {
+  getAssetById,
+  updateAsset,
+  setAssetImagePath,
+  softDeleteAsset,
+} from "@/lib/db/assets";
+import {
+  validateAssetInput,
+  assetInputFromFormData,
+} from "@/lib/validation/assets";
 import { isUniqueViolation, isForeignKeyViolation } from "@/lib/db/query";
-import { assertValidImage, saveAssetImage, deleteUploadedFile, UploadValidationError } from "@/lib/files/upload";
+import {
+  assertValidImage,
+  saveAssetImage,
+  deleteUploadedFile,
+  UploadValidationError,
+} from "@/lib/files/upload";
 
 export async function GET(
   _request: NextRequest,
@@ -41,7 +54,8 @@ export async function PATCH(
   }
 
   const imageField = formData.get("image");
-  const imageFile = imageField instanceof File && imageField.size > 0 ? imageField : null;
+  const imageFile =
+    imageField instanceof File && imageField.size > 0 ? imageField : null;
   if (imageFile) {
     try {
       assertValidImage(imageFile);
@@ -63,11 +77,17 @@ export async function PATCH(
     asset = await updateAsset(id, validated.data, session.userId);
   } catch (err) {
     if (isUniqueViolation(err)) {
-      return NextResponse.json({ error: "Asset tag is already in use" }, { status: 409 });
+      return NextResponse.json(
+        { error: "Asset tag is already in use" },
+        { status: 409 },
+      );
     }
     if (isForeignKeyViolation(err)) {
       return NextResponse.json(
-        { error: "One of the referenced category/location/department/condition/status/vendor/user records does not exist" },
+        {
+          error:
+            "One of the referenced category/location/department/condition/status/vendor/user records does not exist",
+        },
         { status: 400 },
       );
     }
@@ -85,4 +105,29 @@ export async function PATCH(
   }
 
   return NextResponse.json({ asset });
+}
+
+/** Soft delete (phase-5-asset-lifecycle Step 7) — data-entry correction only, never disposal
+ * (per itam-schema-reference point 6); admin-only, unlike every other mutation above which
+ * accepts admin or asset_manager. */
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const session = await getApiSession();
+  if (session instanceof NextResponse) return session;
+  const forbidden = requireApiRole(session, ["admin"]);
+  if (forbidden) return forbidden;
+
+  const { id } = await params;
+  const existing = await getAssetById(id, session);
+  if (!existing) {
+    return NextResponse.json({ error: "Asset not found" }, { status: 404 });
+  }
+
+  const deleted = await softDeleteAsset(id, session.userId);
+  if (!deleted) {
+    return NextResponse.json({ error: "Asset not found" }, { status: 404 });
+  }
+  return NextResponse.json({ success: true });
 }

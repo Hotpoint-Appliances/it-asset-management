@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { Plus, Search, X, Boxes, Eye, Pencil } from "lucide-react";
+import { Plus, Search, X, Boxes } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -17,7 +17,12 @@ import {
 } from "@/components/ui/Table";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { MultiSelectFilter } from "@/components/shared/MultiSelectFilter";
-import { statusBadgeVariant, conditionBadgeVariant, formatLookupName } from "@/lib/badgeVariants";
+import { AssetRowActions } from "./AssetRowActions";
+import {
+  statusBadgeVariant,
+  conditionBadgeVariant,
+  formatLookupName,
+} from "@/lib/badgeVariants";
 import type { AssetListItem } from "@/types/asset";
 import type { Category } from "@/types/category";
 import type { Location } from "@/types/location";
@@ -38,7 +43,13 @@ interface AssetsListProps {
   statuses: AssetStatus[];
 }
 
-const FILTER_KEYS = ["statusId", "categoryId", "departmentId", "locationId", "conditionId"] as const;
+const FILTER_KEYS = [
+  "statusId",
+  "categoryId",
+  "departmentId",
+  "locationId",
+  "conditionId",
+] as const;
 
 export function AssetsList({
   assets,
@@ -88,7 +99,8 @@ export function AssetsList({
   }
 
   const hasFilters =
-    FILTER_KEYS.some((key) => currentValues(key).length > 0) || !!searchParams.get("search");
+    FILTER_KEYS.some((key) => currentValues(key).length > 0) ||
+    !!searchParams.get("search");
 
   function goToPage(nextPage: number) {
     const params = new URLSearchParams(searchParams.toString());
@@ -136,36 +148,56 @@ export function AssetsList({
         <div className="flex flex-wrap items-center gap-2">
           <MultiSelectFilter
             label="Status"
-            options={statuses.map((s) => ({ value: String(s.id), label: formatLookupName(s.name) }))}
+            options={statuses.map((s) => ({
+              value: String(s.id),
+              label: formatLookupName(s.name),
+            }))}
             selected={currentValues("statusId")}
             onChange={(v) => setMulti("statusId", v)}
           />
           <MultiSelectFilter
             label="Category"
-            options={categories.map((c) => ({ value: String(c.id), label: c.name }))}
+            options={categories.map((c) => ({
+              value: String(c.id),
+              label: c.name,
+            }))}
             selected={currentValues("categoryId")}
             onChange={(v) => setMulti("categoryId", v)}
           />
           <MultiSelectFilter
             label="Department"
-            options={departments.map((d) => ({ value: String(d.id), label: d.name }))}
+            options={departments.map((d) => ({
+              value: String(d.id),
+              label: d.name,
+            }))}
             selected={currentValues("departmentId")}
             onChange={(v) => setMulti("departmentId", v)}
           />
           <MultiSelectFilter
             label="Location"
-            options={locations.map((l) => ({ value: String(l.id), label: l.name }))}
+            options={locations.map((l) => ({
+              value: String(l.id),
+              label: l.name,
+            }))}
             selected={currentValues("locationId")}
             onChange={(v) => setMulti("locationId", v)}
           />
           <MultiSelectFilter
             label="Condition"
-            options={conditions.map((c) => ({ value: String(c.id), label: formatLookupName(c.name) }))}
+            options={conditions.map((c) => ({
+              value: String(c.id),
+              label: formatLookupName(c.name),
+            }))}
             selected={currentValues("conditionId")}
             onChange={(v) => setMulti("conditionId", v)}
           />
           {hasFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="gap-1"
+            >
               <X className="h-3.5 w-3.5" />
               Clear filters
             </Button>
@@ -209,7 +241,9 @@ export function AssetsList({
             <TableBody>
               {assets.map((asset) => (
                 <TableRow key={asset.id}>
-                  <TableCell className="font-mono text-xs font-medium">{asset.assetTag}</TableCell>
+                  <TableCell className="font-mono text-xs font-medium">
+                    {asset.assetTag}
+                  </TableCell>
                   <TableCell className="font-medium">{asset.name}</TableCell>
                   <TableCell>{asset.categoryName}</TableCell>
                   <TableCell>
@@ -224,22 +258,16 @@ export function AssetsList({
                   </TableCell>
                   <TableCell>{asset.locationName}</TableCell>
                   <TableCell>{asset.departmentName}</TableCell>
-                  <TableCell>{asset.assignedUserName ?? asset.ownerName ?? "—"}</TableCell>
+                  <TableCell>
+                    {asset.assignedUserName ?? asset.ownerName ?? "—"}
+                  </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/assets/${asset.id}`}>
-                        <Eye className="h-4 w-4" />
-                        <span className="sr-only">View</span>
-                      </Link>
-                    </Button>
-                    {canManage && (
-                      <Button variant="ghost" size="icon" asChild>
-                        <Link href={`/assets/${asset.id}/edit`}>
-                          <Pencil className="h-4 w-4" />
-                          <span className="sr-only">Edit</span>
-                        </Link>
-                      </Button>
-                    )}
+                    <AssetRowActions
+                      asset={asset}
+                      canManage={canManage}
+                      locations={locations}
+                      departments={departments}
+                    />
                   </TableCell>
                 </TableRow>
               ))}

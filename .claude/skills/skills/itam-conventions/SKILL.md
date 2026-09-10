@@ -70,6 +70,10 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts �
   /api/assets/[id]/attachments/route.ts               # GET/POST (Phase 4)
   /api/assets/[id]/attachments/[attachmentId]/route.ts        # DELETE (Phase 4)
   /api/assets/[id]/attachments/[attachmentId]/file/route.ts   # GET, serves from disk (Phase 4)
+  /api/assets/[id]/route.ts     # DELETE added Phase 5 — admin-only soft delete
+  /api/assets/[id]/{transfer,condition,status,dispose}/route.ts   # POST, lifecycle actions (Phase 5)
+  /api/assets/[id]/maintenance/route.ts               # GET/POST (Phase 5)
+  /api/assets/[id]/maintenance/[maintenanceId]/route.ts       # PATCH (Phase 5)
 /components
   providers.tsx                # ThemeProvider (next-themes) + TanStack QueryClientProvider
   /ui/                         # shadcn-style primitives: button, input, select, dialog, sheet,
@@ -79,9 +83,15 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts �
   /shared/                     # cross-module components: TreePicker, EmptyState (Phase 3);
                                 # MultiSelectFilter — checkbox dropdown built on
                                 # DropdownMenuCheckboxItem, since no Radix Popover/Combobox is in
-                                # the fixed dependency set (Phase 4)
+                                # the fixed dependency set (Phase 4); ConfirmDialog — generic
+                                # confirm/prompt dialog, `description` renders via
+                                # `DialogDescription asChild` into a <div> (not Radix's default
+                                # <p>) so it can carry block content like a note textarea (Phase 5)
   /assets/                     # AssetsList, AssetForm, AssetDetail, AssetAttachments,
-                                # AssetQrCode (server component), UserTypeahead (Phase 4)
+                                # AssetQrCode (server component), UserTypeahead (Phase 4);
+                                # TransferDialog/ConditionDialog/StatusDialog/DisposalDialog,
+                                # AuditLogTimeline, MaintenanceTab, AssetRowActions (list row's
+                                # View/Edit/Transfer/Dispose DropdownMenu) (Phase 5)
   /auth/                        # LoginForm etc. (Phase 2)
   /layout/                     # AppShell, Sidebar, Topbar, SettingsNav, ThemeToggle, UserMenu, nav-items
                                 # (Sidebar/Topbar take a className prop so AppShell can pass
@@ -97,7 +107,11 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts �
                                 # money value in the schema is KES, no currency column (Phase 4)
   /files/upload.ts              # disk upload helpers: assertValidImage/assertValidAttachment,
                                 # saveAssetImage/saveAssetAttachment, deleteUploadedFile,
-                                # resolveUploadedFilePath, mimeTypeForPath (Phase 4)
+                                # resolveUploadedFilePath, mimeTypeForPath (Phase 4);
+                                # saveAssetDisposalAttachment (Phase 5)
+  /hooks/useSyncOnOpen.ts       # resets a Dialog's form to current values when it reopens, via
+                                # render-time state adjustment rather than useEffect (this repo's
+                                # eslint config flags synchronous setState-in-effect) (Phase 5)
   /db/                         # pg pool + query functions, one file per table/domain;
                                 # refCheck.ts's assertNotReferencedByAssets() guards every lookup
                                 # table's DELETE against a live asset FK (Phase 3); query.ts
@@ -109,14 +123,28 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts �
                                 # returns DATE/TIMESTAMPTZ as native Date objects, which survive
                                 # unconverted into a Server Component that calls lib/db directly
                                 # instead of going through an API route's JSON.stringify; the
-                                # DATE case is also timezone-sensitive — see dates.ts's comment)
+                                # DATE case is also timezone-sensitive — see dates.ts's comment).
+                                # assets.ts's updateAsset() full-form-edit body was extracted into
+                                # a shared updateAssetInternal()/patchAssetFields() so the
+                                # dedicated lifecycle actions (transferAsset/changeAssetCondition/
+                                # changeAssetStatus/softDeleteAsset) reuse the same field-diffing
+                                # audit-log logic instead of a second write path; mapAsset/
+                                # SELECT_COLUMNS/AssetRow now exported for disposals.ts to reuse
+                                # (Phase 5). auditLog.ts (listAuditLogForAsset,
+                                # findStatusBeforeMostRecentInRepair — the latter resolves the
+                                # maintenance module's "restore prior status" prompt purely from
+                                # the unified audit log, no schema change), maintenance.ts,
+                                # disposals.ts (Phase 5)
   /auth/                       # jose session helpers (session.ts, session-context.tsx), password
                                 # hashing; api.ts's getApiSession()/requireApiRole() is the route-
                                 # handler counterpart (401/403 JSON, not a redirect) (Phase 3)
   /validation/                 # request payload schemas (hand-rolled — no zod in the fixed deps);
                                 # helpers.ts holds the small shared field-validation primitives;
                                 # assets.ts also exports assetInputFromFormData() since the asset
-                                # form posts multipart, not JSON (Phase 4)
+                                # form posts multipart, not JSON (Phase 4); assetLifecycle.ts —
+                                # transfer/maintenance/disposal validators (condition/status
+                                # changes are simple enough to validate inline in their routes)
+                                # (Phase 5)
   /email/                      # msal-node + Graph email senders
 /scripts/seed-admin.ts          # first-admin bootstrap, npm run seed:admin (Phase 2)
 /store                         # zustand stores (index.ts holds useUIStore: mobileNavOpen + the

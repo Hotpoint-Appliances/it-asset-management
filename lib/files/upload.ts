@@ -19,12 +19,20 @@ function basePath(): string {
   return base;
 }
 
-function assertValidFile(file: File, allowed: Set<string>, maxBytes: number): void {
+function assertValidFile(
+  file: File,
+  allowed: Set<string>,
+  maxBytes: number,
+): void {
   if (!allowed.has(file.type)) {
-    throw new UploadValidationError(`Unsupported file type: ${file.type || "unknown"}`);
+    throw new UploadValidationError(
+      `Unsupported file type: ${file.type || "unknown"}`,
+    );
   }
   if (file.size > maxBytes) {
-    throw new UploadValidationError(`File too large (max ${Math.round(maxBytes / 1024 / 1024)}MB)`);
+    throw new UploadValidationError(
+      `File too large (max ${Math.round(maxBytes / 1024 / 1024)}MB)`,
+    );
   }
 }
 
@@ -56,11 +64,30 @@ async function writeUploadedFile(
 }
 
 export function saveAssetImage(assetId: string, file: File) {
-  return writeUploadedFile(file, `assets/${assetId}`, IMAGE_TYPES, MAX_IMAGE_BYTES);
+  return writeUploadedFile(
+    file,
+    `assets/${assetId}`,
+    IMAGE_TYPES,
+    MAX_IMAGE_BYTES,
+  );
 }
 
 export function saveAssetAttachment(assetId: string, file: File) {
-  return writeUploadedFile(file, `assets/${assetId}/attachments`, ATTACHMENT_TYPES, MAX_ATTACHMENT_BYTES);
+  return writeUploadedFile(
+    file,
+    `assets/${assetId}/attachments`,
+    ATTACHMENT_TYPES,
+    MAX_ATTACHMENT_BYTES,
+  );
+}
+
+export function saveAssetDisposalAttachment(assetId: string, file: File) {
+  return writeUploadedFile(
+    file,
+    `assets/${assetId}/disposal`,
+    ATTACHMENT_TYPES,
+    MAX_ATTACHMENT_BYTES,
+  );
 }
 
 /** Best-effort delete — a missing file (already removed, or never written) is not an error. */
@@ -85,5 +112,8 @@ const MIME_BY_EXT: Record<string, string> = {
 };
 
 export function mimeTypeForPath(filePath: string): string {
-  return MIME_BY_EXT[path.extname(filePath).toLowerCase()] ?? "application/octet-stream";
+  return (
+    MIME_BY_EXT[path.extname(filePath).toLowerCase()] ??
+    "application/octet-stream"
+  );
 }

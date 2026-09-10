@@ -1,28 +1,120 @@
 "use client";
 
+import * as React from "react";
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Pencil, Printer, User as UserIcon, Building2, MapPin, Tag, History, Wrench } from "lucide-react";
+import axios from "axios";
+import {
+  Pencil,
+  Printer,
+  Building2,
+  MapPin,
+  Tag,
+  ChevronDown,
+  ArrowRightLeft,
+  Repeat,
+  Trash2,
+  AlertOctagon,
+  BroomSparkles,
+  UserRound,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
-import { EmptyState } from "@/components/shared/EmptyState";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/DropdownMenu";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { AssetAttachments } from "./AssetAttachments";
-import { statusBadgeVariant, conditionBadgeVariant, formatLookupName } from "@/lib/badgeVariants";
+import { TransferDialog } from "./TransferDialog";
+import { ConditionDialog } from "./ConditionDialog";
+import { StatusDialog } from "./StatusDialog";
+import { DisposalDialog } from "./DisposalDialog";
+import { AuditLogTimeline } from "./AuditLogTimeline";
+import { MaintenanceTab } from "./MaintenanceTab";
+import { useUIStore } from "@/store";
+import {
+  statusBadgeVariant,
+  conditionBadgeVariant,
+  formatLookupName,
+} from "@/lib/badgeVariants";
 import { formatCurrency } from "@/lib/format";
 import type { AssetWithRelations } from "@/types/asset";
 import type { AssetAttachment } from "@/types/assetAttachment";
+import type { AssetAuditLogEntry } from "@/types/auditLog";
+import type { AssetMaintenance } from "@/types/maintenance";
+import type { Location } from "@/types/location";
+import type { Department } from "@/types/department";
+import type { Vendor } from "@/types/vendor";
+import type { AssetCondition } from "@/types/assetCondition";
+import type { AssetStatus } from "@/types/assetStatus";
+
+function errorMessage(err: unknown): string {
+  if (axios.isAxiosError(err) && err.response?.data?.error)
+    return err.response.data.error;
+  return "Something went wrong. Please try again.";
+}
+
+type ActiveDialog =
+  "transfer" | "condition" | "status" | "dispose" | "delete" | null;
 
 export function AssetDetail({
   asset,
   attachments,
+  auditLog,
+  maintenance,
   canManage,
+  isAdmin,
+  locations,
+  departments,
+  vendors,
+  conditions,
+  statuses,
 }: {
   asset: AssetWithRelations;
   attachments: AssetAttachment[];
+  auditLog: AssetAuditLogEntry[];
+  maintenance: AssetMaintenance[];
   canManage: boolean;
+  isAdmin: boolean;
+  locations: Location[];
+  departments: Department[];
+  vendors: Vendor[];
+  conditions: AssetCondition[];
+  statuses: AssetStatus[];
 }) {
+  const router = useRouter();
+  const addToast = useUIStore((s) => s.addToast);
+  const [activeDialog, setActiveDialog] = React.useState<ActiveDialog>(null);
+  const [deleting, setDeleting] = React.useState(false);
+
+  const isDisposed = asset.statusName === "disposed";
+  const hasLifecycleActions = canManage && !isDisposed;
+
+  async function handleSoftDelete() {
+    setDeleting(true);
+    try {
+      await axios.delete(`/api/assets/${asset.id}`);
+      addToast({ title: "Asset deleted" });
+      router.push("/assets");
+    } catch (err) {
+      addToast({
+        title: "Could not delete asset",
+        description: errorMessage(err),
+        variant: "error",
+      });
+    } finally {
+      setDeleting(false);
+      setActiveDialog(null);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <Card>
@@ -42,8 +134,12 @@ export function AssetDetail({
           <div className="flex flex-1 flex-col gap-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p className="text-muted-foreground font-mono text-xs">{asset.assetTag}</p>
-                <h1 className="text-2xl font-semibold tracking-tight">{asset.name}</h1>
+                <p className="text-muted-foreground font-mono text-xs">
+                  {asset.assetTag}
+                </p>
+                <h1 className="text-2xl font-semibold tracking-tight">
+                  {asset.name}
+                </h1>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" asChild>
@@ -53,12 +149,65 @@ export function AssetDetail({
                   </Link>
                 </Button>
                 {canManage && (
-                  <Button asChild>
+                  <Button variant="outline" asChild>
                     <Link href={`/assets/${asset.id}/edit`}>
                       <Pencil className="h-4 w-4" />
                       Edit
                     </Link>
                   </Button>
+                )}
+                {(hasLifecycleActions || isAdmin) && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button>
+                        Actions
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {hasLifecycleActions && (
+                        <>
+                          <DropdownMenuItem
+                            onSelect={() => setActiveDialog("transfer")}
+                          >
+                            <ArrowRightLeft className="h-4 w-4" />
+                            Transfer
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onSelect={() => setActiveDialog("condition")}
+                          >
+                            <BroomSparkles className="h-4 w-4" />
+                            Change condition
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onSelect={() => setActiveDialog("status")}
+                          >
+                            <Repeat className="h-4 w-4" />
+                            Change status
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onSelect={() => setActiveDialog("dispose")}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <AlertOctagon className="h-4 w-4" />
+                            Dispose
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      {isAdmin && (
+                        <>
+                          {hasLifecycleActions && <DropdownMenuSeparator />}
+                          <DropdownMenuItem
+                            onSelect={() => setActiveDialog("delete")}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Delete (data-entry correction)
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
               </div>
             </div>
@@ -80,8 +229,10 @@ export function AssetDetail({
                 <span>{asset.departmentName}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <UserIcon className="text-muted-foreground h-3.5 w-3.5" />
-                <span>{asset.assignedUserName ?? asset.ownerName ?? "Unassigned"}</span>
+                <UserRound className="text-muted-foreground h-3.5 w-3.5" />
+                <span>
+                  {asset.assignedUserName ?? asset.ownerName ?? "Unassigned"}
+                </span>
               </div>
             </dl>
           </div>
@@ -100,23 +251,83 @@ export function AssetDetail({
           <OverviewGrid asset={asset} />
         </TabsContent>
         <TabsContent value="audit">
-          <EmptyState
-            icon={History}
-            title="Audit log coming in Phase 5"
-            description="Transfers, condition/status changes, maintenance, and disposal will build out a full timeline here."
+          <AuditLogTimeline
+            entries={auditLog}
+            locations={locations}
+            departments={departments}
+            conditions={conditions}
+            statuses={statuses}
           />
         </TabsContent>
         <TabsContent value="attachments">
-          <AssetAttachments assetId={asset.id} initialAttachments={attachments} canManage={canManage} />
+          <AssetAttachments
+            assetId={asset.id}
+            initialAttachments={attachments}
+            canManage={canManage}
+          />
         </TabsContent>
         <TabsContent value="maintenance">
-          <EmptyState
-            icon={Wrench}
-            title="Maintenance tracking coming in Phase 5"
-            description="Repair, service, and inspection records will live here."
+          <MaintenanceTab
+            assetId={asset.id}
+            initialMaintenance={maintenance}
+            vendors={vendors}
+            statuses={statuses}
+            canManage={canManage}
           />
         </TabsContent>
       </Tabs>
+
+      {hasLifecycleActions && (
+        <>
+          <TransferDialog
+            asset={asset}
+            locations={locations}
+            departments={departments}
+            open={activeDialog === "transfer"}
+            onOpenChange={(open) => setActiveDialog(open ? "transfer" : null)}
+          />
+          <ConditionDialog
+            assetId={asset.id}
+            currentConditionId={asset.conditionId}
+            conditions={conditions}
+            open={activeDialog === "condition"}
+            onOpenChange={(open) => setActiveDialog(open ? "condition" : null)}
+          />
+          <StatusDialog
+            assetId={asset.id}
+            currentStatusId={asset.statusId}
+            statuses={statuses}
+            open={activeDialog === "status"}
+            onOpenChange={(open) => setActiveDialog(open ? "status" : null)}
+          />
+          <DisposalDialog
+            assetId={asset.id}
+            assetName={asset.name}
+            open={activeDialog === "dispose"}
+            onOpenChange={(open) => setActiveDialog(open ? "dispose" : null)}
+          />
+        </>
+      )}
+      {isAdmin && (
+        <ConfirmDialog
+          open={activeDialog === "delete"}
+          onOpenChange={(open) => setActiveDialog(open ? "delete" : null)}
+          title="Delete asset record"
+          description={
+            <>
+              This is for correcting a mistaken entry (e.g. a duplicate),{" "}
+              <strong>not</strong> for retiring a real asset — use Dispose for
+              that. This removes <strong>{asset.name}</strong> from every list
+              and search immediately; the record is kept for forensic purposes
+              but is otherwise unreachable.
+            </>
+          }
+          confirmLabel="Delete"
+          destructive
+          submitting={deleting}
+          onConfirm={handleSoftDelete}
+        />
+      )}
     </div>
   );
 }
@@ -129,19 +340,34 @@ function OverviewGrid({ asset }: { asset: AssetWithRelations }) {
     ["Vendor", asset.vendorName ?? "—"],
     [
       "Purchase date",
-      asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : "—",
+      asset.purchaseDate
+        ? new Date(asset.purchaseDate).toLocaleDateString()
+        : "—",
     ],
-    ["Purchase cost", asset.purchaseCost != null ? formatCurrency(asset.purchaseCost) : "—"],
+    [
+      "Purchase cost",
+      asset.purchaseCost != null ? formatCurrency(asset.purchaseCost) : "—",
+    ],
     [
       "Warranty expiry",
-      asset.warrantyExpiry ? new Date(asset.warrantyExpiry).toLocaleDateString() : "—",
+      asset.warrantyExpiry
+        ? new Date(asset.warrantyExpiry).toLocaleDateString()
+        : "—",
     ],
     [
       "Depreciation method",
-      asset.depreciationMethod ? formatLookupName(asset.depreciationMethod) : "—",
+      asset.depreciationMethod
+        ? formatLookupName(asset.depreciationMethod)
+        : "—",
     ],
-    ["Useful life", asset.usefulLifeMonths != null ? `${asset.usefulLifeMonths} months` : "—"],
-    ["Salvage value", asset.salvageValue != null ? formatCurrency(asset.salvageValue) : "—"],
+    [
+      "Useful life",
+      asset.usefulLifeMonths != null ? `${asset.usefulLifeMonths} months` : "—",
+    ],
+    [
+      "Salvage value",
+      asset.salvageValue != null ? formatCurrency(asset.salvageValue) : "—",
+    ],
     ["Owner email", asset.ownerEmail ?? "—"],
     ["Created by", asset.createdByName],
     ["Created", new Date(asset.createdAt).toLocaleString()],
