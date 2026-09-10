@@ -47,6 +47,12 @@ export async function PATCH(
   if (!existing) {
     return NextResponse.json({ error: "Asset not found" }, { status: 404 });
   }
+  if (existing.statusName === "disposed") {
+    return NextResponse.json(
+      { error: "A disposed asset cannot be edited" },
+      { status: 400 },
+    );
+  }
 
   const formData = await request.formData().catch(() => null);
   if (!formData) {

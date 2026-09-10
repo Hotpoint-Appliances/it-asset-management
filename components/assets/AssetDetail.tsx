@@ -148,7 +148,7 @@ export function AssetDetail({
                     Print label
                   </Link>
                 </Button>
-                {canManage && (
+                {canManage && !isDisposed && (
                   <Button variant="outline" asChild>
                     <Link href={`/assets/${asset.id}/edit`}>
                       <Pencil className="h-4 w-4" />

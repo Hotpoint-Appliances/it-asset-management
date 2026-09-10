@@ -18,6 +18,7 @@ export default async function EditAssetPage({
   const { id } = await params;
   const asset = await getAssetById(id, session);
   if (!asset) notFound();
+  if (asset.statusName === "disposed") notFound();
 
   const [categories, locations, departments, vendors, conditions, statuses] = await Promise.all([
     listCategories(),

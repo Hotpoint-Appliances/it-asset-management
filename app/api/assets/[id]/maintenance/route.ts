@@ -39,6 +39,12 @@ export async function POST(
   if (!existing) {
     return NextResponse.json({ error: "Asset not found" }, { status: 404 });
   }
+  if (existing.statusName === "disposed") {
+    return NextResponse.json(
+      { error: "A disposed asset cannot have maintenance records added" },
+      { status: 400 },
+    );
+  }
 
   const body = await request.json().catch(() => null);
   const validated = validateMaintenanceInput(body);

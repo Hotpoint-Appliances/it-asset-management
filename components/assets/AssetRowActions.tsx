@@ -58,7 +58,7 @@ export function AssetRowActions({
               View
             </Link>
           </DropdownMenuItem>
-          {canManage && (
+          {canManage && !isDisposed && (
             <DropdownMenuItem asChild>
               <Link href={`/assets/${asset.id}/edit`}>
                 <Pencil className="h-4 w-4" />
