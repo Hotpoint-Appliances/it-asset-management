@@ -214,7 +214,7 @@ export function MaintenanceTab({
           {initialMaintenance.map((record) => (
             <li
               key={record.id}
-              className="border-border flex flex-col gap-2 rounded-md border p-3 text-sm"
+              className="border-border flex flex-col gap-2 rounded-lg border p-3 text-sm"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
@@ -323,7 +323,7 @@ export function MaintenanceTab({
                   type="date"
                   value={scheduledDate}
                   onChange={(e) => setScheduledDate(e.target.value)}
-                  className="border-border bg-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                  className="border-border bg-background focus-visible:ring-ring flex h-10 w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
                 />
               </div>
             </div>
@@ -333,7 +333,7 @@ export function MaintenanceTab({
                 rows={3}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="border-border bg-background focus-visible:ring-ring flex w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                className="border-border bg-background focus-visible:ring-ring flex w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
               />
             </div>
 
@@ -389,7 +389,7 @@ export function MaintenanceTab({
                 value={restoreNote}
                 onChange={(e) => setRestoreNote(e.target.value)}
                 placeholder={`Note required for ${restoreTargetStatus?.name}…`}
-                className="border-border bg-background focus-visible:ring-ring flex w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                className="border-border bg-background focus-visible:ring-ring flex w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
               />
             )}
           </div>

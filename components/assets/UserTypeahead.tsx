@@ -52,7 +52,7 @@ export function UserTypeahead({
 
   if (value && displayName) {
     return (
-      <div className="border-border bg-muted/50 flex min-h-11 items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm">
+      <div className="border-border bg-muted/50 flex min-h-11 items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm">
         <span className="flex items-center gap-1.5">
           <Check className="text-success h-4 w-4" />
           {displayName}
@@ -78,7 +78,7 @@ export function UserTypeahead({
         onFocus={() => setOpen(true)}
       />
       {open && (
-        <div className="bg-card border-border absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-md border shadow-md">
+        <div className="bg-card border-border scroll-area-thin absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border p-1 shadow-md">
           {matches.length === 0 ? (
             <p className="text-muted-foreground px-3 py-2 text-sm">No matching users</p>
           ) : (
@@ -92,7 +92,7 @@ export function UserTypeahead({
                   setOpen(false);
                 }}
                 className={cn(
-                  "flex min-h-11 w-full flex-col items-start px-3 py-1.5 text-left text-sm",
+                  "flex min-h-11 w-full flex-col items-start rounded-md px-2 py-1.5 text-left text-sm",
                   "hover:bg-muted",
                 )}
               >

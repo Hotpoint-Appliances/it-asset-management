@@ -124,10 +124,10 @@ export function AssetDetail({
             <img
               src={`/api/assets/${asset.id}/image?v=${encodeURIComponent(asset.imagePath)}`}
               alt=""
-              className="border-border h-32 w-32 shrink-0 rounded-md border object-cover"
+              className="border-border h-32 w-32 shrink-0 rounded-lg border object-cover"
             />
           ) : (
-            <div className="border-border bg-muted flex h-32 w-32 shrink-0 items-center justify-center rounded-md border">
+            <div className="border-border bg-muted flex h-32 w-32 shrink-0 items-center justify-center rounded-lg border">
               <Tag className="text-muted-foreground h-8 w-8" />
             </div>
           )}

@@ -18,7 +18,8 @@ function DropdownMenuContent({
       <DropdownMenuPrimitive.Content
         sideOffset={sideOffset}
         className={cn(
-          "bg-card text-card-foreground border-border z-50 min-w-48 rounded-md border p-1 shadow-md",
+          "bg-card text-card-foreground border-border scroll-area-thin z-50 min-w-48 overflow-y-auto rounded-lg border p-1 shadow-md",
+          "max-h-[min(24rem,var(--radix-dropdown-menu-content-available-height))]",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           className,
         )}
@@ -35,7 +36,7 @@ function DropdownMenuItem({
   return (
     <DropdownMenuPrimitive.Item
       className={cn(
-        "flex min-h-11 cursor-pointer items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none",
+        "flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm outline-none",
         "focus:bg-muted focus:text-foreground data-disabled:pointer-events-none data-disabled:opacity-50",
         className,
       )}
@@ -66,7 +67,7 @@ function DropdownMenuCheckboxItem({
     <DropdownMenuPrimitive.CheckboxItem
       checked={checked}
       className={cn(
-        "relative flex min-h-11 cursor-pointer items-center rounded-sm py-2 pr-2 pl-8 text-sm outline-none",
+        "relative flex min-h-11 cursor-pointer items-center rounded-md py-2 pr-2 pl-8 text-sm outline-none",
         "focus:bg-muted focus:text-foreground data-disabled:pointer-events-none data-disabled:opacity-50",
         className,
       )}

@@ -27,7 +27,7 @@ export function Toaster() {
           key={toast.id}
           role="alert"
           className={cn(
-            "bg-card text-card-foreground border-border flex items-start gap-3 rounded-md border p-4 shadow-lg",
+            "bg-card text-card-foreground border-border flex items-start gap-3 rounded-xl border p-4 shadow-lg",
           )}
         >
           {toast.variant === "error" ? (

@@ -5,8 +5,15 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { navItems } from "./nav-items";
 import { useSession } from "@/lib/auth/session-context";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/Tooltip";
 
-export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+export function SidebarNav({
+  onNavigate,
+  collapsed = false,
+}: {
+  onNavigate?: () => void;
+  collapsed?: boolean;
+}) {
   const pathname = usePathname();
   const session = useSession();
   const visibleItems = navItems.filter(
@@ -21,20 +28,32 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
             ? pathname === "/"
             : pathname === item.href || pathname.startsWith(`${item.href}/`);
         const Icon = item.icon;
-        return (
+        const content = (
           <Link
-            key={item.href}
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "flex min-h-11 items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
-              "hover:bg-muted hover:text-foreground",
-              active ? "bg-muted text-foreground" : "text-muted-foreground",
+              "flex min-h-11 items-center gap-3 rounded-lg text-sm font-medium transition-colors",
+              collapsed ? "justify-center px-0" : "px-3 py-2",
+              active
+                ? "bg-primary/10 text-primary font-semibold"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
             <Icon className="h-4 w-4 shrink-0" />
-            {item.label}
+            {!collapsed && item.label}
           </Link>
+        );
+
+        if (!collapsed) {
+          return <div key={item.href}>{content}</div>;
+        }
+
+        return (
+          <Tooltip key={item.href}>
+            <TooltipTrigger asChild>{content}</TooltipTrigger>
+            <TooltipContent side="right">{item.label}</TooltipContent>
+          </Tooltip>
         );
       })}
     </nav>

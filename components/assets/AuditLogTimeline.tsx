@@ -104,7 +104,7 @@ export function AuditLogTimeline({
       {entries.map((entry) => (
         <li
           key={entry.id}
-          className="border-border flex flex-col gap-1 rounded-md border p-3 text-sm"
+          className="border-border flex flex-col gap-1 rounded-lg border p-3 text-sm"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="font-medium">{describe(entry, lookups)}</span>

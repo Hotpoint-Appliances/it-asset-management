@@ -34,9 +34,9 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Content
         className={cn(
-          "bg-card text-card-foreground fixed z-50 flex flex-col gap-4 overflow-y-auto shadow-lg",
+          "bg-card text-card-foreground scroll-area fixed z-50 flex flex-col gap-4 overflow-y-auto shadow-lg",
           "inset-0 p-4",
-          "sm:border-border sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-h-[85vh] sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:border sm:p-6",
+          "sm:border-border sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-h-[85vh] sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:border sm:p-6",
           className,
         )}
         {...props}

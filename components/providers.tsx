@@ -4,6 +4,7 @@ import * as React from "react";
 import { ThemeProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider, type SessionUser } from "@/lib/auth/session-context";
+import { TooltipProvider } from "@/components/ui/Tooltip";
 
 export function Providers({
   children,
@@ -22,7 +23,9 @@ export function Providers({
       disableTransitionOnChange
     >
       <QueryClientProvider client={queryClient}>
-        <SessionProvider user={session}>{children}</SessionProvider>
+        <SessionProvider user={session}>
+          <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+        </SessionProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );

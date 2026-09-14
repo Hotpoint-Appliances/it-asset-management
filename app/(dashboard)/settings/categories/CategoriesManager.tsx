@@ -195,7 +195,7 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
           action={<Button onClick={() => openCreate(null)}>New Category</Button>}
         />
       ) : (
-        <div className="border-border rounded-md border">{renderNodes(tree)}</div>
+        <div className="border-border rounded-xl border shadow-sm">{renderNodes(tree)}</div>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

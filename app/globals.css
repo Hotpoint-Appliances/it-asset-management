@@ -3,14 +3,17 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
+  /* refined shadcn radius scale — see radius-* mappings below */
+  --radius: 0.625rem;
+
   --background: #ffffff;
   --foreground: #0f172a;
 
   --card: #ffffff;
   --card-foreground: #0f172a;
 
-  --primary: #171717;
-  --primary-foreground: #fafafa;
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
 
   --secondary: #f4f4f5;
   --secondary-foreground: #18181b;
@@ -29,6 +32,9 @@
 
   --sidebar: #fafafa;
   --sidebar-foreground: #0f172a;
+
+  --scrollbar-thumb: rgba(0, 0, 0, 0.18);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
 }
 
 .dark {
@@ -38,8 +44,8 @@
   --card: #18181b;
   --card-foreground: #fafafa;
 
-  --primary: #fafafa;
-  --primary-foreground: #18181b;
+  --primary: #818cf8;
+  --primary-foreground: #1e1b4b;
 
   --secondary: #27272a;
   --secondary-foreground: #fafafa;
@@ -58,6 +64,9 @@
 
   --sidebar: #18181b;
   --sidebar-foreground: #fafafa;
+
+  --scrollbar-thumb: rgba(255, 255, 255, 0.16);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.28);
 }
 
 @theme inline {
@@ -90,9 +99,65 @@
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* refined shadcn radius scale — rounded-sm/md/lg/xl derive from --radius */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+/* Reserve the scrollbar's width on the axis that can scroll so a Radix
+   scroll-lock (Dialog/Select/DropdownMenu opening) never shifts layout. */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* Transparent-track scrollbar used across the app. Apply `.scroll-area` to
+   any scrollable element; `.scroll-area-thin` additionally narrows it for
+   dropdown/select/popover content. */
+.scroll-area {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  scrollbar-gutter: stable;
+}
+.scroll-area::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-area::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.scroll-area::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+}
+
+.scroll-area-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+.scroll-area-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scroll-area-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-area-thin::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 9999px;
+}
+.scroll-area-thin::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
 }

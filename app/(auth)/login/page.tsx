@@ -1,12 +1,23 @@
 import { Suspense } from "react";
+import { Boxes } from "lucide-react";
 import { LoginForm } from "@/components/auth/LoginForm";
+import { Footer } from "@/components/layout/Footer";
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Suspense>
-        <LoginForm />
-      </Suspense>
+    <div className="bg-sidebar flex min-h-screen flex-col">
+      <div className="flex items-center gap-2 p-6 sm:p-8">
+        <div className="bg-primary text-primary-foreground flex h-7 w-7 shrink-0 items-center justify-center rounded-lg">
+          <Boxes className="h-4 w-4" />
+        </div>
+        <span className="text-sm font-semibold">IT Asset Manager</span>
+      </div>
+      <div className="flex flex-1 items-center justify-center p-4">
+        <Suspense>
+          <LoginForm />
+        </Suspense>
+      </div>
+      <Footer />
     </div>
   );
 }

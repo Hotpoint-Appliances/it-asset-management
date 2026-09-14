@@ -108,7 +108,7 @@ export function AssetAttachments({
           {initialAttachments.map((attachment) => (
             <li
               key={attachment.id}
-              className="border-border flex items-center justify-between gap-3 rounded-md border p-3"
+              className="border-border flex items-center justify-between gap-3 rounded-lg border p-3"
             >
               <a
                 href={`/api/assets/${assetId}/attachments/${attachment.id}/file`}

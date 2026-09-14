@@ -46,9 +46,11 @@ export function LoginForm() {
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="items-center text-center">
-        <Boxes className="h-8 w-8" />
-        <CardTitle>IT Asset Manager</CardTitle>
-        <CardDescription>Sign in to your account</CardDescription>
+        <div className="bg-primary/10 text-primary mb-1 flex h-11 w-11 items-center justify-center rounded-xl">
+          <Boxes className="h-5 w-5" />
+        </div>
+        <CardTitle>Welcome back</CardTitle>
+        <CardDescription>Sign in to your IT Asset Manager account</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">

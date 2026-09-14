@@ -123,7 +123,7 @@ export function StatusDialog({
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="Explain the circumstances…"
-                className="border-border bg-background focus-visible:ring-ring flex w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                className="border-border bg-background focus-visible:ring-ring flex w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
               />
             </div>
           )}

@@ -485,10 +485,10 @@ export function AssetForm({
               <img
                 src={imagePreview}
                 alt=""
-                className="border-border h-16 w-16 rounded-md border object-cover"
+                className="border-border h-16 w-16 rounded-lg border object-cover"
               />
             ) : (
-              <div className="border-border bg-muted flex h-16 w-16 items-center justify-center rounded-md border">
+              <div className="border-border bg-muted flex h-16 w-16 items-center justify-center rounded-lg border">
                 <Upload className="text-muted-foreground h-5 w-5" />
               </div>
             )}
@@ -517,7 +517,7 @@ export function AssetForm({
             rows={4}
             value={form.notes}
             onChange={(e) => update("notes", e.target.value)}
-            className="border-border bg-background focus-visible:ring-ring flex w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+            className="border-border bg-background focus-visible:ring-ring flex w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
           />
         </div>
       </Section>
