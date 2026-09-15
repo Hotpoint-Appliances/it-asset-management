@@ -1,6 +1,20 @@
 import Link from "next/link";
-import { FolderTree, MapPin, Building2, Truck, Gauge, Flag, UsersRound } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
+import {
+  FolderTree,
+  MapPin,
+  Building2,
+  Truck,
+  Gauge,
+  Flag,
+  UsersRound,
+} from "lucide-react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/Card";
+import { LinkProgress } from "@/components/layout/LinkProgress";
 
 const sections = [
   {
@@ -61,6 +75,7 @@ export default function SettingsIndexPage() {
               </div>
             </CardHeader>
           </Card>
+          <LinkProgress />
         </Link>
       ))}
     </div>

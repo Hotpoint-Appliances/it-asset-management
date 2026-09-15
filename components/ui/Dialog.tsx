@@ -35,10 +35,10 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Content
         className={cn(
-          "bg-card text-card-foreground scroll-area fixed z-50 flex flex-col gap-4 overflow-x-hidden overflow-y-auto overscroll-contain shadow-lg",
+          "bg-card text-card-foreground fixed z-50 flex flex-col overflow-hidden p-0 shadow-lg",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-          "inset-x-0 top-0 h-dvh max-h-dvh w-full p-4 pb-[max(1rem,env(safe-area-inset-bottom))]",
-          "sm:border-border sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-auto sm:max-h-[85dvh] sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:border sm:p-6",
+          "inset-x-0 top-0 h-dvh max-h-dvh w-full",
+          "sm:border-border sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-auto sm:max-h-[85dvh] sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:border",
           className,
         )}
         {...props}
@@ -57,7 +57,30 @@ function DialogHeader({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("flex flex-col gap-1.5 pr-8", className)} {...props} />;
+  return (
+    <div
+      className={cn(
+        "border-border flex shrink-0 flex-col gap-1.5 border-b py-4 pr-12 pl-4 sm:pr-14 sm:pl-6",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+function DialogBody({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn(
+        "scroll-area flex min-h-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto overscroll-contain px-4 py-4 sm:px-6",
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
 function DialogFooter({
@@ -67,7 +90,7 @@ function DialogFooter({
   return (
     <div
       className={cn(
-        "flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end",
+        "border-border flex shrink-0 flex-col-reverse gap-2 border-t px-4 py-4 sm:flex-row sm:justify-end sm:px-6",
         className,
       )}
       {...props}
@@ -105,6 +128,7 @@ export {
   DialogClose,
   DialogContent,
   DialogHeader,
+  DialogBody,
   DialogFooter,
   DialogTitle,
   DialogDescription,

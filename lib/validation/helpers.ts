@@ -17,9 +17,13 @@ export function optionalString(value: unknown): string | null | undefined {
 /** null/undefined mean "not provided" -> null. Any other non-number is invalid. */
 export function optionalNumber(value: unknown): number | null | undefined {
   if (value === null || value === undefined) return null;
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
 }
 
 export function requireNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
 }

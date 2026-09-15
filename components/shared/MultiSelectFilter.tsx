@@ -29,7 +29,9 @@ export function MultiSelectFilter({
 }) {
   function toggle(value: string) {
     onChange(
-      selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value],
+      selected.includes(value)
+        ? selected.filter((v) => v !== value)
+        : [...selected, value],
     );
   }
 
@@ -50,7 +52,9 @@ export function MultiSelectFilter({
         <DropdownMenuLabel>{label}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {options.length === 0 && (
-          <p className="text-muted-foreground px-2 py-1.5 text-sm">No options</p>
+          <p className="text-muted-foreground px-2 py-1.5 text-sm">
+            No options
+          </p>
         )}
         {options.map((option) => (
           <DropdownMenuCheckboxItem

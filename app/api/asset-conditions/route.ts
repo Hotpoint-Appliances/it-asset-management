@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiSession, requireApiRole } from "@/lib/auth/api";
-import { listAssetConditions, createAssetCondition } from "@/lib/db/assetConditions";
+import {
+  listAssetConditions,
+  createAssetCondition,
+} from "@/lib/db/assetConditions";
 import { validateAssetConditionInput } from "@/lib/validation/assetConditions";
 
 export async function GET() {

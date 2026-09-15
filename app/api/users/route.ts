@@ -32,7 +32,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ user }, { status: 201 });
   } catch (err) {
     if (isUniqueViolation(err)) {
-      return NextResponse.json({ error: "A user with that email already exists" }, { status: 409 });
+      return NextResponse.json(
+        { error: "A user with that email already exists" },
+        { status: 409 },
+      );
     }
     throw err;
   }

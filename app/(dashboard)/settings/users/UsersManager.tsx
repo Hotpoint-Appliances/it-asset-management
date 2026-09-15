@@ -1,9 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
-import { Plus, Pencil, UserRoundX, UserRoundCheck, UsersRound } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  UserRoundX,
+  UserRoundCheck,
+  UsersRound,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -12,6 +18,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogBody,
   DialogTitle,
   DialogFooter,
   DialogClose,
@@ -30,11 +37,18 @@ import type { User, Role } from "@/types/user";
 import type { Department } from "@/types/department";
 
 function errorMessage(err: unknown): string {
-  if (axios.isAxiosError(err) && err.response?.data?.error) return err.response.data.error;
+  if (axios.isAxiosError(err) && err.response?.data?.error)
+    return err.response.data.error;
   return "Something went wrong. Please try again.";
 }
 
-const emptyForm = { fullName: "", email: "", password: "", roleId: "", departmentId: "" };
+const emptyForm = {
+  fullName: "",
+  email: "",
+  password: "",
+  roleId: "",
+  departmentId: "",
+};
 
 export function UsersManager({
   initialUsers,
@@ -45,7 +59,7 @@ export function UsersManager({
   roles: Role[];
   departments: Department[];
 }) {
-  const router = useRouter();
+  const router = useRouteLoadingRouter();
   const addToast = useUIStore((s) => s.addToast);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<User | null>(null);
@@ -56,7 +70,10 @@ export function UsersManager({
 
   function openCreate() {
     setEditing(null);
-    setForm({ ...emptyForm, roleId: String(roles.find((r) => r.name === "viewer")?.id ?? "") });
+    setForm({
+      ...emptyForm,
+      roleId: String(roles.find((r) => r.name === "viewer")?.id ?? ""),
+    });
     setError(null);
     setDialogOpen(true);
   }
@@ -108,7 +125,9 @@ export function UsersManager({
     if (!deactivating) return;
     setSubmitting(true);
     try {
-      await axios.patch(`/api/users/${deactivating.id}`, { isActive: !deactivating.isActive });
+      await axios.patch(`/api/users/${deactivating.id}`, {
+        isActive: !deactivating.isActive,
+      });
       addToast({
         title: deactivating.isActive ? "User deactivated" : "User reactivated",
         variant: "success",
@@ -165,7 +184,9 @@ export function UsersManager({
               <TableRow key={user.id}>
                 <TableCell className="font-medium">{user.fullName}</TableCell>
                 <TableCell>{user.email}</TableCell>
-                <TableCell className="capitalize">{user.roleName.replace("_", " ")}</TableCell>
+                <TableCell className="capitalize">
+                  {user.roleName.replace("_", " ")}
+                </TableCell>
                 <TableCell>{departmentName(user.departmentId)}</TableCell>
                 <TableCell>
                   <Badge variant={user.isActive ? "success" : "neutral"}>
@@ -173,17 +194,27 @@ export function UsersManager({
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => openEdit(user)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => openEdit(user)}
+                  >
                     <Pencil className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => setDeactivating(user)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeactivating(user)}
+                  >
                     {user.isActive ? (
                       <UserRoundX className="h-4 w-4" />
                     ) : (
                       <UserRoundCheck className="h-4 w-4" />
                     )}
-                    <span className="sr-only">{user.isActive ? "Deactivate" : "Reactivate"}</span>
+                    <span className="sr-only">
+                      {user.isActive ? "Deactivate" : "Reactivate"}
+                    </span>
                   </Button>
                 </TableCell>
               </TableRow>
@@ -197,84 +228,100 @@ export function UsersManager({
           <DialogHeader>
             <DialogTitle>{editing ? "Edit user" : "New user"}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="user-full-name" className="text-sm font-medium">
-                Full name
-              </label>
-              <Input
-                id="user-full-name"
-                required
-                value={form.fullName}
-                onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="user-email" className="text-sm font-medium">
-                Email
-              </label>
-              <Input
-                id="user-email"
-                type="email"
-                required
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="user-password" className="text-sm font-medium">
-                {editing ? "New password (leave blank to keep current)" : "Password"}
-              </label>
-              <Input
-                id="user-password"
-                type="password"
-                required={!editing}
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="user-role" className="text-sm font-medium">
-                Role
-              </label>
-              <Select
-                id="user-role"
-                required
-                value={form.roleId}
-                onChange={(e) => setForm({ ...form, roleId: e.target.value })}
-              >
-                <option value="" disabled>
-                  Select a role
-                </option>
-                {roles.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.name.replace("_", " ")}
+          <form
+            onSubmit={handleSubmit}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            <DialogBody>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="user-full-name" className="text-sm font-medium">
+                  Full name
+                </label>
+                <Input
+                  id="user-full-name"
+                  required
+                  value={form.fullName}
+                  onChange={(e) =>
+                    setForm({ ...form, fullName: e.target.value })
+                  }
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="user-email" className="text-sm font-medium">
+                  Email
+                </label>
+                <Input
+                  id="user-email"
+                  type="email"
+                  required
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="user-password" className="text-sm font-medium">
+                  {editing
+                    ? "New password (leave blank to keep current)"
+                    : "Password"}
+                </label>
+                <Input
+                  id="user-password"
+                  type="password"
+                  required={!editing}
+                  value={form.password}
+                  onChange={(e) =>
+                    setForm({ ...form, password: e.target.value })
+                  }
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="user-role" className="text-sm font-medium">
+                  Role
+                </label>
+                <Select
+                  id="user-role"
+                  required
+                  value={form.roleId}
+                  onChange={(e) => setForm({ ...form, roleId: e.target.value })}
+                >
+                  <option value="" disabled>
+                    Select a role
                   </option>
-                ))}
-              </Select>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="user-department" className="text-sm font-medium">
-                Department
-              </label>
-              <Select
-                id="user-department"
-                value={form.departmentId}
-                onChange={(e) => setForm({ ...form, departmentId: e.target.value })}
-              >
-                <option value="">None</option>
-                {departments.map((department) => (
-                  <option key={department.id} value={department.id}>
-                    {department.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            {error && (
-              <p role="alert" className="text-destructive text-sm">
-                {error}
-              </p>
-            )}
+                  {roles.map((role) => (
+                    <option key={role.id} value={role.id}>
+                      {role.name.replace("_", " ")}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="user-department"
+                  className="text-sm font-medium"
+                >
+                  Department
+                </label>
+                <Select
+                  id="user-department"
+                  value={form.departmentId}
+                  onChange={(e) =>
+                    setForm({ ...form, departmentId: e.target.value })
+                  }
+                >
+                  <option value="">None</option>
+                  {departments.map((department) => (
+                    <option key={department.id} value={department.id}>
+                      {department.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              {error && (
+                <p role="alert" className="text-destructive text-sm">
+                  {error}
+                </p>
+              )}
+            </DialogBody>
             <DialogFooter>
               <DialogClose asChild>
                 <Button type="button" variant="outline">
@@ -289,25 +336,31 @@ export function UsersManager({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!deactivating} onOpenChange={(open) => !open && setDeactivating(null)}>
+      <Dialog
+        open={!!deactivating}
+        onOpenChange={(open) => !open && setDeactivating(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
               {deactivating?.isActive ? "Deactivate user" : "Reactivate user"}
             </DialogTitle>
           </DialogHeader>
-          <p className="text-muted-foreground text-sm">
-            {deactivating?.isActive ? (
-              <>
-                This will prevent <strong>{deactivating?.fullName}</strong> from logging in. Their
-                history is kept.
-              </>
-            ) : (
-              <>
-                This will restore login access for <strong>{deactivating?.fullName}</strong>.
-              </>
-            )}
-          </p>
+          <DialogBody>
+            <p className="text-muted-foreground text-sm">
+              {deactivating?.isActive ? (
+                <>
+                  This will prevent <strong>{deactivating?.fullName}</strong>{" "}
+                  from logging in. Their history is kept.
+                </>
+              ) : (
+                <>
+                  This will restore login access for{" "}
+                  <strong>{deactivating?.fullName}</strong>.
+                </>
+              )}
+            </p>
+          </DialogBody>
           <DialogFooter>
             <DialogClose asChild>
               <Button type="button" variant="outline">
@@ -319,7 +372,11 @@ export function UsersManager({
               disabled={submitting}
               onClick={handleToggleActive}
             >
-              {submitting ? "Saving…" : deactivating?.isActive ? "Deactivate" : "Reactivate"}
+              {submitting
+                ? "Saving…"
+                : deactivating?.isActive
+                  ? "Deactivate"
+                  : "Reactivate"}
             </Button>
           </DialogFooter>
         </DialogContent>

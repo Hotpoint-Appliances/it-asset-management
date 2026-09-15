@@ -10,5 +10,11 @@ export default async function UsersPage() {
     listDepartments(1000, 0),
   ]);
 
-  return <UsersManager initialUsers={users} roles={roles} departments={departmentsPage.items} />;
+  return (
+    <UsersManager
+      initialUsers={users}
+      roles={roles}
+      departments={departmentsPage.items}
+    />
+  );
 }

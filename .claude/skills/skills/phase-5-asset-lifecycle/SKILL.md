@@ -14,7 +14,7 @@ Before starting the Steps below, run [[phase-completion-check]] against
 
 ## Objective
 
-All the actions that happen to an asset *after* creation: transfers, condition/status changes,
+All the actions that happen to an asset _after_ creation: transfers, condition/status changes,
 maintenance events, and disposal — each fully audit-logged and surfaced as a timeline on the
 asset detail page.
 
@@ -187,7 +187,7 @@ asset detail page.
 - `lib/hooks/useSyncOnOpen.ts` (new — see "Confirmed as built")
 - `components/shared/ConfirmDialog.tsx` (new, generic — see "Confirmed as built")
 - `components/assets/{TransferDialog,ConditionDialog,StatusDialog,DisposalDialog,
-  AuditLogTimeline,MaintenanceTab,AssetRowActions}.tsx`; `AssetDetail.tsx` extended with the
+AuditLogTimeline,MaintenanceTab,AssetRowActions}.tsx`; `AssetDetail.tsx` extended with the
   Actions dropdown (Transfer/Change condition/Change status/Dispose/Delete) and the Audit Log/
   Maintenance tabs' real content; `AssetsList.tsx`'s row actions replaced with
   `AssetRowActions.tsx`'s DropdownMenu (View/Edit/Transfer/Dispose)

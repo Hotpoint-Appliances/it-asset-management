@@ -15,12 +15,18 @@ export async function POST(request: NextRequest) {
   const user = await findUserByEmail(email);
 
   if (!user || !user.isActive) {
-    return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    return NextResponse.json(
+      { error: "Invalid email or password" },
+      { status: 401 },
+    );
   }
 
   const passwordValid = await verifyPassword(password, user.passwordHash);
   if (!passwordValid) {
-    return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    return NextResponse.json(
+      { error: "Invalid email or password" },
+      { status: 401 },
+    );
   }
 
   await setSessionCookie({

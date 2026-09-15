@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import { Boxes } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -14,8 +14,22 @@ import {
   CardTitle,
 } from "@/components/ui/Card";
 
+/** Only a same-origin relative path is a safe redirect target — `from` is an attacker-controlled
+ * query param (`/login?from=https://evil.com` or `//evil.com`), so anything else falls back to
+ * `/` rather than being handed to `window.location`. */
+function safeRedirectTarget(from: string | null): string {
+  if (
+    from &&
+    from.startsWith("/") &&
+    !from.startsWith("//") &&
+    from !== "/login"
+  ) {
+    return from;
+  }
+  return "/";
+}
+
 export function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -29,28 +43,29 @@ export function LoginForm() {
 
     try {
       await axios.post("/api/auth/login", { email, password });
-      const from = searchParams.get("from");
-      router.push(from && from !== "/login" ? from : "/");
-      router.refresh();
+      // Full reload (not next/navigation) so the whole app — client state, the session context,
+      // every store — starts fresh under the new session, matching the logout flow.
+      window.location.assign(safeRedirectTarget(searchParams.get("from")));
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.data?.error) {
         setError(err.response.data.error as string);
       } else {
         setError("Something went wrong. Please try again.");
       }
-    } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <Card className="w-full max-w-sm">
+    <Card className="w-full max-w-sm shadow-md">
       <CardHeader className="items-center text-center">
         <div className="bg-primary/10 text-primary mb-1 flex h-11 w-11 items-center justify-center rounded-xl">
           <Boxes className="h-5 w-5" />
         </div>
         <CardTitle>Welcome back</CardTitle>
-        <CardDescription>Sign in to your IT Asset Manager account</CardDescription>
+        <CardDescription>
+          Sign in to your IT Asset Manager account
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">

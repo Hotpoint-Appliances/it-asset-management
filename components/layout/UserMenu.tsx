@@ -1,7 +1,5 @@
 "use client";
 
-import * as React from "react";
-import { useRouter } from "next/navigation";
 import axios from "axios";
 import { LogOut, UserCircle2 } from "lucide-react";
 import {
@@ -14,6 +12,7 @@ import {
 } from "@/components/ui/DropdownMenu";
 import { Button } from "@/components/ui/Button";
 import { useSession } from "@/lib/auth/session-context";
+import { useUIStore } from "@/store";
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "Admin",
@@ -23,19 +22,27 @@ const ROLE_LABELS: Record<string, string> = {
 
 export function UserMenu() {
   const session = useSession();
-  const router = useRouter();
-  const [signingOut, setSigningOut] = React.useState(false);
+  const loggingOut = useUIStore((s) => s.loggingOut);
+  const setLoggingOut = useUIStore((s) => s.setLoggingOut);
+  const addToast = useUIStore((s) => s.addToast);
 
   if (!session) return null;
 
   async function handleLogout() {
-    setSigningOut(true);
+    setLoggingOut(true);
     try {
       await axios.post("/api/auth/logout");
-      router.push("/login");
-      router.refresh();
-    } finally {
-      setSigningOut(false);
+      // Full reload (not next/navigation) so every client-only React and store state resets —
+      // matches the login flow's own full reload. `replace`, not `assign`, so Back can't land on
+      // a stale authenticated page.
+      window.location.replace("/login");
+    } catch {
+      setLoggingOut(false);
+      addToast({
+        title: "Could not sign out",
+        description: "Something went wrong. Please try again.",
+        variant: "error",
+      });
     }
   }
 
@@ -56,9 +63,9 @@ export function UserMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={handleLogout} disabled={signingOut}>
+        <DropdownMenuItem onSelect={handleLogout} disabled={loggingOut}>
           <LogOut className="h-4 w-4" />
-          {signingOut ? "Signing out…" : "Sign out"}
+          Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

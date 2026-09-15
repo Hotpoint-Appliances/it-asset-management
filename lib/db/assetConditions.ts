@@ -1,6 +1,9 @@
 import { query } from "./query";
 import { assertNotReferencedByAssets } from "./refCheck";
-import type { AssetCondition, AssetConditionInput } from "@/types/assetCondition";
+import type {
+  AssetCondition,
+  AssetConditionInput,
+} from "@/types/assetCondition";
 
 interface AssetConditionRow {
   id: number;
@@ -10,7 +13,12 @@ interface AssetConditionRow {
 }
 
 function mapAssetCondition(row: AssetConditionRow): AssetCondition {
-  return { id: row.id, name: row.name, sortOrder: row.sort_order, createdAt: row.created_at };
+  return {
+    id: row.id,
+    name: row.name,
+    sortOrder: row.sort_order,
+    createdAt: row.created_at,
+  };
 }
 
 const SELECT_COLUMNS = `id, name, sort_order, created_at`;
@@ -45,6 +53,8 @@ export async function updateAssetCondition(
 
 export async function deleteAssetCondition(id: number): Promise<boolean> {
   await assertNotReferencedByAssets("condition_id", id);
-  const result = await query(`DELETE FROM asset_conditions WHERE id = $1`, [id]);
+  const result = await query(`DELETE FROM asset_conditions WHERE id = $1`, [
+    id,
+  ]);
   return (result.rowCount ?? 0) > 0;
 }

@@ -5,7 +5,12 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { navItems } from "./nav-items";
 import { useSession } from "@/lib/auth/session-context";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/Tooltip";
+import { LinkProgress } from "./LinkProgress";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/Tooltip";
 
 export function SidebarNav({
   onNavigate,
@@ -42,6 +47,7 @@ export function SidebarNav({
           >
             <Icon className="h-4 w-4 shrink-0" />
             {!collapsed && <span className="truncate">{item.label}</span>}
+            <LinkProgress />
           </Link>
         );
 

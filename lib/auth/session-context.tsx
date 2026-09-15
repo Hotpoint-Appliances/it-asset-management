@@ -20,7 +20,9 @@ export function SessionProvider({
   user: SessionUser | null;
   children: ReactNode;
 }) {
-  return <SessionContext.Provider value={user}>{children}</SessionContext.Provider>;
+  return (
+    <SessionContext.Provider value={user}>{children}</SessionContext.Provider>
+  );
 }
 
 /** Client-side access to the server-verified session — never decodes the JWT itself. */

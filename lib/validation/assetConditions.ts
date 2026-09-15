@@ -5,7 +5,9 @@ export type AssetConditionValidationResult =
   | { success: true; data: AssetConditionInput }
   | { success: false; error: string };
 
-export function validateAssetConditionInput(body: unknown): AssetConditionValidationResult {
+export function validateAssetConditionInput(
+  body: unknown,
+): AssetConditionValidationResult {
   if (typeof body !== "object" || body === null) {
     return { success: false, error: "Invalid request body" };
   }

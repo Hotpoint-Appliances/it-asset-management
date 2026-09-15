@@ -6,6 +6,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogBody,
   DialogTitle,
   DialogDescription,
   DialogFooter,
@@ -47,11 +48,13 @@ export function ConfirmDialog({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        {/* asChild swaps Radix's default <p> for a <div> — description can carry block content
-            (e.g. MaintenanceTab's restore-prompt note field), which isn't valid inside a <p>. */}
-        <DialogDescription asChild>
-          <div>{description}</div>
-        </DialogDescription>
+        <DialogBody>
+          {/* asChild swaps Radix's default <p> for a <div> — description can carry block content
+              (e.g. MaintenanceTab's restore-prompt note field), which isn't valid inside a <p>. */}
+          <DialogDescription asChild>
+            <div>{description}</div>
+          </DialogDescription>
+        </DialogBody>
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline">

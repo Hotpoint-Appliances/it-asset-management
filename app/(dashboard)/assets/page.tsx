@@ -37,20 +37,27 @@ export default async function AssetsPage({
     departmentIds: toIds(params.departmentId),
     locationIds: toIds(params.locationId),
     conditionIds: toIds(params.conditionId),
-    search: typeof params.search === "string" && params.search ? params.search : null,
+    search:
+      typeof params.search === "string" && params.search ? params.search : null,
     limit: PAGE_SIZE,
     offset: (page - 1) * PAGE_SIZE,
   };
 
-  const [assetsResult, categories, locations, departments, conditions, statuses] =
-    await Promise.all([
-      listAssets(filters, session),
-      listCategories(),
-      listLocations(),
-      listDepartments(500, 0),
-      listAssetConditions(),
-      listAssetStatuses(),
-    ]);
+  const [
+    assetsResult,
+    categories,
+    locations,
+    departments,
+    conditions,
+    statuses,
+  ] = await Promise.all([
+    listAssets(filters, session),
+    listCategories(),
+    listLocations(),
+    listDepartments(500, 0),
+    listAssetConditions(),
+    listAssetStatuses(),
+  ]);
 
   return (
     <AssetsList
@@ -58,7 +65,9 @@ export default async function AssetsPage({
       total={assetsResult.total}
       page={page}
       pageSize={PAGE_SIZE}
-      canManage={session.roleName === "admin" || session.roleName === "asset_manager"}
+      canManage={
+        session.roleName === "admin" || session.roleName === "asset_manager"
+      }
       categories={categories}
       locations={locations}
       departments={departments.items}

@@ -1,15 +1,23 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
-import { Plus, Pencil, Trash2, MapPin, ChevronRight, ChevronDown } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  MapPin,
+  ChevronRight,
+  ChevronDown,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogBody,
   DialogTitle,
   DialogFooter,
   DialogClose,
@@ -21,7 +29,8 @@ import { useUIStore } from "@/store";
 import type { Location } from "@/types/location";
 
 function errorMessage(err: unknown): string {
-  if (axios.isAxiosError(err) && err.response?.data?.error) return err.response.data.error;
+  if (axios.isAxiosError(err) && err.response?.data?.error)
+    return err.response.data.error;
   return "Something went wrong. Please try again.";
 }
 
@@ -32,14 +41,20 @@ interface LocationNode {
   address: string | null;
 }
 
-export function LocationsManager({ initialLocations }: { initialLocations: Location[] }) {
-  const router = useRouter();
+export function LocationsManager({
+  initialLocations,
+}: {
+  initialLocations: Location[];
+}) {
+  const router = useRouteLoadingRouter();
   const addToast = useUIStore((s) => s.addToast);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Location | null>(null);
   const [deleting, setDeleting] = React.useState<Location | null>(null);
   const [name, setName] = React.useState("");
-  const [parentLocationId, setParentLocationId] = React.useState<number | null>(null);
+  const [parentLocationId, setParentLocationId] = React.useState<number | null>(
+    null,
+  );
   const [address, setAddress] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -130,8 +145,8 @@ export function LocationsManager({ initialLocations }: { initialLocations: Locat
       return (
         <React.Fragment key={node.item.id}>
           <div
-            className="border-border flex items-center justify-between gap-2 border-b py-2 last:border-0"
-            style={{ paddingLeft: `${node.depth * 1.5}rem` }}
+            className="border-border flex items-center justify-between gap-2 border-b py-2 pr-2 last:border-0"
+            style={{ paddingLeft: `calc(0.5rem + ${node.depth * 1.5}rem)` }}
           >
             <div className="flex min-w-0 items-center gap-1">
               {hasChildren ? (
@@ -151,20 +166,34 @@ export function LocationsManager({ initialLocations }: { initialLocations: Locat
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">{location.name}</p>
                 {location.address && (
-                  <p className="text-muted-foreground truncate text-xs">{location.address}</p>
+                  <p className="text-muted-foreground truncate text-xs">
+                    {location.address}
+                  </p>
                 )}
               </div>
             </div>
             <div className="flex shrink-0 gap-1">
-              <Button variant="ghost" size="icon" onClick={() => openCreate(node.item.id)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => openCreate(node.item.id)}
+              >
                 <Plus className="h-4 w-4" />
                 <span className="sr-only">Add child location</span>
               </Button>
-              <Button variant="ghost" size="icon" onClick={() => openEdit(location)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => openEdit(location)}
+              >
                 <Pencil className="h-4 w-4" />
                 <span className="sr-only">Edit</span>
               </Button>
-              <Button variant="ghost" size="icon" onClick={() => setDeleting(location)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setDeleting(location)}
+              >
                 <Trash2 className="h-4 w-4" />
                 <span className="sr-only">Delete</span>
               </Button>
@@ -190,56 +219,73 @@ export function LocationsManager({ initialLocations }: { initialLocations: Locat
           icon={MapPin}
           title="No locations yet"
           description="Create your first location (e.g. a site or building) to start placing assets."
-          action={<Button onClick={() => openCreate(null)}>New Location</Button>}
+          action={
+            <Button onClick={() => openCreate(null)}>New Location</Button>
+          }
         />
       ) : (
-        <div className="border-border rounded-xl border shadow-sm">{renderNodes(tree)}</div>
+        <div className="border-border rounded-xl border shadow-sm">
+          {renderNodes(tree)}
+        </div>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit location" : "New location"}</DialogTitle>
+            <DialogTitle>
+              {editing ? "Edit location" : "New location"}
+            </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="location-name" className="text-sm font-medium">
-                Name
-              </label>
-              <Input
-                id="location-name"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="location-parent" className="text-sm font-medium">
-                Parent location
-              </label>
-              <TreePicker
-                id="location-parent"
-                items={treeItems}
-                value={parentLocationId}
-                onChange={setParentLocationId}
-                excludeId={editing?.id ?? null}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="location-address" className="text-sm font-medium">
-                Address
-              </label>
-              <Input
-                id="location-address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-              />
-            </div>
-            {error && (
-              <p role="alert" className="text-destructive text-sm">
-                {error}
-              </p>
-            )}
+          <form
+            onSubmit={handleSubmit}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            <DialogBody>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="location-name" className="text-sm font-medium">
+                  Name
+                </label>
+                <Input
+                  id="location-name"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="location-parent"
+                  className="text-sm font-medium"
+                >
+                  Parent location
+                </label>
+                <TreePicker
+                  id="location-parent"
+                  items={treeItems}
+                  value={parentLocationId}
+                  onChange={setParentLocationId}
+                  excludeId={editing?.id ?? null}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="location-address"
+                  className="text-sm font-medium"
+                >
+                  Address
+                </label>
+                <Input
+                  id="location-address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                />
+              </div>
+              {error && (
+                <p role="alert" className="text-destructive text-sm">
+                  {error}
+                </p>
+              )}
+            </DialogBody>
             <DialogFooter>
               <DialogClose asChild>
                 <Button type="button" variant="outline">
@@ -254,22 +300,32 @@ export function LocationsManager({ initialLocations }: { initialLocations: Locat
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!deleting} onOpenChange={(open) => !open && setDeleting(null)}>
+      <Dialog
+        open={!!deleting}
+        onOpenChange={(open) => !open && setDeleting(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete location</DialogTitle>
           </DialogHeader>
-          <p className="text-muted-foreground text-sm">
-            This will permanently delete <strong>{deleting?.name}</strong>. Any child locations
-            will become top-level locations. This cannot be undone.
-          </p>
+          <DialogBody>
+            <p className="text-muted-foreground text-sm">
+              This will permanently delete <strong>{deleting?.name}</strong>.
+              Any child locations will become top-level locations. This cannot
+              be undone.
+            </p>
+          </DialogBody>
           <DialogFooter>
             <DialogClose asChild>
               <Button type="button" variant="outline">
                 Cancel
               </Button>
             </DialogClose>
-            <Button variant="destructive" disabled={submitting} onClick={handleDelete}>
+            <Button
+              variant="destructive"
+              disabled={submitting}
+              onClick={handleDelete}
+            >
               {submitting ? "Deleting…" : "Delete"}
             </Button>
           </DialogFooter>

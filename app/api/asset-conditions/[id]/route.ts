@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiSession, requireApiRole } from "@/lib/auth/api";
-import { updateAssetCondition, deleteAssetCondition } from "@/lib/db/assetConditions";
+import {
+  updateAssetCondition,
+  deleteAssetCondition,
+} from "@/lib/db/assetConditions";
 import { validateAssetConditionInput } from "@/lib/validation/assetConditions";
 import { ReferencedByAssetsError } from "@/lib/db/refCheck";
 
@@ -48,7 +51,10 @@ export async function DELETE(
   try {
     const deleted = await deleteAssetCondition(id);
     if (!deleted) {
-      return NextResponse.json({ error: "Condition not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Condition not found" },
+        { status: 404 },
+      );
     }
   } catch (err) {
     if (err instanceof ReferencedByAssetsError) {

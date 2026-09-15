@@ -27,7 +27,11 @@ function TooltipContent({
         {...props}
       >
         {children}
-        <TooltipPrimitive.Arrow width={10} height={5} className="fill-foreground" />
+        <TooltipPrimitive.Arrow
+          width={10}
+          height={5}
+          className="fill-foreground"
+        />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   );

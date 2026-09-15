@@ -39,7 +39,7 @@ established in Phase 2/4 (never filter only in the UI).
 - **Disposal register** — `asset_disposals` joined with asset details, for finance/audit.
 - **Depreciation summary** — compute current book value per asset using the **straight-line
   method only** for MVP (confirmed scope decision): `(purchase_cost − salvage_value) /
-  useful_life_months × months_elapsed`, floored at `salvage_value`. This is a stateless
+useful_life_months × months_elapsed`, floored at `salvage_value`. This is a stateless
   per-row formula (no stored schedule table needed). Declining-balance depreciation is
   explicitly **out of scope** for MVP — it requires a chosen rate policy and period-by-period
   iteration; revisit only if requested later, as a reporting-layer addition with no schema

@@ -30,7 +30,9 @@ const SELECT_COLUMNS = `a.id, a.asset_id, a.file_path, a.file_name, a.file_type,
   u.full_name AS uploaded_by_name, a.uploaded_at`;
 const USER_JOIN = `JOIN users u ON u.id = a.uploaded_by`;
 
-export async function listAssetAttachments(assetId: string): Promise<AssetAttachment[]> {
+export async function listAssetAttachments(
+  assetId: string,
+): Promise<AssetAttachment[]> {
   const result = await query<AssetAttachmentRow>(
     `SELECT ${SELECT_COLUMNS} FROM asset_attachments a ${USER_JOIN}
      WHERE a.asset_id = $1 ORDER BY a.uploaded_at DESC`,
@@ -39,7 +41,9 @@ export async function listAssetAttachments(assetId: string): Promise<AssetAttach
   return result.rows.map(mapAttachment);
 }
 
-export async function getAssetAttachmentById(id: number): Promise<AssetAttachment | null> {
+export async function getAssetAttachmentById(
+  id: number,
+): Promise<AssetAttachment | null> {
   const result = await query<AssetAttachmentRow>(
     `SELECT ${SELECT_COLUMNS} FROM asset_attachments a ${USER_JOIN} WHERE a.id = $1`,
     [id],
@@ -61,14 +65,22 @@ export async function createAssetAttachment(input: {
        RETURNING id, asset_id, file_path, file_name, file_type, uploaded_by, uploaded_at
      )
      SELECT ${SELECT_COLUMNS} FROM inserted a ${USER_JOIN}`,
-    [input.assetId, input.filePath, input.fileName, input.fileType, input.uploadedBy],
+    [
+      input.assetId,
+      input.filePath,
+      input.fileName,
+      input.fileType,
+      input.uploadedBy,
+    ],
   );
   return mapAttachment(result.rows[0]);
 }
 
 /** Deletes the DB row and returns the deleted attachment (so the caller can remove the disk
  * file); returns null if it didn't exist. */
-export async function deleteAssetAttachment(id: number): Promise<AssetAttachment | null> {
+export async function deleteAssetAttachment(
+  id: number,
+): Promise<AssetAttachment | null> {
   const existing = await getAssetAttachmentById(id);
   if (!existing) return null;
   await query(`DELETE FROM asset_attachments WHERE id = $1`, [id]);

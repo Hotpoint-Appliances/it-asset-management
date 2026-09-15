@@ -1,6 +1,11 @@
 "use client";
 
-import { buildTree, collectDescendantIds, flattenForSelect, type WithParent } from "@/lib/tree";
+import {
+  buildTree,
+  collectDescendantIds,
+  flattenForSelect,
+  type WithParent,
+} from "@/lib/tree";
 import { Select } from "@/components/ui/Select";
 
 interface TreePickerProps<T extends WithParent> {
@@ -24,7 +29,10 @@ export function TreePicker<T extends WithParent>({
   id,
   disabled,
 }: TreePickerProps<T>) {
-  const excluded = excludeId != null ? collectDescendantIds(items, excludeId) : new Set<number>();
+  const excluded =
+    excludeId != null
+      ? collectDescendantIds(items, excludeId)
+      : new Set<number>();
   if (excludeId != null) excluded.add(excludeId);
   const selectable = items.filter((item) => !excluded.has(item.id));
   const flat = flattenForSelect(buildTree(selectable));

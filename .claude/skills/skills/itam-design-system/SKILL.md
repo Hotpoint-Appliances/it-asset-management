@@ -33,6 +33,13 @@ decorative borders, or texture beyond what's specified below.
   in `components/providers.tsx`. Required on any icon-only control whose label is hidden
   (collapsed sidebar nav items, icon buttons without visible text).
 - Icons: `lucide-react` exclusively — do not mix icon sets.
+- `Dialog`, `Sheet`, `DropdownMenu`, `Select`, and `Tooltip` already render into
+  `document.body` via Radix's own `Portal` primitive — don't wrap their content in anything
+  else. `components/ui/Portal.tsx` (a plain mount-guarded `createPortal`) exists only for
+  hand-rolled, non-Radix overlays that would otherwise be clipped by an `overflow-hidden`/
+  `overflow-auto` ancestor or need to render above the app shell — e.g. `Toaster`, the
+  logout overlay, and `UserTypeahead`'s results panel (which is manually positioned with
+  `getBoundingClientRect()` since it isn't Radix-based).
 
 ## Visual language (radius, shadow, accent)
 
@@ -82,12 +89,14 @@ decorative borders, or texture beyond what's specified below.
   `DropdownMenuContent`, the `Select` viewport, `TreePicker`, `UserTypeahead`'s results panel,
   the collapsed sidebar's nav list). Never leave a scrollable container with the bare browser
   default — pick whichever of the two matches its role.
-- `.scroll-area` also sets `scrollbar-gutter: stable`. This is the fix for Radix's scroll-lock
-  layout shift (opening a modal `Dialog`/`Select`/`DropdownMenu` used to hide the page's
-  scrollbar and nudge content sideways by the scrollbar's width for as long as it was open) —
-  the gutter is reserved up front so locking `overflow` never changes the available width. If a
-  new scrollable region is added anywhere the page itself might scroll behind an overlay, give
-  it `.scroll-area` (or `scrollbar-gutter: stable` directly) rather than reintroducing the shift.
+- The dashboard shell (`AppShell`) scrolls internally (see App shell below), so the document
+  itself never scrolls behind an open `Dialog`/`Select`/`DropdownMenu` there — Radix's scroll
+  lock (`body[data-scroll-locked]`) has nothing to shift. Do **not** reach for
+  `scrollbar-gutter: stable` or `html { overflow-y: scroll }` to defend against that shift again;
+  those were a workaround for a `position: sticky` app shell (see below) and caused their own bugs
+  (a permanently visible dead scrollbar strip on short pages like `/login`). Only pages that
+  genuinely scroll the document (`/login`, `/403`, the 404 page) rely on the browser's native
+  scrollbar, styled via the plain `html::-webkit-scrollbar*` rules in `globals.css`.
 
 ## Responsive design (build for every screen size, not retrofitted later)
 
@@ -119,12 +128,21 @@ standard scale across every component and page:
 ## Layout patterns
 
 - **App shell** (`components/layout/AppShell.tsx`): `Sidebar` + a right column of `Topbar` +
-  `main` + `Footer`, in one `flex` row. The sidebar is stationary while the page scrolls — it's
-  `sticky top-0 h-screen` inside that flex row (not `position: fixed` — sticky-in-a-flex-row
-  pins it to the viewport for the page's full scroll range without needing a manual margin/padding
-  offset on the content column, which `fixed` would require). It's desktop-only (`hidden
-  md:flex`); below `md` the mobile `Sheet` drawer (triggered from `Topbar`) is the nav, unchanged
-  by any of this.
+  an internally-scrolling wrapper (`.scroll-area overflow-y-auto`) around `main` + `Footer`, in
+  one `flex h-dvh overflow-hidden` row — the document itself never scrolls in the dashboard.
+  This used to be a `position: sticky` sidebar inside a document-scrolling shell, but any Radix
+  overlay (`Dialog`/`Select`/`DropdownMenu`) locks scroll on `body`, which changes the sidebar's
+  nearest scrollport ancestor and made `sticky` fall back to its static position — visibly
+  yanking the sidebar and topbar upward by the current scroll offset the moment a dropdown opened.
+  Making the shell itself the fixed-height scroll boundary (rather than the document) sidesteps
+  that entirely: `body` locking to `overflow: hidden` is a no-op when it was never the scroll
+  container. Don't reintroduce document-level scrolling in the dashboard, and don't swap the
+  sidebar to `position: fixed` either — that only fixes the sidebar, still requires manually
+  syncing a content-column margin/padding to the collapsed/expanded width, and does nothing for
+  the same shift on any other in-flow element. It's desktop-only (`hidden md:flex`); below `md`
+  the mobile `Sheet` drawer (triggered from `Topbar`) is the nav, unchanged by any of this.
+  Non-dashboard document-scrolling pages (`/login`, `/403`, the 404 page) are unaffected and keep
+  the browser's native scrollbar.
   - **Collapse-to-icons**: `sidebarCollapsed` lives in the zustand `useUIStore`
     (`store/index.ts`), persisted to `localStorage` via zustand's `persist` middleware
     (partialized to just that one field — don't persist `mobileNavOpen` or `toasts`). Toggled by
@@ -157,6 +175,17 @@ standard scale across every component and page:
 - **Destructive/terminal actions** (dispose, delete): always a confirmation `Dialog` with the
   consequence stated explicitly (e.g. "This will mark the asset as disposed and remove it from
   active reports").
+- **Dialog structure**: `DialogContent` itself never scrolls (`overflow-hidden p-0`) — it's a
+  fixed three-region column of `DialogHeader` (bordered `border-b`, holds the title and, for
+  destructive dialogs, a `DialogDescription`), `DialogBody` (the one scrollable region —
+  `scroll-area overflow-y-auto`, holds the fields/content), and `DialogFooter` (bordered
+  `border-t`, holds the action buttons). This keeps the title, close button, and action buttons
+  pinned in place while a long dialog's content scrolls between them — the close button in
+  particular used to scroll away with the content since `DialogContent` was the scroll container.
+  A form dialog wraps `DialogBody` + `DialogFooter` in `<form className="flex min-h-0 flex-1
+flex-col">` (not the whole `DialogContent`) so the footer's buttons stay outside the scrolling
+  region while remaining part of the submit. Every dialog in the app follows this shape — don't
+  reintroduce a directly-scrolling `DialogContent`.
 
 ## Feedback & state
 
@@ -164,7 +193,19 @@ standard scale across every component and page:
   patterns; show a `Toast` on success/failure.
 - Empty states: every list view needs a designed empty state (icon + short copy + primary
   action), not a blank table.
-- Loading states: `Skeleton` components matching the shape of the content being loaded, not a
+- Loading states: two tools for two different delays — a route segment's own data fetch (a fresh
+  navigation to `/assets`, `/assets/[id]`, etc.) gets a sibling `loading.tsx` rendering a
+  shape-matched skeleton from `components/skeletons/` (`TableSkeleton`, `FormSkeleton`,
+  `DetailSkeleton`, `PageHeaderSkeleton`), which Next.js shows automatically — no call-site
+  wiring needed. Anything that re-fetches an _already-mounted_ segment (a `router.refresh()`
+  after a mutation, or a `router.push` that only changes search params, e.g. `AssetsList`'s
+  filters/pagination) doesn't get that boundary, since the segment never unmounts — use
+  `useRouteLoadingRouter` (`lib/hooks/useRouteLoadingRouter.ts`, a drop-in `useRouter()`
+  replacement) instead, which pulses the top-level `RouteProgress` bar (mounted in `AppShell`)
+  for exactly as long as the refresh/navigation takes. A `<Link>` also gets this treatment by
+  rendering `LinkProgress` (`components/layout/LinkProgress.tsx`, wraps `useLinkStatus`) as one
+  of its children. Client-side fetches inside a component (not a route navigation) get their own
+  local `animate-pulse` skeleton state instead (see `UserTypeahead`'s results panel) — never a
   spinner-only page.
 
 ## Accessibility baseline

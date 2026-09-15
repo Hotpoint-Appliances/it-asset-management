@@ -27,7 +27,10 @@ export interface PageResult<T> {
   total: number;
 }
 
-export async function listDepartments(limit = 100, offset = 0): Promise<PageResult<Department>> {
+export async function listDepartments(
+  limit = 100,
+  offset = 0,
+): Promise<PageResult<Department>> {
   const [rows, count] = await Promise.all([
     query<DepartmentRow>(
       `SELECT ${SELECT_COLUMNS} FROM departments ORDER BY name LIMIT $1 OFFSET $2`,
@@ -35,10 +38,15 @@ export async function listDepartments(limit = 100, offset = 0): Promise<PageResu
     ),
     query<{ count: string }>(`SELECT count(*) FROM departments`),
   ]);
-  return { items: rows.rows.map(mapDepartment), total: Number(count.rows[0].count) };
+  return {
+    items: rows.rows.map(mapDepartment),
+    total: Number(count.rows[0].count),
+  };
 }
 
-export async function createDepartment(input: DepartmentInput): Promise<Department> {
+export async function createDepartment(
+  input: DepartmentInput,
+): Promise<Department> {
   const result = await query<DepartmentRow>(
     `INSERT INTO departments (name, code) VALUES ($1, $2) RETURNING ${SELECT_COLUMNS}`,
     [input.name, input.code],

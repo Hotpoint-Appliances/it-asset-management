@@ -8,7 +8,9 @@ const SESSION_DURATION_SECONDS = 60 * 60 * 8; // 8h workday session
 function getSecretKey(): Uint8Array {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    throw new Error("JWT_SECRET is not set. Copy .env.example to .env.local and fill it in.");
+    throw new Error(
+      "JWT_SECRET is not set. Copy .env.example to .env.local and fill it in.",
+    );
   }
   return new TextEncoder().encode(secret);
 }

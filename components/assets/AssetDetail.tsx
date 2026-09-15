@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import axios from "axios";
@@ -89,7 +89,7 @@ export function AssetDetail({
   conditions: AssetCondition[];
   statuses: AssetStatus[];
 }) {
-  const router = useRouter();
+  const router = useRouteLoadingRouter();
   const addToast = useUIStore((s) => s.addToast);
   const [activeDialog, setActiveDialog] = React.useState<ActiveDialog>(null);
   const [deleting, setDeleting] = React.useState(false);

@@ -2,7 +2,11 @@ import type { ReactNode } from "react";
 import { requireRole } from "@/lib/auth/session";
 import { SettingsNav } from "@/components/layout/SettingsNav";
 
-export default async function SettingsLayout({ children }: { children: ReactNode }) {
+export default async function SettingsLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   await requireRole(["admin"]);
 
   return (

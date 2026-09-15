@@ -43,7 +43,7 @@ Microsoft Graph, driven by defined trigger events.
      session.
    - Ship a PowerShell script (`scripts/run-notifications-check.ps1`) that does
      `Invoke-RestMethod -Uri $env:ITAM_APP_URL/api/cron/notifications-check -Method Post
-     -Headers @{ Authorization = "Bearer $env:ITAM_CRON_SECRET" }`, logging the response and
+-Headers @{ Authorization = "Bearer $env:ITAM_CRON_SECRET" }`, logging the response and
      any error to a local log file for ops visibility.
    - Register that script as a **Windows Task Scheduler** task on the Windows Server host
      running the app. A daily run (e.g. 07:00) is sufficient for warranty/maintenance-due

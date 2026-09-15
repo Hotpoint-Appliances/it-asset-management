@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/DropdownMenu";
 import { TransferDialog } from "./TransferDialog";
 import { DisposalDialog } from "./DisposalDialog";
+import { LinkProgress } from "@/components/layout/LinkProgress";
 import type { AssetListItem } from "@/types/asset";
 import type { Location } from "@/types/location";
 import type { Department } from "@/types/department";
@@ -56,6 +57,7 @@ export function AssetRowActions({
             <Link href={`/assets/${asset.id}`}>
               <Eye className="h-4 w-4" />
               View
+              <LinkProgress />
             </Link>
           </DropdownMenuItem>
           {canManage && !isDisposed && (
@@ -63,6 +65,7 @@ export function AssetRowActions({
               <Link href={`/assets/${asset.id}/edit`}>
                 <Pencil className="h-4 w-4" />
                 Edit
+                <LinkProgress />
               </Link>
             </DropdownMenuItem>
           )}

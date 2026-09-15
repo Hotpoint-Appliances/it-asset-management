@@ -31,7 +31,8 @@ export async function GET(
     const buffer = await readFile(resolveUploadedFilePath(attachment.filePath));
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
-        "Content-Type": attachment.fileType || mimeTypeForPath(attachment.filePath),
+        "Content-Type":
+          attachment.fileType || mimeTypeForPath(attachment.filePath),
         "Content-Disposition": `inline; filename="${attachment.fileName.replace(/"/g, "")}"`,
         "Cache-Control": "private, max-age=3600",
       },

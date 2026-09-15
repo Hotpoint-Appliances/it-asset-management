@@ -11,10 +11,14 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore, type Toast, type ToastVariant } from "@/store";
+import { Portal } from "@/components/ui/Portal";
 
 const AUTO_DISMISS_MS = 5000;
 
-const VARIANT_ICON: Record<ToastVariant, React.ComponentType<{ className?: string }>> = {
+const VARIANT_ICON: Record<
+  ToastVariant,
+  React.ComponentType<{ className?: string }>
+> = {
   success: CheckCircle2,
   error: CircleAlert,
   warning: TriangleAlert,
@@ -37,11 +41,13 @@ export function Toaster() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed inset-x-4 bottom-4 z-100 flex flex-col gap-2 sm:inset-x-auto sm:right-4 sm:w-full sm:max-w-sm">
-      {toasts.map((toast) => (
-        <ToastCard key={toast.id} toast={toast} onDismiss={removeToast} />
-      ))}
-    </div>
+    <Portal>
+      <div className="fixed inset-x-4 bottom-4 z-100 flex flex-col gap-2 sm:inset-x-auto sm:right-4 sm:w-full sm:max-w-sm">
+        {toasts.map((toast) => (
+          <ToastCard key={toast.id} toast={toast} onDismiss={removeToast} />
+        ))}
+      </div>
+    </Portal>
   );
 }
 
@@ -72,7 +78,9 @@ function ToastCard({
       className="bg-card text-card-foreground border-border data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 flex items-start gap-3 rounded-xl border p-4 shadow-lg"
       data-state="open"
     >
-      <Icon className={cn("mt-0.5 h-5 w-5 shrink-0", VARIANT_ICON_CLASS[variant])} />
+      <Icon
+        className={cn("mt-0.5 h-5 w-5 shrink-0", VARIANT_ICON_CLASS[variant])}
+      />
       <div className="flex-1 space-y-0.5">
         <p className="text-sm font-medium">{toast.title}</p>
         {toast.description && (

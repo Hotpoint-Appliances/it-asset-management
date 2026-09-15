@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiSession, requireApiRole } from "@/lib/auth/api";
-import { getAssetAttachmentById, deleteAssetAttachment } from "@/lib/db/assetAttachments";
+import {
+  getAssetAttachmentById,
+  deleteAssetAttachment,
+} from "@/lib/db/assetAttachments";
 import { deleteUploadedFile } from "@/lib/files/upload";
 
 export async function DELETE(
@@ -20,7 +23,10 @@ export async function DELETE(
 
   const existing = await getAssetAttachmentById(numericId);
   if (!existing || existing.assetId !== id) {
-    return NextResponse.json({ error: "Attachment not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Attachment not found" },
+      { status: 404 },
+    );
   }
 
   const deleted = await deleteAssetAttachment(numericId);

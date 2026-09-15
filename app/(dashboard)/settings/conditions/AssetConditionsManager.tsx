@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
 import { Plus, Pencil, Trash2, Gauge } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -10,6 +10,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogBody,
   DialogTitle,
   DialogFooter,
   DialogClose,
@@ -27,7 +28,8 @@ import { useUIStore } from "@/store";
 import type { AssetCondition } from "@/types/assetCondition";
 
 function errorMessage(err: unknown): string {
-  if (axios.isAxiosError(err) && err.response?.data?.error) return err.response.data.error;
+  if (axios.isAxiosError(err) && err.response?.data?.error)
+    return err.response.data.error;
   return "Something went wrong. Please try again.";
 }
 
@@ -36,7 +38,7 @@ export function AssetConditionsManager({
 }: {
   initialConditions: AssetCondition[];
 }) {
-  const router = useRouter();
+  const router = useRouteLoadingRouter();
   const addToast = useUIStore((s) => s.addToast);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<AssetCondition | null>(null);
@@ -135,11 +137,19 @@ export function AssetConditionsManager({
                 <TableCell className="font-medium">{condition.name}</TableCell>
                 <TableCell>{condition.sortOrder}</TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => openEdit(condition)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => openEdit(condition)}
+                  >
                     <Pencil className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => setDeleting(condition)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeleting(condition)}
+                  >
                     <Trash2 className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
                   </Button>
@@ -153,36 +163,46 @@ export function AssetConditionsManager({
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit condition" : "New condition"}</DialogTitle>
+            <DialogTitle>
+              {editing ? "Edit condition" : "New condition"}
+            </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="condition-name" className="text-sm font-medium">
-                Name
-              </label>
-              <Input
-                id="condition-name"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="condition-sort-order" className="text-sm font-medium">
-                Sort order
-              </label>
-              <Input
-                id="condition-sort-order"
-                type="number"
-                value={sortOrder}
-                onChange={(e) => setSortOrder(Number(e.target.value))}
-              />
-            </div>
-            {error && (
-              <p role="alert" className="text-destructive text-sm">
-                {error}
-              </p>
-            )}
+          <form
+            onSubmit={handleSubmit}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            <DialogBody>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="condition-name" className="text-sm font-medium">
+                  Name
+                </label>
+                <Input
+                  id="condition-name"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="condition-sort-order"
+                  className="text-sm font-medium"
+                >
+                  Sort order
+                </label>
+                <Input
+                  id="condition-sort-order"
+                  type="number"
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(Number(e.target.value))}
+                />
+              </div>
+              {error && (
+                <p role="alert" className="text-destructive text-sm">
+                  {error}
+                </p>
+              )}
+            </DialogBody>
             <DialogFooter>
               <DialogClose asChild>
                 <Button type="button" variant="outline">
@@ -197,21 +217,31 @@ export function AssetConditionsManager({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!deleting} onOpenChange={(open) => !open && setDeleting(null)}>
+      <Dialog
+        open={!!deleting}
+        onOpenChange={(open) => !open && setDeleting(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete condition</DialogTitle>
           </DialogHeader>
-          <p className="text-muted-foreground text-sm">
-            This will permanently delete <strong>{deleting?.name}</strong>. This cannot be undone.
-          </p>
+          <DialogBody>
+            <p className="text-muted-foreground text-sm">
+              This will permanently delete <strong>{deleting?.name}</strong>.
+              This cannot be undone.
+            </p>
+          </DialogBody>
           <DialogFooter>
             <DialogClose asChild>
               <Button type="button" variant="outline">
                 Cancel
               </Button>
             </DialogClose>
-            <Button variant="destructive" disabled={submitting} onClick={handleDelete}>
+            <Button
+              variant="destructive"
+              disabled={submitting}
+              onClick={handleDelete}
+            >
               {submitting ? "Deleting…" : "Delete"}
             </Button>
           </DialogFooter>

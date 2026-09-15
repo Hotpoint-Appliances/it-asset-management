@@ -12,14 +12,20 @@ export type CreateUserValidationResult =
   | { success: true; data: CreateUserPayload }
   | { success: false; error: string };
 
-export function validateCreateUserInput(body: unknown): CreateUserValidationResult {
+export function validateCreateUserInput(
+  body: unknown,
+): CreateUserValidationResult {
   if (typeof body !== "object" || body === null) {
     return { success: false, error: "Invalid request body" };
   }
-  const { fullName, email, password, roleId, departmentId } = body as Record<string, unknown>;
+  const { fullName, email, password, roleId, departmentId } = body as Record<
+    string,
+    unknown
+  >;
 
   const fullNameResult = requireString(fullName, "Full name");
-  if (!fullNameResult.ok) return { success: false, error: fullNameResult.error };
+  if (!fullNameResult.ok)
+    return { success: false, error: fullNameResult.error };
 
   if (typeof email !== "string" || !email.trim() || !email.includes("@")) {
     return { success: false, error: "A valid email is required" };
@@ -63,14 +69,20 @@ export type UpdateUserValidationResult =
   | { success: true; data: UpdateUserPayload }
   | { success: false; error: string };
 
-export function validateUpdateUserInput(body: unknown): UpdateUserValidationResult {
+export function validateUpdateUserInput(
+  body: unknown,
+): UpdateUserValidationResult {
   if (typeof body !== "object" || body === null) {
     return { success: false, error: "Invalid request body" };
   }
-  const { fullName, email, roleId, departmentId, password } = body as Record<string, unknown>;
+  const { fullName, email, roleId, departmentId, password } = body as Record<
+    string,
+    unknown
+  >;
 
   const fullNameResult = requireString(fullName, "Full name");
-  if (!fullNameResult.ok) return { success: false, error: fullNameResult.error };
+  if (!fullNameResult.ok)
+    return { success: false, error: fullNameResult.error };
 
   if (typeof email !== "string" || !email.trim() || !email.includes("@")) {
     return { success: false, error: "A valid email is required" };
@@ -86,7 +98,10 @@ export function validateUpdateUserInput(body: unknown): UpdateUserValidationResu
     return { success: false, error: "departmentId must be a number or null" };
   }
 
-  if (password !== undefined && (typeof password !== "string" || password.length < 8)) {
+  if (
+    password !== undefined &&
+    (typeof password !== "string" || password.length < 8)
+  ) {
     return { success: false, error: "Password must be at least 8 characters" };
   }
 

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Plus, Search, X, Boxes } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -18,6 +18,9 @@ import {
 import { EmptyState } from "@/components/shared/EmptyState";
 import { MultiSelectFilter } from "@/components/shared/MultiSelectFilter";
 import { AssetRowActions } from "./AssetRowActions";
+import { LinkProgress } from "@/components/layout/LinkProgress";
+import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
+import { cn } from "@/lib/utils";
 import {
   statusBadgeVariant,
   conditionBadgeVariant,
@@ -63,7 +66,7 @@ export function AssetsList({
   conditions,
   statuses,
 }: AssetsListProps) {
-  const router = useRouter();
+  const router = useRouteLoadingRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [search, setSearch] = React.useState(searchParams.get("search") ?? "");
@@ -124,6 +127,7 @@ export function AssetsList({
             <Link href="/assets/new">
               <Plus className="h-4 w-4" />
               New Asset
+              <LinkProgress />
             </Link>
           </Button>
         )}
@@ -224,7 +228,12 @@ export function AssetsList({
         />
       ) : (
         <>
-          <Table>
+          <Table
+            className={cn(
+              "transition-opacity",
+              router.isPending && "pointer-events-none opacity-60",
+            )}
+          >
             <TableHeader>
               <TableRow>
                 <TableHead>Tag</TableHead>

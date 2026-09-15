@@ -26,7 +26,10 @@ export async function POST(request: NextRequest) {
   if (validated.data.parentLocationId != null) {
     const existing = await listLocations();
     if (!existing.some((l) => l.id === validated.data.parentLocationId)) {
-      return NextResponse.json({ error: "parentLocationId does not exist" }, { status: 400 });
+      return NextResponse.json(
+        { error: "parentLocationId does not exist" },
+        { status: 400 },
+      );
     }
   }
 

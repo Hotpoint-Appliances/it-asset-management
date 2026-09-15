@@ -26,7 +26,7 @@ table (admin, asset_manager, viewer).
 1. **Password hashing**: `lib/auth/password.ts` — `hashPassword`/`verifyPassword` wrapping
    `bcryptjs` (12 salt rounds).
 2. **JWT session**: `lib/auth/session.ts` using `jose` — sign a JWT containing `{ userId,
-   roleId, roleName, departmentId, fullName, email }` on login (the extra `fullName`/`email`
+roleId, roleName, departmentId, fullName, email }` on login (the extra `fullName`/`email`
    avoid a DB round-trip for the user-context step below), store it in an `itam_session`
    cookie: `httpOnly`, `secure` in production only (dev runs plain HTTP), `sameSite: strict`,
    8h expiry. Provide `getSession()` (reads/verifies the cookie, returns `null` — never
@@ -44,7 +44,7 @@ table (admin, asset_manager, viewer).
 5. **RBAC — authentication vs. authorization split**: Next.js 16 deprecated and renamed
    `middleware.ts` to **`proxy.ts`** (see `node_modules/next/dist/docs`, per AGENTS.md) — this
    project's file is `proxy.ts` at the repo root, not `middleware.ts`. It does only the
-   *optimistic authentication* check Next's own auth guide recommends for this layer: redirect
+   _optimistic authentication_ check Next's own auth guide recommends for this layer: redirect
    to `/login` when no session cookie is present, redirect away from `/login` when one is.
    Its `matcher` excludes `/api/*` entirely — route handlers verify their own session/role and
    return JSON 401/403, per the Route Handlers guidance in that same doc, rather than being

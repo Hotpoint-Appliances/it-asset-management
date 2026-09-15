@@ -132,8 +132,8 @@ sense at this data size.
   (table/tree view + create-edit `Dialog` + delete-confirm `Dialog`, mutating via `axios` +
   `router.refresh()`, feedback via the new `Toaster`)
 - `app/api/{categories,locations,departments,vendors,asset-conditions,asset-statuses}/route.ts`
-  + `[id]/route.ts`; `app/api/users/route.ts` extended with `POST`, new
-  `app/api/users/[id]/route.ts` (`PATCH` for edit and deactivate/reactivate)
+  - `[id]/route.ts`; `app/api/users/route.ts` extended with `POST`, new
+    `app/api/users/[id]/route.ts` (`PATCH` for edit and deactivate/reactivate)
 - `store/index.ts` — `toasts` slice (`Toast`, `addToast`, `removeToast`) added alongside Phase 1's
   `mobileNavOpen`
 - `nav-items.ts` reduced to `Dashboard`/`Assets`/`Reports`/`Settings` (admin-only)

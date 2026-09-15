@@ -2,10 +2,11 @@ import { requireString, optionalNumber } from "./helpers";
 import type { AssetStatusInput } from "@/types/assetStatus";
 
 export type AssetStatusValidationResult =
-  | { success: true; data: AssetStatusInput }
-  | { success: false; error: string };
+  { success: true; data: AssetStatusInput } | { success: false; error: string };
 
-export function validateAssetStatusInput(body: unknown): AssetStatusValidationResult {
+export function validateAssetStatusInput(
+  body: unknown,
+): AssetStatusValidationResult {
   if (typeof body !== "object" || body === null) {
     return { success: false, error: "Invalid request body" };
   }

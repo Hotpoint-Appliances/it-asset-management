@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
 import { Wrench, Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -11,6 +11,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogBody,
   DialogTitle,
   DialogFooter,
   DialogClose,
@@ -66,7 +67,7 @@ export function MaintenanceTab({
   canManage: boolean;
   defaultCreateType?: MaintenanceType;
 }) {
-  const router = useRouter();
+  const router = useRouteLoadingRouter();
   const addToast = useUIStore((s) => s.addToast);
   const [createOpen, setCreateOpen] = React.useState(false);
   const [maintenanceType, setMaintenanceType] = React.useState<MaintenanceType>(
@@ -286,62 +287,69 @@ export function MaintenanceTab({
           <DialogHeader>
             <DialogTitle>Log maintenance</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleCreate} className="flex flex-col gap-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium">Type</label>
-                <Select
-                  value={maintenanceType}
-                  onChange={(e) =>
-                    setMaintenanceType(e.target.value as MaintenanceType)
-                  }
-                >
-                  <option value="repair">Repair</option>
-                  <option value="service">Service</option>
-                  <option value="inspection">Inspection</option>
-                </Select>
+          <form
+            onSubmit={handleCreate}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            <DialogBody>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium">Type</label>
+                  <Select
+                    value={maintenanceType}
+                    onChange={(e) =>
+                      setMaintenanceType(e.target.value as MaintenanceType)
+                    }
+                  >
+                    <option value="repair">Repair</option>
+                    <option value="service">Service</option>
+                    <option value="inspection">Inspection</option>
+                  </Select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium">Vendor</label>
+                  <Select
+                    value={vendorId ?? ""}
+                    onChange={(e) =>
+                      setVendorId(
+                        e.target.value ? Number(e.target.value) : null,
+                      )
+                    }
+                  >
+                    <option value="">None</option>
+                    {vendors.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.name}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="flex flex-col gap-1.5 sm:col-span-2">
+                  <label className="text-sm font-medium">Scheduled date</label>
+                  <input
+                    type="date"
+                    value={scheduledDate}
+                    onChange={(e) => setScheduledDate(e.target.value)}
+                    className="border-border bg-background focus-visible:ring-ring flex h-10 w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                  />
+                </div>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium">Vendor</label>
-                <Select
-                  value={vendorId ?? ""}
-                  onChange={(e) =>
-                    setVendorId(e.target.value ? Number(e.target.value) : null)
-                  }
-                >
-                  <option value="">None</option>
-                  {vendors.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.name}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div className="flex flex-col gap-1.5 sm:col-span-2">
-                <label className="text-sm font-medium">Scheduled date</label>
-                <input
-                  type="date"
-                  value={scheduledDate}
-                  onChange={(e) => setScheduledDate(e.target.value)}
-                  className="border-border bg-background focus-visible:ring-ring flex h-10 w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                <label className="text-sm font-medium">Notes</label>
+                <textarea
+                  rows={3}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="border-border bg-background focus-visible:ring-ring flex w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
                 />
               </div>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium">Notes</label>
-              <textarea
-                rows={3}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="border-border bg-background focus-visible:ring-ring flex w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
-              />
-            </div>
 
-            {error && (
-              <p role="alert" className="text-destructive text-sm">
-                {error}
-              </p>
-            )}
+              {error && (
+                <p role="alert" className="text-destructive text-sm">
+                  {error}
+                </p>
+              )}
+            </DialogBody>
 
             <DialogFooter>
               <DialogClose asChild>

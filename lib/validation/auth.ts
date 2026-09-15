@@ -4,8 +4,7 @@ export interface LoginInput {
 }
 
 export type LoginValidationResult =
-  | { success: true; data: LoginInput }
-  | { success: false; error: string };
+  { success: true; data: LoginInput } | { success: false; error: string };
 
 export function validateLoginInput(body: unknown): LoginValidationResult {
   if (typeof body !== "object" || body === null) {
@@ -20,5 +19,8 @@ export function validateLoginInput(body: unknown): LoginValidationResult {
     return { success: false, error: "Password is required" };
   }
 
-  return { success: true, data: { email: email.trim().toLowerCase(), password } };
+  return {
+    success: true,
+    data: { email: email.trim().toLowerCase(), password },
+  };
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
@@ -9,6 +9,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogBody,
   DialogTitle,
   DialogFooter,
   DialogClose,
@@ -47,7 +48,7 @@ export function StatusDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const router = useRouter();
+  const router = useRouteLoadingRouter();
   const addToast = useUIStore((s) => s.addToast);
   const selectable = React.useMemo(
     () => statuses.filter((s) => s.name !== "disposed"),
@@ -99,40 +100,42 @@ export function StatusDialog({
         <DialogHeader>
           <DialogTitle>Change status</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Status</label>
-            <Select
-              value={statusId}
-              onChange={(e) => setStatusId(Number(e.target.value))}
-            >
-              {selectable.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {formatLookupName(s.name)}
-                </option>
-              ))}
-            </Select>
-          </div>
-
-          {noteRequired && (
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <DialogBody>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium">Note (required)</label>
-              <textarea
-                required
-                rows={3}
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Explain the circumstances…"
-                className="border-border bg-background focus-visible:ring-ring flex w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
-              />
+              <label className="text-sm font-medium">Status</label>
+              <Select
+                value={statusId}
+                onChange={(e) => setStatusId(Number(e.target.value))}
+              >
+                {selectable.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {formatLookupName(s.name)}
+                  </option>
+                ))}
+              </Select>
             </div>
-          )}
 
-          {error && (
-            <p role="alert" className="text-destructive text-sm">
-              {error}
-            </p>
-          )}
+            {noteRequired && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium">Note (required)</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Explain the circumstances…"
+                  className="border-border bg-background focus-visible:ring-ring flex w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                />
+              </div>
+            )}
+
+            {error && (
+              <p role="alert" className="text-destructive text-sm">
+                {error}
+              </p>
+            )}
+          </DialogBody>
 
           <DialogFooter>
             <DialogClose asChild>

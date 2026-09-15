@@ -19,7 +19,9 @@ export function EmptyState({
         <Icon className="text-muted-foreground h-8 w-8" />
         <div className="space-y-1">
           <p className="text-sm font-medium">{title}</p>
-          {description && <p className="text-muted-foreground text-sm">{description}</p>}
+          {description && (
+            <p className="text-muted-foreground text-sm">{description}</p>
+          )}
         </div>
         {action}
       </CardContent>

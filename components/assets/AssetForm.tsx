@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
 import { Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -19,7 +19,8 @@ import type { AssetCondition } from "@/types/assetCondition";
 import type { AssetStatus } from "@/types/assetStatus";
 
 function errorMessage(err: unknown): string {
-  if (axios.isAxiosError(err) && err.response?.data?.error) return err.response.data.error;
+  if (axios.isAxiosError(err) && err.response?.data?.error)
+    return err.response.data.error;
   return "Something went wrong. Please try again.";
 }
 
@@ -42,7 +43,13 @@ function Field({
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="border-border flex flex-col gap-4 border-b pb-6 last:border-b-0 last:pb-0">
       <h2 className="text-sm font-semibold tracking-wide uppercase">{title}</h2>
@@ -79,7 +86,10 @@ interface FormState {
   notes: string;
 }
 
-function initialState(asset: AssetWithRelations | undefined, defaultStatusId: number | null): FormState {
+function initialState(
+  asset: AssetWithRelations | undefined,
+  defaultStatusId: number | null,
+): FormState {
   return {
     assetTag: asset?.assetTag ?? "",
     name: asset?.name ?? "",
@@ -101,7 +111,8 @@ function initialState(asset: AssetWithRelations | undefined, defaultStatusId: nu
     purchaseCost: asset?.purchaseCost != null ? String(asset.purchaseCost) : "",
     warrantyExpiry: asset?.warrantyExpiry?.slice(0, 10) ?? "",
     depreciationMethod: asset?.depreciationMethod ?? "",
-    usefulLifeMonths: asset?.usefulLifeMonths != null ? String(asset.usefulLifeMonths) : "",
+    usefulLifeMonths:
+      asset?.usefulLifeMonths != null ? String(asset.usefulLifeMonths) : "",
     salvageValue: asset?.salvageValue != null ? String(asset.salvageValue) : "",
     notes: asset?.notes ?? "",
   };
@@ -126,7 +137,7 @@ export function AssetForm({
   conditions: AssetCondition[];
   statuses: AssetStatus[];
 }) {
-  const router = useRouter();
+  const router = useRouteLoadingRouter();
   const addToast = useUIStore((s) => s.addToast);
 
   const defaultStatusId = React.useMemo(() => {
@@ -138,7 +149,9 @@ export function AssetForm({
     [statuses],
   );
 
-  const [form, setForm] = React.useState<FormState>(() => initialState(asset, defaultStatusId));
+  const [form, setForm] = React.useState<FormState>(() =>
+    initialState(asset, defaultStatusId),
+  );
   const [imageFile, setImageFile] = React.useState<File | null>(null);
   const [imagePreview, setImagePreview] = React.useState<string | null>(
     asset?.imagePath
@@ -149,11 +162,21 @@ export function AssetForm({
   const [error, setError] = React.useState<string | null>(null);
 
   const categoryItems = React.useMemo(
-    () => categories.map((c) => ({ id: c.id, parentId: c.parentCategoryId, name: c.name })),
+    () =>
+      categories.map((c) => ({
+        id: c.id,
+        parentId: c.parentCategoryId,
+        name: c.name,
+      })),
     [categories],
   );
   const locationItems = React.useMemo(
-    () => locations.map((l) => ({ id: l.id, parentId: l.parentLocationId, name: l.name })),
+    () =>
+      locations.map((l) => ({
+        id: l.id,
+        parentId: l.parentLocationId,
+        name: l.name,
+      })),
     [locations],
   );
 
@@ -167,8 +190,13 @@ export function AssetForm({
   // Applied at each owner-affecting call site (not a useEffect) so it stays one state update.
   function withDefaultStatus(next: FormState): FormState {
     if (mode !== "create" || next.statusTouched) return next;
-    const hasOwner = next.ownerMode === "user" ? !!next.assignedUserId : !!next.ownerName.trim();
-    const statusId = hasOwner ? (activeStatusId ?? defaultStatusId) : defaultStatusId;
+    const hasOwner =
+      next.ownerMode === "user"
+        ? !!next.assignedUserId
+        : !!next.ownerName.trim();
+    const statusId = hasOwner
+      ? (activeStatusId ?? defaultStatusId)
+      : defaultStatusId;
     return statusId != null ? { ...next, statusId } : next;
   }
 
@@ -195,18 +223,23 @@ export function AssetForm({
     const formData = new FormData();
     formData.set("assetTag", form.assetTag);
     formData.set("name", form.name);
-    if (form.categoryId != null) formData.set("categoryId", String(form.categoryId));
+    if (form.categoryId != null)
+      formData.set("categoryId", String(form.categoryId));
     formData.set("modelNumber", form.modelNumber);
     formData.set("serialNumber", form.serialNumber);
-    if (form.locationId != null) formData.set("locationId", String(form.locationId));
-    if (form.departmentId != null) formData.set("departmentId", String(form.departmentId));
+    if (form.locationId != null)
+      formData.set("locationId", String(form.locationId));
+    if (form.departmentId != null)
+      formData.set("departmentId", String(form.departmentId));
     if (form.ownerMode === "user") {
-      if (form.assignedUserId) formData.set("assignedUserId", form.assignedUserId);
+      if (form.assignedUserId)
+        formData.set("assignedUserId", form.assignedUserId);
     } else {
       formData.set("ownerName", form.ownerName);
       formData.set("ownerEmail", form.ownerEmail);
     }
-    if (form.conditionId != null) formData.set("conditionId", String(form.conditionId));
+    if (form.conditionId != null)
+      formData.set("conditionId", String(form.conditionId));
     if (form.statusId != null) formData.set("statusId", String(form.statusId));
     if (form.vendorId != null) formData.set("vendorId", String(form.vendorId));
     formData.set("purchaseDate", form.purchaseDate);
@@ -220,7 +253,10 @@ export function AssetForm({
 
     try {
       if (mode === "create") {
-        const res = await axios.post<{ asset: { id: string } }>("/api/assets", formData);
+        const res = await axios.post<{ asset: { id: string } }>(
+          "/api/assets",
+          formData,
+        );
         addToast({ title: "Asset created", variant: "success" });
         router.push(`/assets/${res.data.asset.id}`);
       } else if (asset) {
@@ -293,7 +329,12 @@ export function AssetForm({
             id="asset-department"
             required
             value={form.departmentId ?? ""}
-            onChange={(e) => update("departmentId", e.target.value ? Number(e.target.value) : null)}
+            onChange={(e) =>
+              update(
+                "departmentId",
+                e.target.value ? Number(e.target.value) : null,
+              )
+            }
           >
             <option value="" disabled>
               Select a department
@@ -334,7 +375,10 @@ export function AssetForm({
               value={form.assignedUserId}
               displayName={form.assignedUserName}
               onSelect={(u) =>
-                updateOwner({ assignedUserId: u?.id ?? null, assignedUserName: u?.fullName ?? null })
+                updateOwner({
+                  assignedUserId: u?.id ?? null,
+                  assignedUserName: u?.fullName ?? null,
+                })
               }
             />
           </div>
@@ -366,7 +410,12 @@ export function AssetForm({
             id="asset-condition"
             required
             value={form.conditionId ?? ""}
-            onChange={(e) => update("conditionId", e.target.value ? Number(e.target.value) : null)}
+            onChange={(e) =>
+              update(
+                "conditionId",
+                e.target.value ? Number(e.target.value) : null,
+              )
+            }
           >
             <option value="" disabled>
               Select a condition
@@ -385,7 +434,10 @@ export function AssetForm({
             value={form.statusId ?? ""}
             onChange={(e) => {
               update("statusTouched", true);
-              update("statusId", e.target.value ? Number(e.target.value) : null);
+              update(
+                "statusId",
+                e.target.value ? Number(e.target.value) : null,
+              );
             }}
           >
             <option value="" disabled>
@@ -405,7 +457,9 @@ export function AssetForm({
           <Select
             id="asset-vendor"
             value={form.vendorId ?? ""}
-            onChange={(e) => update("vendorId", e.target.value ? Number(e.target.value) : null)}
+            onChange={(e) =>
+              update("vendorId", e.target.value ? Number(e.target.value) : null)
+            }
           >
             <option value="">None</option>
             {vendors.map((v) => (
@@ -448,7 +502,12 @@ export function AssetForm({
           <Select
             id="asset-depreciation-method"
             value={form.depreciationMethod}
-            onChange={(e) => update("depreciationMethod", e.target.value as FormState["depreciationMethod"])}
+            onChange={(e) =>
+              update(
+                "depreciationMethod",
+                e.target.value as FormState["depreciationMethod"],
+              )
+            }
           >
             <option value="">Not depreciated</option>
             <option value="straight_line">Straight line</option>
@@ -500,7 +559,13 @@ export function AssetForm({
                 onChange={handleImageChange}
               />
               {imagePreview && (
-                <Button type="button" variant="ghost" size="sm" onClick={clearImage} className="w-fit gap-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearImage}
+                  className="w-fit gap-1"
+                >
                   <X className="h-3.5 w-3.5" />
                   Remove
                 </Button>
@@ -533,7 +598,11 @@ export function AssetForm({
           Cancel
         </Button>
         <Button type="submit" disabled={submitting}>
-          {submitting ? "Saving…" : mode === "create" ? "Create asset" : "Save changes"}
+          {submitting
+            ? "Saving…"
+            : mode === "create"
+              ? "Create asset"
+              : "Save changes"}
         </Button>
       </div>
     </form>

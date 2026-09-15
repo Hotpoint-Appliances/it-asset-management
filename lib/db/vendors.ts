@@ -29,15 +29,21 @@ function mapVendor(row: VendorRow): Vendor {
 
 const SELECT_COLUMNS = `id, name, contact_name, contact_email, contact_phone, address, created_at, updated_at`;
 
-export async function listVendors(limit = 100, offset = 0): Promise<PageResult<Vendor>> {
+export async function listVendors(
+  limit = 100,
+  offset = 0,
+): Promise<PageResult<Vendor>> {
   const [rows, count] = await Promise.all([
-    query<VendorRow>(`SELECT ${SELECT_COLUMNS} FROM vendors ORDER BY name LIMIT $1 OFFSET $2`, [
-      limit,
-      offset,
-    ]),
+    query<VendorRow>(
+      `SELECT ${SELECT_COLUMNS} FROM vendors ORDER BY name LIMIT $1 OFFSET $2`,
+      [limit, offset],
+    ),
     query<{ count: string }>(`SELECT count(*) FROM vendors`),
   ]);
-  return { items: rows.rows.map(mapVendor), total: Number(count.rows[0].count) };
+  return {
+    items: rows.rows.map(mapVendor),
+    total: Number(count.rows[0].count),
+  };
 }
 
 export async function createVendor(input: VendorInput): Promise<Vendor> {
@@ -45,17 +51,33 @@ export async function createVendor(input: VendorInput): Promise<Vendor> {
     `INSERT INTO vendors (name, contact_name, contact_email, contact_phone, address)
      VALUES ($1, $2, $3, $4, $5)
      RETURNING ${SELECT_COLUMNS}`,
-    [input.name, input.contactName, input.contactEmail, input.contactPhone, input.address],
+    [
+      input.name,
+      input.contactName,
+      input.contactEmail,
+      input.contactPhone,
+      input.address,
+    ],
   );
   return mapVendor(result.rows[0]);
 }
 
-export async function updateVendor(id: number, input: VendorInput): Promise<Vendor | null> {
+export async function updateVendor(
+  id: number,
+  input: VendorInput,
+): Promise<Vendor | null> {
   const result = await query<VendorRow>(
     `UPDATE vendors SET name = $2, contact_name = $3, contact_email = $4, contact_phone = $5, address = $6
      WHERE id = $1
      RETURNING ${SELECT_COLUMNS}`,
-    [id, input.name, input.contactName, input.contactEmail, input.contactPhone, input.address],
+    [
+      id,
+      input.name,
+      input.contactName,
+      input.contactEmail,
+      input.contactPhone,
+      input.address,
+    ],
   );
   return result.rows[0] ? mapVendor(result.rows[0]) : null;
 }

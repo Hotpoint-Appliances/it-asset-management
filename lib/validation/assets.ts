@@ -1,9 +1,13 @@
-import { requireString, optionalString, optionalNumber, requireNumber } from "./helpers";
+import {
+  requireString,
+  optionalString,
+  optionalNumber,
+  requireNumber,
+} from "./helpers";
 import type { AssetInput } from "@/types/asset";
 
 export type AssetValidationResult =
-  | { success: true; data: AssetInput }
-  | { success: false; error: string };
+  { success: true; data: AssetInput } | { success: false; error: string };
 
 const DEPRECIATION_METHODS = new Set(["straight_line", "declining_balance"]);
 
@@ -19,15 +23,20 @@ export function validateAssetInput(body: unknown): AssetValidationResult {
   if (!name.ok) return { success: false, error: name.error };
 
   const categoryId = requireNumber(b.categoryId);
-  if (categoryId === undefined) return { success: false, error: "Category is required" };
+  if (categoryId === undefined)
+    return { success: false, error: "Category is required" };
   const locationId = requireNumber(b.locationId);
-  if (locationId === undefined) return { success: false, error: "Location is required" };
+  if (locationId === undefined)
+    return { success: false, error: "Location is required" };
   const departmentId = requireNumber(b.departmentId);
-  if (departmentId === undefined) return { success: false, error: "Department is required" };
+  if (departmentId === undefined)
+    return { success: false, error: "Department is required" };
   const conditionId = requireNumber(b.conditionId);
-  if (conditionId === undefined) return { success: false, error: "Condition is required" };
+  if (conditionId === undefined)
+    return { success: false, error: "Condition is required" };
   const statusId = requireNumber(b.statusId);
-  if (statusId === undefined) return { success: false, error: "Status is required" };
+  if (statusId === undefined)
+    return { success: false, error: "Status is required" };
 
   const modelNumber = optionalString(b.modelNumber);
   if (modelNumber === undefined) {
@@ -53,11 +62,15 @@ export function validateAssetInput(body: unknown): AssetValidationResult {
   // chk_asset_owner: at least one of assigned_user_id / owner_name must be set — enforced here
   // too so the caller gets a clean 400 instead of a raw DB constraint failure.
   if (!assignedUserId && !ownerName) {
-    return { success: false, error: "Either an assigned user or an owner name is required" };
+    return {
+      success: false,
+      error: "Either an assigned user or an owner name is required",
+    };
   }
 
   const vendorId = optionalNumber(b.vendorId);
-  if (vendorId === undefined) return { success: false, error: "vendorId must be a number or null" };
+  if (vendorId === undefined)
+    return { success: false, error: "vendorId must be a number or null" };
 
   const purchaseDate = optionalString(b.purchaseDate);
   if (purchaseDate === undefined) {
@@ -74,14 +87,26 @@ export function validateAssetInput(body: unknown): AssetValidationResult {
 
   const depreciationMethodRaw = optionalString(b.depreciationMethod);
   if (depreciationMethodRaw === undefined) {
-    return { success: false, error: "depreciationMethod must be a string or null" };
+    return {
+      success: false,
+      error: "depreciationMethod must be a string or null",
+    };
   }
-  if (depreciationMethodRaw && !DEPRECIATION_METHODS.has(depreciationMethodRaw)) {
-    return { success: false, error: "depreciationMethod must be straight_line or declining_balance" };
+  if (
+    depreciationMethodRaw &&
+    !DEPRECIATION_METHODS.has(depreciationMethodRaw)
+  ) {
+    return {
+      success: false,
+      error: "depreciationMethod must be straight_line or declining_balance",
+    };
   }
   const usefulLifeMonths = optionalNumber(b.usefulLifeMonths);
   if (usefulLifeMonths === undefined) {
-    return { success: false, error: "usefulLifeMonths must be a number or null" };
+    return {
+      success: false,
+      error: "usefulLifeMonths must be a number or null",
+    };
   }
   const salvageValue = optionalNumber(b.salvageValue);
   if (salvageValue === undefined) {
@@ -89,7 +114,8 @@ export function validateAssetInput(body: unknown): AssetValidationResult {
   }
 
   const notes = optionalString(b.notes);
-  if (notes === undefined) return { success: false, error: "notes must be a string or null" };
+  if (notes === undefined)
+    return { success: false, error: "notes must be a string or null" };
 
   return {
     success: true,
@@ -110,7 +136,8 @@ export function validateAssetInput(body: unknown): AssetValidationResult {
       purchaseDate,
       purchaseCost,
       warrantyExpiry,
-      depreciationMethod: (depreciationMethodRaw || null) as AssetInput["depreciationMethod"],
+      depreciationMethod: (depreciationMethodRaw ||
+        null) as AssetInput["depreciationMethod"],
       usefulLifeMonths,
       salvageValue,
       notes,
@@ -121,7 +148,9 @@ export function validateAssetInput(body: unknown): AssetValidationResult {
 /** The create/edit form posts multipart/form-data (fields + an optional image file share one
  * request) — this normalizes it into the same shape validateAssetInput expects from a JSON
  * body, so there's one validator for both entry points. */
-export function assetInputFromFormData(formData: FormData): Record<string, unknown> {
+export function assetInputFromFormData(
+  formData: FormData,
+): Record<string, unknown> {
   const str = (key: string): string | null => {
     const value = formData.get(key);
     return typeof value === "string" && value !== "" ? value : null;

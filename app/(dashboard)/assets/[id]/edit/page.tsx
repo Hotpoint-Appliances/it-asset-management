@@ -20,14 +20,15 @@ export default async function EditAssetPage({
   if (!asset) notFound();
   if (asset.statusName === "disposed") notFound();
 
-  const [categories, locations, departments, vendors, conditions, statuses] = await Promise.all([
-    listCategories(),
-    listLocations(),
-    listDepartments(500, 0),
-    listVendors(500, 0),
-    listAssetConditions(),
-    listAssetStatuses(),
-  ]);
+  const [categories, locations, departments, vendors, conditions, statuses] =
+    await Promise.all([
+      listCategories(),
+      listLocations(),
+      listDepartments(500, 0),
+      listVendors(500, 0),
+      listAssetConditions(),
+      listAssetStatuses(),
+    ]);
 
   return (
     <div className="flex flex-col gap-6">

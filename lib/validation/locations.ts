@@ -2,8 +2,7 @@ import { requireString, optionalNumber, optionalString } from "./helpers";
 import type { LocationInput } from "@/types/location";
 
 export type LocationValidationResult =
-  | { success: true; data: LocationInput }
-  | { success: false; error: string };
+  { success: true; data: LocationInput } | { success: false; error: string };
 
 export function validateLocationInput(body: unknown): LocationValidationResult {
   if (typeof body !== "object" || body === null) {
@@ -16,7 +15,10 @@ export function validateLocationInput(body: unknown): LocationValidationResult {
 
   const parentLocationIdResult = optionalNumber(parentLocationId);
   if (parentLocationIdResult === undefined) {
-    return { success: false, error: "parentLocationId must be a number or null" };
+    return {
+      success: false,
+      error: "parentLocationId must be a number or null",
+    };
   }
 
   const addressResult = optionalString(address);

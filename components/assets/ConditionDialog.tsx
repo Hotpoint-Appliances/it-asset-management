@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
@@ -9,6 +9,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogBody,
   DialogTitle,
   DialogFooter,
   DialogClose,
@@ -37,7 +38,7 @@ export function ConditionDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const router = useRouter();
+  const router = useRouteLoadingRouter();
   const addToast = useUIStore((s) => s.addToast);
   const [conditionId, setConditionId] = React.useState(currentConditionId);
   const [submitting, setSubmitting] = React.useState(false);
@@ -70,26 +71,28 @@ export function ConditionDialog({
         <DialogHeader>
           <DialogTitle>Change condition</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Condition</label>
-            <Select
-              value={conditionId}
-              onChange={(e) => setConditionId(Number(e.target.value))}
-            >
-              {conditions.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </Select>
-          </div>
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <DialogBody>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium">Condition</label>
+              <Select
+                value={conditionId}
+                onChange={(e) => setConditionId(Number(e.target.value))}
+              >
+                {conditions.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
 
-          {error && (
-            <p role="alert" className="text-destructive text-sm">
-              {error}
-            </p>
-          )}
+            {error && (
+              <p role="alert" className="text-destructive text-sm">
+                {error}
+              </p>
+            )}
+          </DialogBody>
 
           <DialogFooter>
             <DialogClose asChild>

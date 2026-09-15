@@ -21,7 +21,13 @@ interface ParsedOption {
 function parseOptions(children: React.ReactNode): ParsedOption[] {
   const options: ParsedOption[] = [];
   React.Children.forEach(children, (child) => {
-    if (!React.isValidElement<{ value?: unknown; disabled?: boolean; children?: React.ReactNode }>(child)) {
+    if (
+      !React.isValidElement<{
+        value?: unknown;
+        disabled?: boolean;
+        children?: React.ReactNode;
+      }>(child)
+    ) {
       return;
     }
     options.push({
@@ -33,8 +39,10 @@ function parseOptions(children: React.ReactNode): ParsedOption[] {
   return options;
 }
 
-export interface SelectProps
-  extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "onChange" | "value" | "defaultValue"> {
+export interface SelectProps extends Omit<
+  React.SelectHTMLAttributes<HTMLSelectElement>,
+  "onChange" | "value" | "defaultValue"
+> {
   value?: string | number | null;
   defaultValue?: string | number | null;
   onChange?: (e: { target: { value: string } }) => void;
@@ -63,10 +71,14 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
     ref,
   ) => {
     const options = React.useMemo(() => parseOptions(children), [children]);
-    const placeholderOption = options.find((o) => o.rawValue === "" && o.disabled);
+    const placeholderOption = options.find(
+      (o) => o.rawValue === "" && o.disabled,
+    );
     const items = options.filter((o) => o !== placeholderOption);
 
-    function toRadixValue(v: string | number | null | undefined): string | undefined {
+    function toRadixValue(
+      v: string | number | null | undefined,
+    ): string | undefined {
       if (v == null) return undefined;
       const s = String(v);
       if (s === "") {
@@ -83,7 +95,9 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
       <SelectPrimitive.Root
         value={toRadixValue(value)}
         defaultValue={toRadixValue(defaultValue)}
-        onValueChange={(v) => onChange?.({ target: { value: fromRadixValue(v) } })}
+        onValueChange={(v) =>
+          onChange?.({ target: { value: fromRadixValue(v) } })
+        }
         disabled={disabled}
         required={required}
         name={name}
@@ -94,13 +108,15 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
           className={cn(
             "border-border bg-background text-foreground flex h-10 w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm shadow-xs transition-colors",
             "data-[placeholder]:text-muted-foreground",
-            "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            "focus-visible:ring-ring focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
             "disabled:cursor-not-allowed disabled:opacity-50",
             "[&>span]:line-clamp-1",
             className,
           )}
         >
-          <SelectPrimitive.Value placeholder={placeholder ?? placeholderOption?.label} />
+          <SelectPrimitive.Value
+            placeholder={placeholder ?? placeholderOption?.label}
+          />
           <SelectPrimitive.Icon asChild>
             <ChevronDown className="text-muted-foreground h-4 w-4 shrink-0 opacity-70" />
           </SelectPrimitive.Icon>
@@ -130,7 +146,9 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
                     "focus:bg-muted focus:text-foreground data-disabled:pointer-events-none data-disabled:opacity-50",
                   )}
                 >
-                  <SelectPrimitive.ItemText>{option.label}</SelectPrimitive.ItemText>
+                  <SelectPrimitive.ItemText>
+                    {option.label}
+                  </SelectPrimitive.ItemText>
                   <SelectPrimitive.ItemIndicator className="absolute right-2 flex h-4 w-4 items-center justify-center">
                     <Check className="h-4 w-4" />
                   </SelectPrimitive.ItemIndicator>

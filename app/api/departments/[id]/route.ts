@@ -26,7 +26,10 @@ export async function PATCH(
 
   const department = await updateDepartment(id, validated.data);
   if (!department) {
-    return NextResponse.json({ error: "Department not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Department not found" },
+      { status: 404 },
+    );
   }
   return NextResponse.json({ department });
 }
@@ -48,7 +51,10 @@ export async function DELETE(
   try {
     const deleted = await deleteDepartment(id);
     if (!deleted) {
-      return NextResponse.json({ error: "Department not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Department not found" },
+        { status: 404 },
+      );
     }
   } catch (err) {
     if (err instanceof ReferencedByAssetsError) {

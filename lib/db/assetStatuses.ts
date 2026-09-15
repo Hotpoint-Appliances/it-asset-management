@@ -10,7 +10,12 @@ interface AssetStatusRow {
 }
 
 function mapAssetStatus(row: AssetStatusRow): AssetStatus {
-  return { id: row.id, name: row.name, sortOrder: row.sort_order, createdAt: row.created_at };
+  return {
+    id: row.id,
+    name: row.name,
+    sortOrder: row.sort_order,
+    createdAt: row.created_at,
+  };
 }
 
 const SELECT_COLUMNS = `id, name, sort_order, created_at`;
@@ -22,7 +27,9 @@ export async function listAssetStatuses(): Promise<AssetStatus[]> {
   return result.rows.map(mapAssetStatus);
 }
 
-export async function createAssetStatus(input: AssetStatusInput): Promise<AssetStatus> {
+export async function createAssetStatus(
+  input: AssetStatusInput,
+): Promise<AssetStatus> {
   const result = await query<AssetStatusRow>(
     `INSERT INTO asset_statuses (name, sort_order) VALUES ($1, $2) RETURNING ${SELECT_COLUMNS}`,
     [input.name, input.sortOrder],

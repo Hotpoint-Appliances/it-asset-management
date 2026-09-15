@@ -6,15 +6,15 @@ consistent, complete CRUD + workflow actions around it.
 
 ## States (`asset_statuses`)
 
-| Status       | Meaning                                              |
-|--------------|-------------------------------------------------------|
-| `active`     | In use, assigned or in general circulation            |
-| `in_storage` | Not currently deployed (spare stock, unassigned)      |
+| Status       | Meaning                                                    |
+| ------------ | ---------------------------------------------------------- |
+| `active`     | In use, assigned or in general circulation                 |
+| `in_storage` | Not currently deployed (spare stock, unassigned)           |
 | `reserved`   | Earmarked for a specific user/department, not deployed yet |
-| `in_repair`  | Sent for maintenance/repair, temporarily unavailable   |
-| `lost`       | Reported missing, unresolved                           |
-| `stolen`     | Reported stolen, unresolved                             |
-| `disposed`   | Terminal state — sold, scrapped, donated, or written off |
+| `in_repair`  | Sent for maintenance/repair, temporarily unavailable       |
+| `lost`       | Reported missing, unresolved                               |
+| `stolen`     | Reported stolen, unresolved                                |
+| `disposed`   | Terminal state — sold, scrapped, donated, or written off   |
 
 ## Lifecycle diagram
 

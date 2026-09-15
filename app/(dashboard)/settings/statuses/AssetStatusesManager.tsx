@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
 import { Plus, Pencil, Trash2, Flag } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -10,6 +10,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogBody,
   DialogTitle,
   DialogFooter,
   DialogClose,
@@ -27,12 +28,17 @@ import { useUIStore } from "@/store";
 import type { AssetStatus } from "@/types/assetStatus";
 
 function errorMessage(err: unknown): string {
-  if (axios.isAxiosError(err) && err.response?.data?.error) return err.response.data.error;
+  if (axios.isAxiosError(err) && err.response?.data?.error)
+    return err.response.data.error;
   return "Something went wrong. Please try again.";
 }
 
-export function AssetStatusesManager({ initialStatuses }: { initialStatuses: AssetStatus[] }) {
-  const router = useRouter();
+export function AssetStatusesManager({
+  initialStatuses,
+}: {
+  initialStatuses: AssetStatus[];
+}) {
+  const router = useRouteLoadingRouter();
   const addToast = useUIStore((s) => s.addToast);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<AssetStatus | null>(null);
@@ -131,11 +137,19 @@ export function AssetStatusesManager({ initialStatuses }: { initialStatuses: Ass
                 <TableCell className="font-medium">{status.name}</TableCell>
                 <TableCell>{status.sortOrder}</TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => openEdit(status)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => openEdit(status)}
+                  >
                     <Pencil className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => setDeleting(status)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeleting(status)}
+                  >
                     <Trash2 className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
                   </Button>
@@ -151,34 +165,42 @@ export function AssetStatusesManager({ initialStatuses }: { initialStatuses: Ass
           <DialogHeader>
             <DialogTitle>{editing ? "Edit status" : "New status"}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="status-name" className="text-sm font-medium">
-                Name
-              </label>
-              <Input
-                id="status-name"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="status-sort-order" className="text-sm font-medium">
-                Sort order
-              </label>
-              <Input
-                id="status-sort-order"
-                type="number"
-                value={sortOrder}
-                onChange={(e) => setSortOrder(Number(e.target.value))}
-              />
-            </div>
-            {error && (
-              <p role="alert" className="text-destructive text-sm">
-                {error}
-              </p>
-            )}
+          <form
+            onSubmit={handleSubmit}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            <DialogBody>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="status-name" className="text-sm font-medium">
+                  Name
+                </label>
+                <Input
+                  id="status-name"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="status-sort-order"
+                  className="text-sm font-medium"
+                >
+                  Sort order
+                </label>
+                <Input
+                  id="status-sort-order"
+                  type="number"
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(Number(e.target.value))}
+                />
+              </div>
+              {error && (
+                <p role="alert" className="text-destructive text-sm">
+                  {error}
+                </p>
+              )}
+            </DialogBody>
             <DialogFooter>
               <DialogClose asChild>
                 <Button type="button" variant="outline">
@@ -193,21 +215,31 @@ export function AssetStatusesManager({ initialStatuses }: { initialStatuses: Ass
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!deleting} onOpenChange={(open) => !open && setDeleting(null)}>
+      <Dialog
+        open={!!deleting}
+        onOpenChange={(open) => !open && setDeleting(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete status</DialogTitle>
           </DialogHeader>
-          <p className="text-muted-foreground text-sm">
-            This will permanently delete <strong>{deleting?.name}</strong>. This cannot be undone.
-          </p>
+          <DialogBody>
+            <p className="text-muted-foreground text-sm">
+              This will permanently delete <strong>{deleting?.name}</strong>.
+              This cannot be undone.
+            </p>
+          </DialogBody>
           <DialogFooter>
             <DialogClose asChild>
               <Button type="button" variant="outline">
                 Cancel
               </Button>
             </DialogClose>
-            <Button variant="destructive" disabled={submitting} onClick={handleDelete}>
+            <Button
+              variant="destructive"
+              disabled={submitting}
+              onClick={handleDelete}
+            >
               {submitting ? "Deleting…" : "Delete"}
             </Button>
           </DialogFooter>

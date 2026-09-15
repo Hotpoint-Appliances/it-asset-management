@@ -45,8 +45,8 @@ function SheetContent({
           "bg-sidebar text-sidebar-foreground scroll-area fixed inset-y-0 z-50 flex h-full w-3/4 max-w-xs flex-col gap-4 overflow-y-auto p-4 shadow-lg",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           side === "left"
-            ? "left-0 data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left"
-            : "right-0 data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
+            ? "data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left left-0"
+            : "data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right right-0",
           className,
         )}
         {...props}

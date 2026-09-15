@@ -5,6 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider, type SessionUser } from "@/lib/auth/session-context";
 import { TooltipProvider } from "@/components/ui/Tooltip";
+import { Toaster } from "@/components/ui/Toast";
 
 export function Providers({
   children,
@@ -24,7 +25,10 @@ export function Providers({
     >
       <QueryClientProvider client={queryClient}>
         <SessionProvider user={session}>
-          <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+          <TooltipProvider delayDuration={200}>
+            {children}
+            <Toaster />
+          </TooltipProvider>
         </SessionProvider>
       </QueryClientProvider>
     </ThemeProvider>

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
 import { Plus, Pencil, Trash2, Truck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -10,6 +10,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogBody,
   DialogTitle,
   DialogFooter,
   DialogClose,
@@ -27,14 +28,25 @@ import { useUIStore } from "@/store";
 import type { Vendor } from "@/types/vendor";
 
 function errorMessage(err: unknown): string {
-  if (axios.isAxiosError(err) && err.response?.data?.error) return err.response.data.error;
+  if (axios.isAxiosError(err) && err.response?.data?.error)
+    return err.response.data.error;
   return "Something went wrong. Please try again.";
 }
 
-const emptyForm = { name: "", contactName: "", contactEmail: "", contactPhone: "", address: "" };
+const emptyForm = {
+  name: "",
+  contactName: "",
+  contactEmail: "",
+  contactPhone: "",
+  address: "",
+};
 
-export function VendorsManager({ initialVendors }: { initialVendors: Vendor[] }) {
-  const router = useRouter();
+export function VendorsManager({
+  initialVendors,
+}: {
+  initialVendors: Vendor[];
+}) {
+  const router = useRouteLoadingRouter();
   const addToast = useUIStore((s) => s.addToast);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Vendor | null>(null);
@@ -100,7 +112,11 @@ export function VendorsManager({ initialVendors }: { initialVendors: Vendor[] })
       setDeleting(null);
       router.refresh();
     } catch (err) {
-      addToast({ title: "Could not delete vendor", description: errorMessage(err), variant: "error" });
+      addToast({
+        title: "Could not delete vendor",
+        description: errorMessage(err),
+        variant: "error",
+      });
       setDeleting(null);
     } finally {
       setSubmitting(false);
@@ -142,11 +158,19 @@ export function VendorsManager({ initialVendors }: { initialVendors: Vendor[] })
                 <TableCell>{vendor.contactEmail ?? "—"}</TableCell>
                 <TableCell>{vendor.contactPhone ?? "—"}</TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => openEdit(vendor)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => openEdit(vendor)}
+                  >
                     <Pencil className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => setDeleting(vendor)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeleting(vendor)}
+                  >
                     <Trash2 className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
                   </Button>
@@ -162,64 +186,86 @@ export function VendorsManager({ initialVendors }: { initialVendors: Vendor[] })
           <DialogHeader>
             <DialogTitle>{editing ? "Edit vendor" : "New vendor"}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="vendor-name" className="text-sm font-medium">
-                Name
-              </label>
-              <Input
-                id="vendor-name"
-                required
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="vendor-contact-name" className="text-sm font-medium">
-                Contact name
-              </label>
-              <Input
-                id="vendor-contact-name"
-                value={form.contactName}
-                onChange={(e) => setForm({ ...form, contactName: e.target.value })}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="vendor-contact-email" className="text-sm font-medium">
-                Contact email
-              </label>
-              <Input
-                id="vendor-contact-email"
-                type="email"
-                value={form.contactEmail}
-                onChange={(e) => setForm({ ...form, contactEmail: e.target.value })}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="vendor-contact-phone" className="text-sm font-medium">
-                Contact phone
-              </label>
-              <Input
-                id="vendor-contact-phone"
-                value={form.contactPhone}
-                onChange={(e) => setForm({ ...form, contactPhone: e.target.value })}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="vendor-address" className="text-sm font-medium">
-                Address
-              </label>
-              <Input
-                id="vendor-address"
-                value={form.address}
-                onChange={(e) => setForm({ ...form, address: e.target.value })}
-              />
-            </div>
-            {error && (
-              <p role="alert" className="text-destructive text-sm">
-                {error}
-              </p>
-            )}
+          <form
+            onSubmit={handleSubmit}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            <DialogBody>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="vendor-name" className="text-sm font-medium">
+                  Name
+                </label>
+                <Input
+                  id="vendor-name"
+                  required
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="vendor-contact-name"
+                  className="text-sm font-medium"
+                >
+                  Contact name
+                </label>
+                <Input
+                  id="vendor-contact-name"
+                  value={form.contactName}
+                  onChange={(e) =>
+                    setForm({ ...form, contactName: e.target.value })
+                  }
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="vendor-contact-email"
+                  className="text-sm font-medium"
+                >
+                  Contact email
+                </label>
+                <Input
+                  id="vendor-contact-email"
+                  type="email"
+                  value={form.contactEmail}
+                  onChange={(e) =>
+                    setForm({ ...form, contactEmail: e.target.value })
+                  }
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="vendor-contact-phone"
+                  className="text-sm font-medium"
+                >
+                  Contact phone
+                </label>
+                <Input
+                  id="vendor-contact-phone"
+                  value={form.contactPhone}
+                  onChange={(e) =>
+                    setForm({ ...form, contactPhone: e.target.value })
+                  }
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="vendor-address" className="text-sm font-medium">
+                  Address
+                </label>
+                <Input
+                  id="vendor-address"
+                  value={form.address}
+                  onChange={(e) =>
+                    setForm({ ...form, address: e.target.value })
+                  }
+                />
+              </div>
+              {error && (
+                <p role="alert" className="text-destructive text-sm">
+                  {error}
+                </p>
+              )}
+            </DialogBody>
             <DialogFooter>
               <DialogClose asChild>
                 <Button type="button" variant="outline">
@@ -234,21 +280,31 @@ export function VendorsManager({ initialVendors }: { initialVendors: Vendor[] })
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!deleting} onOpenChange={(open) => !open && setDeleting(null)}>
+      <Dialog
+        open={!!deleting}
+        onOpenChange={(open) => !open && setDeleting(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete vendor</DialogTitle>
           </DialogHeader>
-          <p className="text-muted-foreground text-sm">
-            This will permanently delete <strong>{deleting?.name}</strong>. This cannot be undone.
-          </p>
+          <DialogBody>
+            <p className="text-muted-foreground text-sm">
+              This will permanently delete <strong>{deleting?.name}</strong>.
+              This cannot be undone.
+            </p>
+          </DialogBody>
           <DialogFooter>
             <DialogClose asChild>
               <Button type="button" variant="outline">
                 Cancel
               </Button>
             </DialogClose>
-            <Button variant="destructive" disabled={submitting} onClick={handleDelete}>
+            <Button
+              variant="destructive"
+              disabled={submitting}
+              onClick={handleDelete}
+            >
               {submitting ? "Deleting…" : "Delete"}
             </Button>
           </DialogFooter>

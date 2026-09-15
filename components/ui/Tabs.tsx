@@ -6,10 +6,16 @@ import { cn } from "@/lib/utils";
 
 const Tabs = TabsPrimitive.Root;
 
-function TabsList({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.List>) {
+function TabsList({
+  className,
+  ...props
+}: React.ComponentProps<typeof TabsPrimitive.List>) {
   return (
     <TabsPrimitive.List
-      className={cn("border-border scroll-area-thin flex gap-1 overflow-x-auto border-b", className)}
+      className={cn(
+        "border-border scroll-area-thin flex gap-1 overflow-x-auto border-b",
+        className,
+      )}
       {...props}
     />
   );

@@ -19,16 +19,16 @@ when development starts.
 2. **Phases** (execute in order — each depends on the previous, and each runs
    `phase-completion-check` against its predecessor before starting its own Steps):
 
-   | Phase | Skill | Delivers |
-   |---|---|---|
-   | 1 | `phase-1-foundation` | Scaffold, dependencies, DB connection, schema applied, themed app shell |
-   | 2 | `phase-2-auth` | JWT sessions, RBAC (admin / asset_manager / viewer) |
-   | 3 | `phase-3-core-data` | CRUD for categories, locations, departments, vendors, conditions, statuses, users |
-   | 4 | `phase-4-asset-management` | Asset CRUD, image upload, QR code labels |
-   | 5 | `phase-5-asset-lifecycle` | Transfers, condition/status changes, maintenance, disposal, audit timeline |
-   | 6 | `phase-6-dashboard-reporting` | Dashboard widgets, exceljs exports |
-   | 7 | `phase-7-notifications` | MSAL/Graph email, in-app notifications |
-   | 8 | `phase-8-polish` | Theming/responsive/a11y sweep, QA smoke pass |
+   | Phase | Skill                         | Delivers                                                                          |
+   | ----- | ----------------------------- | --------------------------------------------------------------------------------- |
+   | 1     | `phase-1-foundation`          | Scaffold, dependencies, DB connection, schema applied, themed app shell           |
+   | 2     | `phase-2-auth`                | JWT sessions, RBAC (admin / asset_manager / viewer)                               |
+   | 3     | `phase-3-core-data`           | CRUD for categories, locations, departments, vendors, conditions, statuses, users |
+   | 4     | `phase-4-asset-management`    | Asset CRUD, image upload, QR code labels                                          |
+   | 5     | `phase-5-asset-lifecycle`     | Transfers, condition/status changes, maintenance, disposal, audit timeline        |
+   | 6     | `phase-6-dashboard-reporting` | Dashboard widgets, exceljs exports                                                |
+   | 7     | `phase-7-notifications`       | MSAL/Graph email, in-app notifications                                            |
+   | 8     | `phase-8-polish`              | Theming/responsive/a11y sweep, QA smoke pass                                      |
 
 ## Model routing
 

@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -11,6 +10,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogBody,
   DialogTitle,
   DialogFooter,
   DialogClose,
@@ -18,6 +18,7 @@ import {
 import { UserTypeahead } from "./UserTypeahead";
 import { useUIStore } from "@/store";
 import { useSyncOnOpen } from "@/lib/hooks/useSyncOnOpen";
+import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import type { Location } from "@/types/location";
 import type { Department } from "@/types/department";
 
@@ -55,7 +56,7 @@ export function TransferDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const router = useRouter();
+  const router = useRouteLoadingRouter();
   const addToast = useUIStore((s) => s.addToast);
   const [locationId, setLocationId] = React.useState<number | null>(
     asset.locationId,
@@ -126,87 +127,91 @@ export function TransferDialog({
         <DialogHeader>
           <DialogTitle>Transfer asset</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Location</label>
-            <TreePicker
-              items={locationItems}
-              value={locationId}
-              onChange={setLocationId}
-              placeholder="Select a location"
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium">Department</label>
-            <Select
-              value={departmentId ?? ""}
-              onChange={(e) =>
-                setDepartmentId(e.target.value ? Number(e.target.value) : null)
-              }
-            >
-              {departments.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium">Owner</span>
-            <div className="flex flex-wrap gap-1.5">
-              <Button
-                type="button"
-                size="sm"
-                variant={ownerMode === "user" ? "default" : "outline"}
-                onClick={() => setOwnerMode("user")}
-              >
-                System user
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={ownerMode === "external" ? "default" : "outline"}
-                onClick={() => setOwnerMode("external")}
-              >
-                External / no login
-              </Button>
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <DialogBody>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium">Location</label>
+              <TreePicker
+                items={locationItems}
+                value={locationId}
+                onChange={setLocationId}
+                placeholder="Select a location"
+              />
             </div>
-          </div>
-          {ownerMode === "user" ? (
-            <UserTypeahead
-              value={assignedUserId}
-              displayName={assignedUserName}
-              onSelect={(u) => {
-                setAssignedUserId(u?.id ?? null);
-                setAssignedUserName(u?.fullName ?? null);
-              }}
-            />
-          ) : (
-            <>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium">Owner name</label>
-                <Input
-                  required={ownerMode === "external"}
-                  value={ownerName}
-                  onChange={(e) => setOwnerName(e.target.value)}
-                />
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium">Department</label>
+              <Select
+                value={departmentId ?? ""}
+                onChange={(e) =>
+                  setDepartmentId(
+                    e.target.value ? Number(e.target.value) : null,
+                  )
+                }
+              >
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium">Owner</span>
+              <div className="flex flex-wrap gap-1.5">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={ownerMode === "user" ? "default" : "outline"}
+                  onClick={() => setOwnerMode("user")}
+                >
+                  System user
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={ownerMode === "external" ? "default" : "outline"}
+                  onClick={() => setOwnerMode("external")}
+                >
+                  External / no login
+                </Button>
               </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium">Owner email</label>
-                <Input
-                  type="email"
-                  value={ownerEmail}
-                  onChange={(e) => setOwnerEmail(e.target.value)}
-                />
-              </div>
-            </>
-          )}
+            </div>
+            {ownerMode === "user" ? (
+              <UserTypeahead
+                value={assignedUserId}
+                displayName={assignedUserName}
+                onSelect={(u) => {
+                  setAssignedUserId(u?.id ?? null);
+                  setAssignedUserName(u?.fullName ?? null);
+                }}
+              />
+            ) : (
+              <>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium">Owner name</label>
+                  <Input
+                    required={ownerMode === "external"}
+                    value={ownerName}
+                    onChange={(e) => setOwnerName(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium">Owner email</label>
+                  <Input
+                    type="email"
+                    value={ownerEmail}
+                    onChange={(e) => setOwnerEmail(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
 
-          {error && (
-            <p role="alert" className="text-destructive text-sm">
-              {error}
-            </p>
-          )}
+            {error && (
+              <p role="alert" className="text-destructive text-sm">
+                {error}
+              </p>
+            )}
+          </DialogBody>
 
           <DialogFooter>
             <DialogClose asChild>

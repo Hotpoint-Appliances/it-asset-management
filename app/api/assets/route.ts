@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiSession, requireApiRole } from "@/lib/auth/api";
 import { listAssets, createAsset, setAssetImagePath } from "@/lib/db/assets";
-import { validateAssetInput, assetInputFromFormData } from "@/lib/validation/assets";
+import {
+  validateAssetInput,
+  assetInputFromFormData,
+} from "@/lib/validation/assets";
 import { isUniqueViolation, isForeignKeyViolation } from "@/lib/db/query";
-import { assertValidImage, saveAssetImage, UploadValidationError } from "@/lib/files/upload";
+import {
+  assertValidImage,
+  saveAssetImage,
+  UploadValidationError,
+} from "@/lib/files/upload";
 import type { AssetFilters } from "@/types/asset";
 
 function parseIds(searchParams: URLSearchParams, key: string): number[] {
@@ -46,7 +53,8 @@ export async function POST(request: NextRequest) {
   }
 
   const imageField = formData.get("image");
-  const imageFile = imageField instanceof File && imageField.size > 0 ? imageField : null;
+  const imageFile =
+    imageField instanceof File && imageField.size > 0 ? imageField : null;
   if (imageFile) {
     try {
       assertValidImage(imageFile);
@@ -68,11 +76,17 @@ export async function POST(request: NextRequest) {
     asset = await createAsset(validated.data, session.userId);
   } catch (err) {
     if (isUniqueViolation(err)) {
-      return NextResponse.json({ error: "Asset tag is already in use" }, { status: 409 });
+      return NextResponse.json(
+        { error: "Asset tag is already in use" },
+        { status: 409 },
+      );
     }
     if (isForeignKeyViolation(err)) {
       return NextResponse.json(
-        { error: "One of the referenced category/location/department/condition/status/vendor/user records does not exist" },
+        {
+          error:
+            "One of the referenced category/location/department/condition/status/vendor/user records does not exist",
+        },
         { status: 400 },
       );
     }

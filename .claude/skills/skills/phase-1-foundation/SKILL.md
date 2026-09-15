@@ -44,6 +44,7 @@ shell — the base every later phase builds pages into.
    local Windows path that exists on disk (create it if missing) — ask the user if unspecified
    rather than guessing a path. MSAL/Graph vars stay as placeholders in both files until
    Phase 7 — not needed until then.
+
 5. **DB connection**: `lib/db/pool.ts` — a singleton `pg.Pool`. Add a `lib/db/query.ts` helper
    that wraps `pool.query` and a `withTransaction()` helper for multi-statement writes (needed
    by every audit-log-writing endpoint from Phase 4 onward).
@@ -67,6 +68,7 @@ shell — the base every later phase builds pages into.
    Next.js 16 renamed `middleware.ts` to `proxy.ts`, see `phase-2-auth`'s Produces — plus a
    defense-in-depth check in the page itself). Do not build a distinct public homepage; it
    would be discarded once Phase 2's redirect logic lands.
+
 9. **Base `/components/ui` primitives**: `Button`, `Input`, `Card`, `Badge`, `Skeleton` at
    minimum — enough for later phases to start building on immediately. Additional primitives
    (`Dialog`, `Table`, `DropdownMenu`, etc.) can be added in the phase that first needs them.
@@ -102,5 +104,5 @@ shell — the base every later phase builds pages into.
 - `app/api/health/route.ts` — `GET` health check querying `SELECT 1`.
 - `app/page.tsx` — root route renders `AppShell` directly (see Root route decision above).
 - `.env.example`, `.env.local` (gitignored — real local dev values, not committed).
-production
+  production
   deployments point this at a real server path instead (e.g. `D:\itam-files`).

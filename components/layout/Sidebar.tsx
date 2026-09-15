@@ -12,14 +12,15 @@ import { cn } from "@/lib/utils";
 
 export function Sidebar({ className }: { className?: string }) {
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
+  const hydrated = useUIStore((s) => s.sidebarHydrated);
   const toggleCollapsed = useUIStore((s) => s.toggleSidebarCollapsed);
 
   return (
     <aside
       className={cn(
-        "hidden md:sticky md:top-0 md:flex md:h-screen md:shrink-0 md:flex-col",
+        "hidden md:flex md:h-full md:shrink-0 md:flex-col",
         "md:border-border md:bg-sidebar md:text-sidebar-foreground md:border-r",
-        "transition-[width] duration-200 ease-in-out",
+        hydrated && "transition-[width] duration-200 ease-in-out",
         collapsed ? "md:w-19" : "md:w-64",
         className,
       )}

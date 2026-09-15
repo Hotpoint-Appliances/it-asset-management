@@ -13,7 +13,10 @@ export interface Toast {
 }
 
 function generateId() {
-  return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return (
+    globalThis.crypto?.randomUUID?.() ??
+    `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  );
 }
 
 interface UIState {
@@ -25,6 +28,13 @@ interface UIState {
   toasts: Toast[];
   addToast: (toast: Omit<Toast, "id">) => string;
   removeToast: (id: string) => void;
+  /** Counter, not a boolean — overlapping route-progress signals (a `<Link>` navigation and a
+   * `router.refresh()` firing close together) must not cancel each other out early. */
+  routeLoading: number;
+  startRouteLoading: () => void;
+  endRouteLoading: () => void;
+  loggingOut: boolean;
+  setLoggingOut: (loggingOut: boolean) => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -34,14 +44,23 @@ export const useUIStore = create<UIState>()(
       setMobileNavOpen: (open) => set({ mobileNavOpen: open }),
       sidebarCollapsed: false,
       sidebarHydrated: false,
-      toggleSidebarCollapsed: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+      toggleSidebarCollapsed: () =>
+        set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
       toasts: [],
       addToast: (toast) => {
         const id = generateId();
         set((state) => ({ toasts: [...state.toasts, { ...toast, id }] }));
         return id;
       },
-      removeToast: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
+      removeToast: (id) =>
+        set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
+      routeLoading: 0,
+      startRouteLoading: () =>
+        set((state) => ({ routeLoading: state.routeLoading + 1 })),
+      endRouteLoading: () =>
+        set((state) => ({ routeLoading: Math.max(0, state.routeLoading - 1) })),
+      loggingOut: false,
+      setLoggingOut: (loggingOut) => set({ loggingOut }),
     }),
     {
       name: "itam-ui-store",

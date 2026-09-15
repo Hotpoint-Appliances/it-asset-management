@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiSession, requireApiRole } from "@/lib/auth/api";
-import { listCategories, updateCategory, deleteCategory } from "@/lib/db/categories";
+import {
+  listCategories,
+  updateCategory,
+  deleteCategory,
+} from "@/lib/db/categories";
 import { validateCategoryInput } from "@/lib/validation/categories";
 import { collectDescendantIds } from "@/lib/tree";
 import { ReferencedByAssetsError } from "@/lib/db/refCheck";
@@ -28,14 +32,24 @@ export async function PATCH(
   const parentId = validated.data.parentCategoryId;
   if (parentId != null) {
     if (parentId === id) {
-      return NextResponse.json({ error: "A category cannot be its own parent" }, { status: 400 });
+      return NextResponse.json(
+        { error: "A category cannot be its own parent" },
+        { status: 400 },
+      );
     }
     const existing = await listCategories();
     if (!existing.some((c) => c.id === parentId)) {
-      return NextResponse.json({ error: "parentCategoryId does not exist" }, { status: 400 });
+      return NextResponse.json(
+        { error: "parentCategoryId does not exist" },
+        { status: 400 },
+      );
     }
     const descendants = collectDescendantIds(
-      existing.map((c) => ({ id: c.id, parentId: c.parentCategoryId, name: c.name })),
+      existing.map((c) => ({
+        id: c.id,
+        parentId: c.parentCategoryId,
+        name: c.name,
+      })),
       id,
     );
     if (descendants.has(parentId)) {
@@ -70,7 +84,10 @@ export async function DELETE(
   try {
     const deleted = await deleteCategory(id);
     if (!deleted) {
-      return NextResponse.json({ error: "Category not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Category not found" },
+        { status: 404 },
+      );
     }
   } catch (err) {
     if (err instanceof ReferencedByAssetsError) {

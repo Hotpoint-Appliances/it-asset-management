@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiSession, requireApiRole } from "@/lib/auth/api";
 import { getAssetById } from "@/lib/db/assets";
-import { listAssetAttachments, createAssetAttachment } from "@/lib/db/assetAttachments";
-import { assertValidAttachment, saveAssetAttachment, UploadValidationError } from "@/lib/files/upload";
+import {
+  listAssetAttachments,
+  createAssetAttachment,
+} from "@/lib/db/assetAttachments";
+import {
+  assertValidAttachment,
+  saveAssetAttachment,
+  UploadValidationError,
+} from "@/lib/files/upload";
 
 export async function GET(
   _request: NextRequest,
@@ -38,7 +45,8 @@ export async function POST(
 
   const formData = await request.formData().catch(() => null);
   const fileField = formData?.get("file");
-  const file = fileField instanceof File && fileField.size > 0 ? fileField : null;
+  const file =
+    fileField instanceof File && fileField.size > 0 ? fileField : null;
   if (!file) {
     return NextResponse.json({ error: "A file is required" }, { status: 400 });
   }

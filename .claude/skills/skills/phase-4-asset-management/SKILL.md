@@ -78,9 +78,9 @@ image upload and printable QR/barcode labels.
   should prompt a maintenance record, disposed is blocked without a disposal row) are **not**
   enforced here; that's Phase 5's dedicated-workflow job per "Explicitly out of scope" below.
 - **New shared primitives this phase introduced** (available from Phase 5 on): `components/ui/
-  Tabs.tsx` (Radix tabs — asset detail's Overview/Audit Log/Attachments/Maintenance);
+Tabs.tsx` (Radix tabs — asset detail's Overview/Audit Log/Attachments/Maintenance);
   `DropdownMenuCheckboxItem` added to `components/ui/DropdownMenu.tsx`; `components/shared/
-  MultiSelectFilter.tsx` (built on that checkbox item — no Radix Popover/Combobox exists in the
+MultiSelectFilter.tsx` (built on that checkbox item — no Radix Popover/Combobox exists in the
   fixed dependency set, so the list page's Status/Category/Department/Location/Condition filters
   use this instead of a proper combobox); `lib/badgeVariants.ts` (the shared status/condition ->
   Badge variant map [[itam-design-system]] calls for — used by both the list table and the
@@ -125,6 +125,7 @@ this because it only ever exercised the `/api/assets/*` JSON routes, where the b
 Fixed at the mapping layer, not the call site — `lib/db/dates.ts` (new) exports two helpers, and
 every `lib/db/assets.ts`/`assetAttachments.ts` mapper now normalizes through one of them so its
 output is a real `string` regardless of call path:
+
 - `toIsoString()` — for genuine instants (`created_at`, `updated_at`, `uploaded_at`): converts
   to UTC ISO, which is correct because these have real time-of-day semantics.
 - `toDateOnlyString()` — for pure `DATE` columns (`purchase_date`, `warranty_expiry`): reads the
@@ -155,7 +156,7 @@ the way this phase's asset pages do).
   department gets an empty list and a 404 (not 403) on the direct detail route/API for that
   asset.
 - QR label renders and prints correctly, scannable back to the correct asset: `/assets/[id]/
-  label` server-renders a `data:image/png;base64` QR encoding `{ITAM_APP_URL}/assets/{id}`
+label` server-renders a `data:image/png;base64` QR encoding `{ITAM_APP_URL}/assets/{id}`
   alongside the asset tag/name; confirmed present in the rendered HTML.
 - Every create/edit writes to `asset_audit_log` — verified live: one `created` row on `POST`; a
   `PATCH` changing `location_id` and `condition_id` produced one `location_change` and one
@@ -212,7 +213,7 @@ if re-testing this by hand). No code changes were needed; the phase holds up.
   audit-log diffing, see "Confirmed as built" — `setAssetImagePath`), `lib/db/assetAttachments.ts`
 - `lib/validation/assets.ts` (`validateAssetInput`, `assetInputFromFormData`)
 - `lib/files/upload.ts`, `lib/badgeVariants.ts`, `lib/format.ts` (`formatCurrency`); `lib/db/
-  query.ts` extended with `isForeignKeyViolation()`; `lib/db/dates.ts` (`toIsoString`,
+query.ts` extended with `isForeignKeyViolation()`; `lib/db/dates.ts` (`toIsoString`,
   `toDateOnlyString` — see "Bug found via manual click-through" above; every future `lib/db`
   mapper with a date/timestamp column must use one of these)
 - `components/ui/Tabs.tsx` (new); `components/ui/DropdownMenu.tsx` extended with

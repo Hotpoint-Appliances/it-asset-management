@@ -26,7 +26,10 @@ export async function POST(request: NextRequest) {
   if (validated.data.parentCategoryId != null) {
     const existing = await listCategories();
     if (!existing.some((c) => c.id === validated.data.parentCategoryId)) {
-      return NextResponse.json({ error: "parentCategoryId does not exist" }, { status: 400 });
+      return NextResponse.json(
+        { error: "parentCategoryId does not exist" },
+        { status: 400 },
+      );
     }
   }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
 import { Plus, Pencil, Trash2, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -10,6 +10,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogBody,
   DialogTitle,
   DialogFooter,
   DialogClose,
@@ -27,7 +28,8 @@ import { useUIStore } from "@/store";
 import type { Department } from "@/types/department";
 
 function errorMessage(err: unknown): string {
-  if (axios.isAxiosError(err) && err.response?.data?.error) return err.response.data.error;
+  if (axios.isAxiosError(err) && err.response?.data?.error)
+    return err.response.data.error;
   return "Something went wrong. Please try again.";
 }
 
@@ -36,7 +38,7 @@ export function DepartmentsManager({
 }: {
   initialDepartments: Department[];
 }) {
-  const router = useRouter();
+  const router = useRouteLoadingRouter();
   const addToast = useUIStore((s) => s.addToast);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Department | null>(null);
@@ -93,7 +95,11 @@ export function DepartmentsManager({
       setDeleting(null);
       router.refresh();
     } catch (err) {
-      addToast({ title: "Could not delete department", description: errorMessage(err), variant: "error" });
+      addToast({
+        title: "Could not delete department",
+        description: errorMessage(err),
+        variant: "error",
+      });
       setDeleting(null);
     } finally {
       setSubmitting(false);
@@ -131,11 +137,19 @@ export function DepartmentsManager({
                 <TableCell className="font-medium">{department.name}</TableCell>
                 <TableCell>{department.code ?? "—"}</TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => openEdit(department)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => openEdit(department)}
+                  >
                     <Pencil className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => setDeleting(department)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeleting(department)}
+                  >
                     <Trash2 className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
                   </Button>
@@ -149,31 +163,42 @@ export function DepartmentsManager({
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit department" : "New department"}</DialogTitle>
+            <DialogTitle>
+              {editing ? "Edit department" : "New department"}
+            </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="dept-name" className="text-sm font-medium">
-                Name
-              </label>
-              <Input
-                id="dept-name"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="dept-code" className="text-sm font-medium">
-                Code
-              </label>
-              <Input id="dept-code" value={code} onChange={(e) => setCode(e.target.value)} />
-            </div>
-            {error && (
-              <p role="alert" className="text-destructive text-sm">
-                {error}
-              </p>
-            )}
+          <form
+            onSubmit={handleSubmit}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            <DialogBody>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="dept-name" className="text-sm font-medium">
+                  Name
+                </label>
+                <Input
+                  id="dept-name"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="dept-code" className="text-sm font-medium">
+                  Code
+                </label>
+                <Input
+                  id="dept-code"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                />
+              </div>
+              {error && (
+                <p role="alert" className="text-destructive text-sm">
+                  {error}
+                </p>
+              )}
+            </DialogBody>
             <DialogFooter>
               <DialogClose asChild>
                 <Button type="button" variant="outline">
@@ -188,21 +213,31 @@ export function DepartmentsManager({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!deleting} onOpenChange={(open) => !open && setDeleting(null)}>
+      <Dialog
+        open={!!deleting}
+        onOpenChange={(open) => !open && setDeleting(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete department</DialogTitle>
           </DialogHeader>
-          <p className="text-muted-foreground text-sm">
-            This will permanently delete <strong>{deleting?.name}</strong>. This cannot be undone.
-          </p>
+          <DialogBody>
+            <p className="text-muted-foreground text-sm">
+              This will permanently delete <strong>{deleting?.name}</strong>.
+              This cannot be undone.
+            </p>
+          </DialogBody>
           <DialogFooter>
             <DialogClose asChild>
               <Button type="button" variant="outline">
                 Cancel
               </Button>
             </DialogClose>
-            <Button variant="destructive" disabled={submitting} onClick={handleDelete}>
+            <Button
+              variant="destructive"
+              disabled={submitting}
+              onClick={handleDelete}
+            >
               {submitting ? "Deleting…" : "Delete"}
             </Button>
           </DialogFooter>

@@ -36,17 +36,26 @@ async function main() {
   loadEnvLocal();
 
   if (!process.env.DATABASE_URL) {
-    throw new Error("DATABASE_URL is not set. Copy .env.example to .env.local and fill it in.");
+    throw new Error(
+      "DATABASE_URL is not set. Copy .env.example to .env.local and fill it in.",
+    );
   }
 
-  const fullName = process.env.SEED_ADMIN_NAME || (await prompt("Admin full name: "));
+  const fullName =
+    process.env.SEED_ADMIN_NAME || (await prompt("Admin full name: "));
   const email = (
     process.env.SEED_ADMIN_EMAIL || (await prompt("Admin email: "))
-  ).trim().toLowerCase();
-  const password = process.env.SEED_ADMIN_PASSWORD || (await prompt("Admin password (min 8 chars): "));
+  )
+    .trim()
+    .toLowerCase();
+  const password =
+    process.env.SEED_ADMIN_PASSWORD ||
+    (await prompt("Admin password (min 8 chars): "));
 
   if (!fullName || !email.includes("@") || password.length < 8) {
-    throw new Error("Name, a valid email, and an 8+ character password are all required.");
+    throw new Error(
+      "Name, a valid email, and an 8+ character password are all required.",
+    );
   }
 
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -57,10 +66,14 @@ async function main() {
     );
     const adminRoleId = roleResult.rows[0]?.id;
     if (!adminRoleId) {
-      throw new Error("No 'admin' row in roles — has schema/schema.sql been applied?");
+      throw new Error(
+        "No 'admin' row in roles — has schema/schema.sql been applied?",
+      );
     }
 
-    const existing = await pool.query(`SELECT id FROM users WHERE email = $1`, [email]);
+    const existing = await pool.query(`SELECT id FROM users WHERE email = $1`, [
+      email,
+    ]);
     if (existing.rows.length > 0) {
       throw new Error(`A user with email ${email} already exists.`);
     }

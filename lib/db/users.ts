@@ -122,7 +122,13 @@ export async function createUser(input: CreateUserInput): Promise<UserSummary> {
        RETURNING id, full_name, email, role_id, department_id, is_active
      )
      SELECT ${USER_SUMMARY_COLUMNS} FROM inserted u ${ROLE_JOIN}`,
-    [input.fullName, input.email, passwordHash, input.roleId, input.departmentId],
+    [
+      input.fullName,
+      input.email,
+      passwordHash,
+      input.roleId,
+      input.departmentId,
+    ],
   );
   return mapUserSummary(result.rows[0]);
 }
@@ -140,7 +146,9 @@ export async function updateUser(
   id: string,
   input: UpdateUserInput,
 ): Promise<UserSummary | null> {
-  const passwordHash = input.password ? await hashPassword(input.password) : null;
+  const passwordHash = input.password
+    ? await hashPassword(input.password)
+    : null;
   const result = await query<UserSummaryRow>(
     `WITH updated AS (
        UPDATE users
@@ -150,12 +158,22 @@ export async function updateUser(
        RETURNING id, full_name, email, role_id, department_id, is_active
      )
      SELECT ${USER_SUMMARY_COLUMNS} FROM updated u ${ROLE_JOIN}`,
-    [id, input.fullName, input.email, input.roleId, input.departmentId, passwordHash],
+    [
+      id,
+      input.fullName,
+      input.email,
+      input.roleId,
+      input.departmentId,
+      passwordHash,
+    ],
   );
   return result.rows[0] ? mapUserSummary(result.rows[0]) : null;
 }
 
-export async function setUserActive(id: string, isActive: boolean): Promise<UserSummary | null> {
+export async function setUserActive(
+  id: string,
+  isActive: boolean,
+): Promise<UserSummary | null> {
   const result = await query<UserSummaryRow>(
     `WITH updated AS (
        UPDATE users SET is_active = $2 WHERE id = $1

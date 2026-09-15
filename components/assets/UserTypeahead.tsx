@@ -4,6 +4,7 @@ import * as React from "react";
 import axios from "axios";
 import { Check, X } from "lucide-react";
 import { Input } from "@/components/ui/Input";
+import { Portal } from "@/components/ui/Portal";
 import { cn } from "@/lib/utils";
 import type { User } from "@/types/user";
 
@@ -21,20 +22,33 @@ export function UserTypeahead({
   onSelect: (user: { id: string; fullName: string } | null) => void;
 }) {
   const [users, setUsers] = React.useState<User[]>([]);
+  const [loadingUsers, setLoadingUsers] = React.useState(true);
   const [query, setQuery] = React.useState("");
   const [open, setOpen] = React.useState(false);
+  const [position, setPosition] = React.useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const panelRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     axios
       .get<{ users: User[] }>("/api/users")
       .then((res) => setUsers(res.data.users.filter((u) => u.isActive)))
-      .catch(() => setUsers([]));
+      .catch(() => setUsers([]))
+      .finally(() => setLoadingUsers(false));
   }, []);
 
   React.useEffect(() => {
     function onClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(target) &&
+        !(panelRef.current && panelRef.current.contains(target))
+      ) {
         setOpen(false);
       }
     }
@@ -42,11 +56,32 @@ export function UserTypeahead({
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
+  const updatePosition = React.useCallback(() => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setPosition({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+  }, []);
+
+  React.useEffect(() => {
+    if (!open) return;
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [open, updatePosition]);
+
   const matches = React.useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return users.slice(0, 20);
     return users
-      .filter((u) => u.fullName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q))
+      .filter(
+        (u) =>
+          u.fullName.toLowerCase().includes(q) ||
+          u.email.toLowerCase().includes(q),
+      )
       .slice(0, 20);
   }, [users, query]);
 
@@ -77,31 +112,54 @@ export function UserTypeahead({
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => setOpen(true)}
       />
-      {open && (
-        <div className="bg-card border-border scroll-area-thin absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border p-1 shadow-md">
-          {matches.length === 0 ? (
-            <p className="text-muted-foreground px-3 py-2 text-sm">No matching users</p>
-          ) : (
-            matches.map((u) => (
-              <button
-                type="button"
-                key={u.id}
-                onClick={() => {
-                  onSelect({ id: u.id, fullName: u.fullName });
-                  setQuery("");
-                  setOpen(false);
-                }}
-                className={cn(
-                  "flex min-h-11 w-full flex-col items-start rounded-md px-2 py-1.5 text-left text-sm",
-                  "hover:bg-muted",
-                )}
-              >
-                <span className="font-medium">{u.fullName}</span>
-                <span className="text-muted-foreground text-xs">{u.email}</span>
-              </button>
-            ))
-          )}
-        </div>
+      {open && position && (
+        <Portal>
+          <div
+            ref={panelRef}
+            style={{
+              top: position.top,
+              left: position.left,
+              width: position.width,
+            }}
+            className="bg-card border-border scroll-area-thin fixed z-[60] max-h-56 overflow-y-auto rounded-lg border p-1 shadow-md"
+          >
+            {loadingUsers ? (
+              <div className="space-y-1 p-1">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="bg-muted h-10 w-full animate-pulse rounded-md"
+                  />
+                ))}
+              </div>
+            ) : matches.length === 0 ? (
+              <p className="text-muted-foreground px-3 py-2 text-sm">
+                No matching users
+              </p>
+            ) : (
+              matches.map((u) => (
+                <button
+                  type="button"
+                  key={u.id}
+                  onClick={() => {
+                    onSelect({ id: u.id, fullName: u.fullName });
+                    setQuery("");
+                    setOpen(false);
+                  }}
+                  className={cn(
+                    "flex min-h-11 w-full flex-col items-start rounded-md px-2 py-1.5 text-left text-sm",
+                    "hover:bg-muted",
+                  )}
+                >
+                  <span className="font-medium">{u.fullName}</span>
+                  <span className="text-muted-foreground text-xs">
+                    {u.email}
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
+        </Portal>
       )}
     </div>
   );

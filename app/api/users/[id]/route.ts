@@ -24,7 +24,10 @@ export async function PATCH(
     Object.keys(body).length === 1
   ) {
     if (typeof body.isActive !== "boolean") {
-      return NextResponse.json({ error: "isActive must be a boolean" }, { status: 400 });
+      return NextResponse.json(
+        { error: "isActive must be a boolean" },
+        { status: 400 },
+      );
     }
     const user = await setUserActive(id, body.isActive);
     if (!user) {
@@ -46,7 +49,10 @@ export async function PATCH(
     return NextResponse.json({ user });
   } catch (err) {
     if (isUniqueViolation(err)) {
-      return NextResponse.json({ error: "A user with that email already exists" }, { status: 409 });
+      return NextResponse.json(
+        { error: "A user with that email already exists" },
+        { status: 409 },
+      );
     }
     throw err;
   }
