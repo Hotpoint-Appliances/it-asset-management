@@ -30,7 +30,7 @@ function LoginFormSkeleton() {
 
 export default function LoginPage() {
   return (
-    <div className="bg-background flex min-h-screen flex-col">
+    <div className="bg-background flex h-screen flex-col overflow-y-auto">
       <div className="flex items-center justify-between gap-2 p-6 sm:p-8">
         <div className="flex items-center gap-2">
           <div className="bg-primary text-primary-foreground flex h-7 w-7 shrink-0 items-center justify-center rounded-lg">
