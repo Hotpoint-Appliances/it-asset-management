@@ -77,7 +77,7 @@ export function StatusDialog({
         statusId,
         note: note || null,
       });
-      addToast({ title: "Status updated" });
+      addToast({ title: "Status updated", variant: "success" });
       if (targetStatus?.name === "in_repair") {
         addToast({
           title: "Consider logging a maintenance record",

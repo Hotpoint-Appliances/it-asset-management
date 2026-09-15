@@ -79,10 +79,10 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
       const payload = { name, parentCategoryId, description: description || null };
       if (editing) {
         await axios.patch(`/api/categories/${editing.id}`, payload);
-        addToast({ title: "Category updated" });
+        addToast({ title: "Category updated", variant: "success" });
       } else {
         await axios.post("/api/categories", payload);
-        addToast({ title: "Category created" });
+        addToast({ title: "Category created", variant: "success" });
       }
       setDialogOpen(false);
       router.refresh();
@@ -98,7 +98,7 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
     setSubmitting(true);
     try {
       await axios.delete(`/api/categories/${deleting.id}`);
-      addToast({ title: "Category deleted" });
+      addToast({ title: "Category deleted", variant: "success" });
       setDeleting(null);
       router.refresh();
     } catch (err) {

@@ -70,10 +70,10 @@ export function AssetConditionsManager({
       const payload = { name, sortOrder };
       if (editing) {
         await axios.patch(`/api/asset-conditions/${editing.id}`, payload);
-        addToast({ title: "Condition updated" });
+        addToast({ title: "Condition updated", variant: "success" });
       } else {
         await axios.post("/api/asset-conditions", payload);
-        addToast({ title: "Condition created" });
+        addToast({ title: "Condition created", variant: "success" });
       }
       setDialogOpen(false);
       router.refresh();
@@ -89,7 +89,7 @@ export function AssetConditionsManager({
     setSubmitting(true);
     try {
       await axios.delete(`/api/asset-conditions/${deleting.id}`);
-      addToast({ title: "Condition deleted" });
+      addToast({ title: "Condition deleted", variant: "success" });
       setDeleting(null);
       router.refresh();
     } catch (err) {

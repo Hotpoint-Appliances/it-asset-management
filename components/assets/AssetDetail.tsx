@@ -101,7 +101,7 @@ export function AssetDetail({
     setDeleting(true);
     try {
       await axios.delete(`/api/assets/${asset.id}`);
-      addToast({ title: "Asset deleted" });
+      addToast({ title: "Asset deleted", variant: "success" });
       router.push("/assets");
     } catch (err) {
       addToast({
@@ -131,17 +131,17 @@ export function AssetDetail({
               <Tag className="text-muted-foreground h-8 w-8" />
             </div>
           )}
-          <div className="flex flex-1 flex-col gap-2">
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
+              <div className="min-w-0">
                 <p className="text-muted-foreground font-mono text-xs">
                   {asset.assetTag}
                 </p>
-                <h1 className="text-2xl font-semibold tracking-tight">
+                <h1 className="text-2xl font-semibold tracking-tight break-words">
                   {asset.name}
                 </h1>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button variant="outline" asChild>
                   <Link href={`/assets/${asset.id}/label`}>
                     <Printer className="h-4 w-4" />

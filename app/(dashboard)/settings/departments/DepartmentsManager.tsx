@@ -70,10 +70,10 @@ export function DepartmentsManager({
       const payload = { name, code: code || null };
       if (editing) {
         await axios.patch(`/api/departments/${editing.id}`, payload);
-        addToast({ title: "Department updated" });
+        addToast({ title: "Department updated", variant: "success" });
       } else {
         await axios.post("/api/departments", payload);
-        addToast({ title: "Department created" });
+        addToast({ title: "Department created", variant: "success" });
       }
       setDialogOpen(false);
       router.refresh();
@@ -89,7 +89,7 @@ export function DepartmentsManager({
     setSubmitting(true);
     try {
       await axios.delete(`/api/departments/${deleting.id}`);
-      addToast({ title: "Department deleted" });
+      addToast({ title: "Department deleted", variant: "success" });
       setDeleting(null);
       router.refresh();
     } catch (err) {

@@ -79,10 +79,10 @@ export function LocationsManager({ initialLocations }: { initialLocations: Locat
       const payload = { name, parentLocationId, address: address || null };
       if (editing) {
         await axios.patch(`/api/locations/${editing.id}`, payload);
-        addToast({ title: "Location updated" });
+        addToast({ title: "Location updated", variant: "success" });
       } else {
         await axios.post("/api/locations", payload);
-        addToast({ title: "Location created" });
+        addToast({ title: "Location created", variant: "success" });
       }
       setDialogOpen(false);
       router.refresh();
@@ -98,7 +98,7 @@ export function LocationsManager({ initialLocations }: { initialLocations: Locat
     setSubmitting(true);
     try {
       await axios.delete(`/api/locations/${deleting.id}`);
-      addToast({ title: "Location deleted" });
+      addToast({ title: "Location deleted", variant: "success" });
       setDeleting(null);
       router.refresh();
     } catch (err) {

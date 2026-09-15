@@ -66,10 +66,10 @@ export function AssetStatusesManager({ initialStatuses }: { initialStatuses: Ass
       const payload = { name, sortOrder };
       if (editing) {
         await axios.patch(`/api/asset-statuses/${editing.id}`, payload);
-        addToast({ title: "Status updated" });
+        addToast({ title: "Status updated", variant: "success" });
       } else {
         await axios.post("/api/asset-statuses", payload);
-        addToast({ title: "Status created" });
+        addToast({ title: "Status created", variant: "success" });
       }
       setDialogOpen(false);
       router.refresh();
@@ -85,7 +85,7 @@ export function AssetStatusesManager({ initialStatuses }: { initialStatuses: Ass
     setSubmitting(true);
     try {
       await axios.delete(`/api/asset-statuses/${deleting.id}`);
-      addToast({ title: "Status deleted" });
+      addToast({ title: "Status deleted", variant: "success" });
       setDeleting(null);
       router.refresh();
     } catch (err) {

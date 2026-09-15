@@ -81,7 +81,7 @@ export function DisposalDialog({
       formData.set("notes", notes);
       if (attachment) formData.set("attachment", attachment);
       await axios.post(`/api/assets/${assetId}/dispose`, formData);
-      addToast({ title: "Asset disposed" });
+      addToast({ title: "Asset disposed", variant: "success" });
       onOpenChange(false);
       router.refresh();
     } catch (err) {

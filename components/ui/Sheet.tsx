@@ -16,7 +16,8 @@ function SheetOverlay({
   return (
     <DialogPrimitive.Overlay
       className={cn(
-        "fixed inset-0 z-50 bg-black/50 transition-opacity data-[state=closed]:opacity-0 data-[state=open]:opacity-100",
+        "fixed inset-0 z-50 bg-black/50",
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         className,
       )}
       {...props}
@@ -41,16 +42,17 @@ function SheetContent({
       <SheetOverlay />
       <DialogPrimitive.Content
         className={cn(
-          "bg-sidebar text-sidebar-foreground scroll-area fixed inset-y-0 z-50 flex h-full w-3/4 max-w-xs flex-col gap-4 overflow-y-auto p-4 shadow-lg transition-transform duration-200 ease-in-out",
+          "bg-sidebar text-sidebar-foreground scroll-area fixed inset-y-0 z-50 flex h-full w-3/4 max-w-xs flex-col gap-4 overflow-y-auto p-4 shadow-lg",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out",
           side === "left"
-            ? "left-0 data-[state=closed]:-translate-x-full data-[state=open]:translate-x-0"
-            : "right-0 data-[state=closed]:translate-x-full data-[state=open]:translate-x-0",
+            ? "left-0 data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left"
+            : "right-0 data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
           className,
         )}
         {...props}
       >
         {children}
-        <DialogPrimitive.Close className="focus:ring-ring absolute top-4 right-4 flex min-h-11 min-w-11 items-center justify-center rounded-md p-1 opacity-70 hover:opacity-100 focus:ring-2 focus:outline-none">
+        <DialogPrimitive.Close className="focus:ring-ring absolute top-4 right-4 flex h-7 w-7 items-center justify-center rounded-md opacity-70 before:absolute before:-inset-2 before:content-[''] hover:opacity-100 focus:ring-2 focus:outline-none">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>

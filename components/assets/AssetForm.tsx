@@ -221,11 +221,11 @@ export function AssetForm({
     try {
       if (mode === "create") {
         const res = await axios.post<{ asset: { id: string } }>("/api/assets", formData);
-        addToast({ title: "Asset created" });
+        addToast({ title: "Asset created", variant: "success" });
         router.push(`/assets/${res.data.asset.id}`);
       } else if (asset) {
         await axios.patch(`/api/assets/${asset.id}`, formData);
-        addToast({ title: "Asset updated" });
+        addToast({ title: "Asset updated", variant: "success" });
         router.push(`/assets/${asset.id}`);
       }
     } catch (err) {

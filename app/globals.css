@@ -113,9 +113,39 @@ body {
 }
 
 /* Reserve the scrollbar's width on the axis that can scroll so a Radix
-   scroll-lock (Dialog/Select/DropdownMenu opening) never shifts layout. */
+   scroll-lock (Dialog/Select/DropdownMenu opening) never shifts layout, and
+   force the scrollbar track to always render so `body[data-scroll-locked]`
+   (from react-remove-scroll, used by Radix Dialog/Select) can't remove it
+   from the viewport — only `html`'s own overflow controls that scrollbar,
+   so `body { overflow: hidden }` no longer propagates up and hides it. */
 html {
-  scrollbar-gutter: stable;
+  overflow-y: scroll;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+html::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+html::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+html::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+}
+
+/* Neutralize react-remove-scroll's width-compensation margin/padding, which
+   exists only to offset a scrollbar it assumes it removed — with the
+   scrollbar now pinned visible above, that compensation would just shift
+   content left while a Dialog/Select is open. */
+body[data-scroll-locked] {
+  margin-right: 0 !important;
+  padding-right: 0 !important;
 }
 
 /* Transparent-track scrollbar used across the app. Apply `.scroll-area` to
@@ -160,4 +190,87 @@ html {
 }
 .scroll-area-thin::-webkit-scrollbar-thumb:hover {
   background-color: var(--scrollbar-thumb-hover);
+}
+
+/* Enter/exit animations for Radix primitives (Dialog, Sheet, DropdownMenu,
+   Select, Tooltip), driven by their `data-state` attribute. Radix's
+   Presence only defers unmount for an `animationend`/animationName event —
+   it does not wait on CSS transitions — so these must be real @keyframes
+   animations, not `transition-*` utilities, for exit to be visible at all. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@keyframes zoom-out {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@keyframes slide-in-from-right {
+  from {
+    transform: translateX(100%);
+  }
+}
+@keyframes slide-out-to-right {
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes slide-in-from-left {
+  from {
+    transform: translateX(-100%);
+  }
+}
+@keyframes slide-out-to-left {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-in {
+  animation-duration: 150ms;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+.animate-out {
+  animation-duration: 150ms;
+  animation-timing-function: ease-in;
+  animation-fill-mode: both;
+}
+.fade-in-0 {
+  animation-name: fade-in;
+}
+.fade-out-0 {
+  animation-name: fade-out;
+}
+.zoom-in-95 {
+  animation-name: zoom-in;
+}
+.zoom-out-95 {
+  animation-name: zoom-out;
+}
+.slide-in-from-right {
+  animation-name: slide-in-from-right;
+}
+.slide-out-to-right {
+  animation-name: slide-out-to-right;
+}
+.slide-in-from-left {
+  animation-name: slide-in-from-left;
+}
+.slide-out-to-left {
+  animation-name: slide-out-to-left;
 }

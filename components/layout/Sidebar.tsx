@@ -40,7 +40,7 @@ export function Sidebar({ className }: { className?: string }) {
         )}
       </div>
 
-      <div className="scroll-area-thin flex-1 overflow-y-auto p-3">
+      <div className="scroll-area-thin flex-1 overflow-x-hidden overflow-y-auto p-3">
         <SidebarNav collapsed={collapsed} />
       </div>
 

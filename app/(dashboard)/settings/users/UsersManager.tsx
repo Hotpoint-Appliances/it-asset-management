@@ -89,11 +89,11 @@ export function UsersManager({
       if (editing) {
         if (form.password) payload.password = form.password;
         await axios.patch(`/api/users/${editing.id}`, payload);
-        addToast({ title: "User updated" });
+        addToast({ title: "User updated", variant: "success" });
       } else {
         payload.password = form.password;
         await axios.post("/api/users", payload);
-        addToast({ title: "User created" });
+        addToast({ title: "User created", variant: "success" });
       }
       setDialogOpen(false);
       router.refresh();
@@ -109,7 +109,10 @@ export function UsersManager({
     setSubmitting(true);
     try {
       await axios.patch(`/api/users/${deactivating.id}`, { isActive: !deactivating.isActive });
-      addToast({ title: deactivating.isActive ? "User deactivated" : "User reactivated" });
+      addToast({
+        title: deactivating.isActive ? "User deactivated" : "User reactivated",
+        variant: "success",
+      });
       setDeactivating(null);
       router.refresh();
     } catch (err) {

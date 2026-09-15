@@ -33,7 +33,7 @@ export function SidebarNav({
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "flex min-h-11 items-center gap-3 rounded-lg text-sm font-medium transition-colors",
+              "flex min-h-11 min-w-0 items-center gap-3 rounded-lg text-sm font-medium transition-colors",
               collapsed ? "justify-center px-0" : "px-3 py-2",
               active
                 ? "bg-primary/10 text-primary font-semibold"
@@ -41,7 +41,7 @@ export function SidebarNav({
             )}
           >
             <Icon className="h-4 w-4 shrink-0" />
-            {!collapsed && item.label}
+            {!collapsed && <span className="truncate">{item.label}</span>}
           </Link>
         );
 

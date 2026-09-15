@@ -11,7 +11,7 @@ export default async function Home() {
         <CardHeader>
           <CardTitle>Dashboard</CardTitle>
         </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
+        <CardContent className="text-muted-foreground text-sm">
           Coming soon — fleet overview widgets land in Phase 6.
         </CardContent>
       </Card>

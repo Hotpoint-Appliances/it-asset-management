@@ -110,7 +110,7 @@ export function TransferDialog({
         ownerName: ownerMode === "external" ? ownerName : null,
         ownerEmail: ownerMode === "external" ? ownerEmail : null,
       });
-      addToast({ title: "Asset transferred" });
+      addToast({ title: "Asset transferred", variant: "success" });
       onOpenChange(false);
       router.refresh();
     } catch (err) {
@@ -153,7 +153,7 @@ export function TransferDialog({
           </div>
           <div className="flex flex-col gap-1.5">
             <span className="text-sm font-medium">Owner</span>
-            <div className="flex gap-1.5">
+            <div className="flex flex-wrap gap-1.5">
               <Button
                 type="button"
                 size="sm"

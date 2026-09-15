@@ -116,7 +116,7 @@ export function MaintenanceTab({
         scheduledDate: scheduledDate || null,
         notes: notes || null,
       });
-      addToast({ title: "Maintenance record created" });
+      addToast({ title: "Maintenance record created", variant: "success" });
       setCreateOpen(false);
       router.refresh();
     } catch (err) {
@@ -140,7 +140,7 @@ export function MaintenanceTab({
         cost: record.cost,
         notes: record.notes,
       });
-      addToast({ title: "Maintenance record updated" });
+      addToast({ title: "Maintenance record updated", variant: "success" });
       router.refresh();
 
       if (status === "in_progress" && inRepairStatus) {
@@ -173,7 +173,7 @@ export function MaintenanceTab({
         statusId,
         note,
       });
-      addToast({ title: "Asset status updated" });
+      addToast({ title: "Asset status updated", variant: "success" });
       router.refresh();
     } catch (err) {
       addToast({
