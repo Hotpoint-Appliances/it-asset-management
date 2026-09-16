@@ -60,11 +60,12 @@ function ToastCard({
 }) {
   const variant = toast.variant ?? "info";
   const Icon = VARIANT_ICON[variant];
+  const [closing, setClosing] = React.useState(false);
 
   React.useEffect(() => {
     if (variant === "loading" || toast.duration === 0) return;
     const timer = setTimeout(
-      () => onDismiss(toast.id),
+      () => setClosing(true),
       toast.duration ?? AUTO_DISMISS_MS,
     );
     return () => clearTimeout(timer);
@@ -75,8 +76,14 @@ function ToastCard({
     <div
       role={variant === "error" ? "alert" : "status"}
       aria-live={variant === "error" ? "assertive" : "polite"}
-      className="bg-toast text-toast-foreground border-toast-border data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 flex items-start gap-3 rounded-xl border p-4 shadow-lg"
-      data-state="open"
+      className={cn(
+        "bg-toast text-toast-foreground border-toast-border flex items-start gap-3 rounded-xl border p-4 shadow-lg",
+        closing ? "animate-out fade-out-0 zoom-out-95" : "animate-in fade-in-0 zoom-in-95",
+      )}
+      data-state={closing ? "closed" : "open"}
+      onAnimationEnd={() => {
+        if (closing) onDismiss(toast.id);
+      }}
     >
       <Icon
         className={cn("mt-0.5 h-7 w-7 shrink-0", VARIANT_ICON_CLASS[variant])}
@@ -89,7 +96,7 @@ function ToastCard({
         </p>
       </div>
       <button
-        onClick={() => onDismiss(toast.id)}
+        onClick={() => setClosing(true)}
         className="flex min-h-11 min-w-11 items-center justify-center opacity-70 hover:opacity-100"
       >
         <X className="h-4 w-4" />

@@ -266,37 +266,41 @@ html::-webkit-scrollbar-thumb:hover {
   }
 }
 
-.animate-in {
+/* Declared via `@utility` (not plain classes) so Tailwind v4 can compile
+   arbitrary variants against them, e.g. `data-[state=open]:animate-in` —
+   a plain class here would make that compound candidate invalid, and
+   Tailwind would silently drop it instead of emitting any CSS for it. */
+@utility animate-in {
   animation-duration: 150ms;
   animation-timing-function: ease-out;
   animation-fill-mode: both;
 }
-.animate-out {
+@utility animate-out {
   animation-duration: 150ms;
   animation-timing-function: ease-in;
   animation-fill-mode: both;
 }
-.fade-in-0 {
+@utility fade-in-0 {
   animation-name: fade-in;
 }
-.fade-out-0 {
+@utility fade-out-0 {
   animation-name: fade-out;
 }
-.zoom-in-95 {
+@utility zoom-in-95 {
   animation-name: zoom-in;
 }
-.zoom-out-95 {
+@utility zoom-out-95 {
   animation-name: zoom-out;
 }
-.slide-in-from-right {
+@utility slide-in-from-right {
   animation-name: slide-in-from-right;
 }
-.slide-out-to-right {
+@utility slide-out-to-right {
   animation-name: slide-out-to-right;
 }
-.slide-in-from-left {
+@utility slide-in-from-left {
   animation-name: slide-in-from-left;
 }
-.slide-out-to-left {
+@utility slide-out-to-left {
   animation-name: slide-out-to-left;
 }
