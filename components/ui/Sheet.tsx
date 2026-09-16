@@ -42,7 +42,7 @@ function SheetContent({
       <SheetOverlay />
       <DialogPrimitive.Content
         className={cn(
-          "bg-sidebar text-sidebar-foreground scroll-area fixed inset-y-0 z-50 flex h-full w-3/4 max-w-xs flex-col gap-4 overflow-y-auto p-4 shadow-lg",
+          "bg-sidebar text-sidebar-foreground scroll-area fixed inset-y-0 z-50 flex w-3/4 max-w-xs flex-col gap-4 overflow-y-auto p-4 shadow-lg",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           side === "left"
             ? "data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left left-0"

@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 export type ToastVariant = "success" | "error" | "warning" | "info" | "loading";
 
@@ -19,12 +18,14 @@ function generateId() {
   );
 }
 
+const SIDEBAR_COOKIE = "itam_sidebar_collapsed";
+
 interface UIState {
   mobileNavOpen: boolean;
   setMobileNavOpen: (open: boolean) => void;
-  sidebarCollapsed: boolean;
-  sidebarHydrated: boolean;
-  toggleSidebarCollapsed: () => void;
+  /** null = not toggled yet this session; the server-rendered default applies. */
+  sidebarCollapsed: boolean | null;
+  setSidebarCollapsed: (collapsed: boolean) => void;
   toasts: Toast[];
   addToast: (toast: Omit<Toast, "id">) => string;
   removeToast: (id: string) => void;
@@ -37,37 +38,29 @@ interface UIState {
   setLoggingOut: (loggingOut: boolean) => void;
 }
 
-export const useUIStore = create<UIState>()(
-  persist(
-    (set) => ({
-      mobileNavOpen: false,
-      setMobileNavOpen: (open) => set({ mobileNavOpen: open }),
-      sidebarCollapsed: false,
-      sidebarHydrated: false,
-      toggleSidebarCollapsed: () =>
-        set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
-      toasts: [],
-      addToast: (toast) => {
-        const id = generateId();
-        set((state) => ({ toasts: [...state.toasts, { ...toast, id }] }));
-        return id;
-      },
-      removeToast: (id) =>
-        set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
-      routeLoading: 0,
-      startRouteLoading: () =>
-        set((state) => ({ routeLoading: state.routeLoading + 1 })),
-      endRouteLoading: () =>
-        set((state) => ({ routeLoading: Math.max(0, state.routeLoading - 1) })),
-      loggingOut: false,
-      setLoggingOut: (loggingOut) => set({ loggingOut }),
-    }),
-    {
-      name: "itam-ui-store",
-      partialize: (state) => ({ sidebarCollapsed: state.sidebarCollapsed }),
-      onRehydrateStorage: () => () => {
-        useUIStore.setState({ sidebarHydrated: true });
-      },
-    },
-  ),
-);
+export const useUIStore = create<UIState>()((set) => ({
+  mobileNavOpen: false,
+  setMobileNavOpen: (open) => set({ mobileNavOpen: open }),
+  sidebarCollapsed: null,
+  setSidebarCollapsed: (collapsed) => {
+    if (typeof document !== "undefined") {
+      document.cookie = `${SIDEBAR_COOKIE}=${collapsed ? "1" : "0"}; path=/; max-age=31536000; samesite=lax`;
+    }
+    set({ sidebarCollapsed: collapsed });
+  },
+  toasts: [],
+  addToast: (toast) => {
+    const id = generateId();
+    set((state) => ({ toasts: [...state.toasts, { ...toast, id }] }));
+    return id;
+  },
+  removeToast: (id) =>
+    set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
+  routeLoading: 0,
+  startRouteLoading: () =>
+    set((state) => ({ routeLoading: state.routeLoading + 1 })),
+  endRouteLoading: () =>
+    set((state) => ({ routeLoading: Math.max(0, state.routeLoading - 1) })),
+  loggingOut: false,
+  setLoggingOut: (loggingOut) => set({ loggingOut }),
+}));

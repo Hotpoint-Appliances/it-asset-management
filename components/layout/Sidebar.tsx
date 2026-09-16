@@ -10,17 +10,24 @@ import {
 import { useUIStore } from "@/store";
 import { cn } from "@/lib/utils";
 
-export function Sidebar({ className }: { className?: string }) {
-  const collapsed = useUIStore((s) => s.sidebarCollapsed);
-  const hydrated = useUIStore((s) => s.sidebarHydrated);
-  const toggleCollapsed = useUIStore((s) => s.toggleSidebarCollapsed);
+export function Sidebar({
+  className,
+  defaultCollapsed = false,
+}: {
+  className?: string;
+  defaultCollapsed?: boolean;
+}) {
+  const stored = useUIStore((s) => s.sidebarCollapsed);
+  const setSidebarCollapsed = useUIStore((s) => s.setSidebarCollapsed);
+  const collapsed = stored ?? defaultCollapsed;
+  const toggleCollapsed = () => setSidebarCollapsed(!collapsed);
 
   return (
     <aside
       className={cn(
         "hidden md:flex md:h-full md:shrink-0 md:flex-col",
         "md:border-border md:bg-sidebar md:text-sidebar-foreground md:border-r",
-        hydrated && "transition-[width] duration-200 ease-in-out",
+        "transition-[width] duration-200 ease-in-out",
         collapsed ? "md:w-19" : "md:w-64",
         className,
       )}
@@ -53,7 +60,7 @@ export function Sidebar({ className }: { className?: string }) {
                 type="button"
                 onClick={toggleCollapsed}
                 aria-label="Expand sidebar"
-                className="text-muted-foreground hover:bg-muted hover:text-foreground flex h-9 w-9 items-center justify-center rounded-lg"
+                className="text-muted-foreground hover:bg-muted hover:text-foreground flex h-9 w-full items-center justify-center rounded-lg"
               >
                 <ChevronsRight className="h-4 w-4" />
               </button>

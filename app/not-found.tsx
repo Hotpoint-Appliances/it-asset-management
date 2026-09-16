@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { CompassIcon } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
@@ -22,8 +23,10 @@ export default async function NotFound() {
   );
 
   if (session) {
+    const sidebarCollapsed =
+      (await cookies()).get("itam_sidebar_collapsed")?.value === "1";
     return (
-      <AppShell>
+      <AppShell sidebarCollapsed={sidebarCollapsed}>
         <div className="flex min-h-[60vh] items-center justify-center p-4">
           {content}
         </div>

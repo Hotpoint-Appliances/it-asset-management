@@ -35,6 +35,18 @@
 
   --scrollbar-thumb: rgba(0, 0, 0, 0.18);
   --scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
+
+  /* Toast surface is intentionally inverted from the app theme (dark-on-light
+     here) so it pops against the page instead of blending into it. Values
+     mirror the dark theme's card/foreground tokens below. */
+  --toast: #18181b;
+  --toast-foreground: #fafafa;
+  --toast-muted-foreground: #a1a1aa;
+  --toast-border: #27272a;
+  --toast-primary: #818cf8;
+  --toast-success: #22c55e;
+  --toast-warning: #f59e0b;
+  --toast-destructive: #ef4444;
 }
 
 .dark {
@@ -67,6 +79,17 @@
 
   --scrollbar-thumb: rgba(255, 255, 255, 0.16);
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.28);
+
+  /* Inverted the other way in dark mode: light-on-dark, mirroring the light
+     theme's card/foreground tokens above. */
+  --toast: #ffffff;
+  --toast-foreground: #0f172a;
+  --toast-muted-foreground: #71717a;
+  --toast-border: #e4e4e7;
+  --toast-primary: #4f46e5;
+  --toast-success: #16a34a;
+  --toast-warning: #d97706;
+  --toast-destructive: #dc2626;
 }
 
 @theme inline {
@@ -97,6 +120,15 @@
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
 
+  --color-toast: var(--toast);
+  --color-toast-foreground: var(--toast-foreground);
+  --color-toast-muted-foreground: var(--toast-muted-foreground);
+  --color-toast-border: var(--toast-border);
+  --color-toast-primary: var(--toast-primary);
+  --color-toast-success: var(--toast-success);
+  --color-toast-warning: var(--toast-warning);
+  --color-toast-destructive: var(--toast-destructive);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
@@ -118,6 +150,13 @@ body {
 html {
   scrollbar-color: var(--scrollbar-thumb) transparent;
   overflow: hidden;
+  /* `overflow: hidden` alone doesn't stop touch-driven rubber-band/bounce
+     scrolling on mobile browsers — nested `overflow-x/y: auto` containers
+     (e.g. a wide table) still inflate the root's scrollWidth/scrollHeight,
+     and touch gestures can drag against that even though nothing here is
+     meant to scroll. This disables that instead of chasing every nested
+     container that contributes to it. */
+  overscroll-behavior: none;
 }
 html::-webkit-scrollbar {
   width: 10px;

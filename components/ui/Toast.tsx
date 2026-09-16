@@ -27,11 +27,11 @@ const VARIANT_ICON: Record<
 };
 
 const VARIANT_ICON_CLASS: Record<ToastVariant, string> = {
-  success: "text-success",
-  error: "text-destructive",
-  warning: "text-warning",
-  info: "text-primary",
-  loading: "text-muted-foreground animate-spin",
+  success: "text-toast-success",
+  error: "text-toast-destructive",
+  warning: "text-toast-warning",
+  info: "text-toast-primary",
+  loading: "text-toast-muted-foreground animate-spin",
 };
 
 export function Toaster() {
@@ -75,17 +75,18 @@ function ToastCard({
     <div
       role={variant === "error" ? "alert" : "status"}
       aria-live={variant === "error" ? "assertive" : "polite"}
-      className="bg-card text-card-foreground border-border data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 flex items-start gap-3 rounded-xl border p-4 shadow-lg"
+      className="bg-toast text-toast-foreground border-toast-border data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 flex items-start gap-3 rounded-xl border p-4 shadow-lg"
       data-state="open"
     >
       <Icon
-        className={cn("mt-0.5 h-5 w-5 shrink-0", VARIANT_ICON_CLASS[variant])}
+        className={cn("mt-0.5 h-7 w-7 shrink-0", VARIANT_ICON_CLASS[variant])}
       />
       <div className="flex-1 space-y-0.5">
         <p className="text-sm font-medium">{toast.title}</p>
-        {toast.description && (
-          <p className="text-muted-foreground text-sm">{toast.description}</p>
-        )}
+
+        <p className="text-toast-muted-foreground text-sm">
+          {toast.description ?? (variant === "error" ? "Error" : "Success")}
+        </p>
       </div>
       <button
         onClick={() => onDismiss(toast.id)}
