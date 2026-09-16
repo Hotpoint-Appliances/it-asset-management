@@ -1,7 +1,7 @@
 "use client";
 
 import axios from "axios";
-import { LogOut, UserCircle2 } from "lucide-react";
+import { LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +28,8 @@ export function UserMenu() {
 
   if (!session) return null;
 
+  const initial = session.fullName?.trim().charAt(0).toUpperCase() || "?";
+
   async function handleLogout() {
     setLoggingOut(true);
     try {
@@ -50,7 +52,9 @@ export function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" aria-label="User menu">
-          <UserCircle2 className="h-5 w-5" />
+          <span className="bg-primary/10 text-primary flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold">
+            {initial}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

@@ -33,8 +33,8 @@
   --sidebar: #ffffff;
   --sidebar-foreground: #0f172a;
 
-  --scrollbar-thumb: rgba(0, 0, 0, 0.18);
-  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
+  --scrollbar-thumb: rgba(0, 0, 0, 0.35);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.5);
 
   /* Toast surface is intentionally inverted from the app theme (dark-on-light
      here) so it pops against the page instead of blending into it. Values
@@ -77,8 +77,8 @@
   --sidebar: #09090b;
   --sidebar-foreground: #fafafa;
 
-  --scrollbar-thumb: rgba(255, 255, 255, 0.16);
-  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.28);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.32);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.48);
 
   /* Inverted the other way in dark mode: light-on-dark, mirroring the light
      theme's card/foreground tokens above. */

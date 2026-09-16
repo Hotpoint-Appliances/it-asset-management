@@ -23,7 +23,7 @@ export function Topbar({ className }: { className?: string }) {
   return (
     <header
       className={cn(
-        "border-border bg-background/95 z-40 flex h-16 shrink-0 items-center gap-2 border-b px-4 supports-[backdrop-filter]:backdrop-blur",
+        "border-border bg-background/95 z-40 flex h-16 shrink-0 items-center gap-2 border-b px-4 supports-backdrop-filter:backdrop-blur",
         className,
       )}
     >
@@ -35,7 +35,7 @@ export function Topbar({ className }: { className?: string }) {
             className="md:hidden"
             aria-label="Open navigation"
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-6 w-6" />
           </Button>
         </SheetTrigger>
         <SheetContent side="left">
@@ -53,12 +53,12 @@ export function Topbar({ className }: { className?: string }) {
         aria-label="Go back"
         onClick={() => router.back()}
       >
-        <ArrowLeft className="h-4 w-4" />
+        <ArrowLeft className="h-5 w-5" />
       </Button>
 
       <div className="flex flex-1 items-center justify-end gap-1">
         <Button variant="ghost" size="icon" aria-label="Notifications">
-          <Bell className="h-4 w-4" />
+          <Bell className="h-5 w-5" />
         </Button>
         <ThemeToggle />
         <UserMenu />
