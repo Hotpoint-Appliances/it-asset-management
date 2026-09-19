@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession, type RoleName, type SessionPayload } from "./session";
 
-/** Route-handler counterpart to requireSession()/requireRole() — returns a 401 JSON response
+/** Route-handler counterpart to requireSession()/requireRole(), returns a 401 JSON response
  * instead of redirecting, per the Route Handlers guidance proxy.ts's matcher comment references. */
 export async function getApiSession(): Promise<SessionPayload | NextResponse> {
   const session = await getSession();

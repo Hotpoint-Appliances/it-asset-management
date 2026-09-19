@@ -26,6 +26,7 @@ import {
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
 import type { AssetCondition } from "@/types/assetCondition";
+import { RequiredMark } from "@/components/shared/RequiredMark";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -175,6 +176,7 @@ export function AssetConditionsManager({
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="condition-name" className="text-sm font-medium">
                   Name
+                  <RequiredMark />
                 </label>
                 <Input
                   id="condition-name"

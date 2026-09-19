@@ -42,7 +42,7 @@ export async function PATCH(
   const maintenance = await updateMaintenance(numericId, validated.data);
 
   // "Marking completed prompts restoring the asset's prior status" (docs/asset-lifecycle-flow.md
-  // rule 5) — resolved here (via the unified audit log, no schema change) so the client can offer
+  // rule 5), resolved here (via the unified audit log, no schema change) so the client can offer
   // the prompt without a second round trip. Null means "no known prior status" (e.g. the asset
   // was created directly in_repair); the client falls back to leaving status untouched.
   let suggestedRestoreStatusId: number | null = null;

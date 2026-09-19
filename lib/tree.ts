@@ -47,7 +47,7 @@ export function flattenForSelect<T extends WithParent>(
   return out;
 }
 
-/** Ids of `rootId` plus every node transitively parented under it — used to keep a node from
+/** Ids of `rootId` plus every node transitively parented under it, used to keep a node from
  * being reparented under itself or one of its own descendants (would create a cycle). */
 export function collectDescendantIds<T extends WithParent>(
   items: T[],

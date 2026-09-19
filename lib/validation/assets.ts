@@ -59,7 +59,7 @@ export function validateAssetInput(body: unknown): AssetValidationResult {
   if (ownerEmail === undefined) {
     return { success: false, error: "ownerEmail must be a string or null" };
   }
-  // chk_asset_owner: at least one of assigned_user_id / owner_name must be set — enforced here
+  // chk_asset_owner: at least one of assigned_user_id / owner_name must be set, enforced here
   // too so the caller gets a clean 400 instead of a raw DB constraint failure.
   if (!assignedUserId && !ownerName) {
     return {
@@ -146,7 +146,7 @@ export function validateAssetInput(body: unknown): AssetValidationResult {
 }
 
 /** The create/edit form posts multipart/form-data (fields + an optional image file share one
- * request) — this normalizes it into the same shape validateAssetInput expects from a JSON
+ * request), this normalizes it into the same shape validateAssetInput expects from a JSON
  * body, so there's one validator for both entry points. */
 export function assetInputFromFormData(
   formData: FormData,

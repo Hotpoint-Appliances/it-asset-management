@@ -27,6 +27,7 @@ import { TreePicker } from "@/components/shared/TreePicker";
 import { buildTree, type TreeNode } from "@/lib/tree";
 import { useUIStore } from "@/store";
 import type { Location } from "@/types/location";
+import { RequiredMark } from "@/components/shared/RequiredMark";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -244,6 +245,7 @@ export function LocationsManager({
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="location-name" className="text-sm font-medium">
                   Name
+                  <RequiredMark />
                 </label>
                 <Input
                   id="location-name"

@@ -15,7 +15,7 @@ import {
 
 /** Generic confirm/prompt Dialog shared by every destructive or "are you sure" action added in
  * phase-5-asset-lifecycle (soft delete, disposal's consequence statement, the maintenance
- * module's non-forced status-change prompts) — per itam-design-system's "destructive/terminal
+ * module's non-forced status-change prompts), per itam-design-system's "destructive/terminal
  * actions always a confirmation Dialog with the consequence stated explicitly" rule. */
 export function ConfirmDialog({
   open,
@@ -37,7 +37,7 @@ export function ConfirmDialog({
   cancelLabel?: string;
   onConfirm: () => void;
   submitting?: boolean;
-  /** Disables the confirm button without showing the "Working…" submitting label — e.g. a
+  /** Disables the confirm button without showing the "Working…" submitting label, e.g. a
    * required field inside `description` that isn't filled in yet. */
   confirmDisabled?: boolean;
   destructive?: boolean;
@@ -49,7 +49,7 @@ export function ConfirmDialog({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <DialogBody>
-          {/* asChild swaps Radix's default <p> for a <div> — description can carry block content
+          {/* asChild swaps Radix's default <p> for a <div>, since description can carry block content
               (e.g. MaintenanceTab's restore-prompt note field), which isn't valid inside a <p>. */}
           <DialogDescription asChild>
             <div>{description}</div>

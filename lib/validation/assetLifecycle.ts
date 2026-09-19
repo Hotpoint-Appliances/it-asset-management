@@ -13,7 +13,7 @@ import type { DisposalInput } from "@/types/disposal";
 
 type Result<T> = { success: true; data: T } | { success: false; error: string };
 
-/** Transfer action (phase-5-asset-lifecycle Step 1) — every field is optional (only what the
+/** Transfer action (phase-5-asset-lifecycle Step 1), every field is optional (only what the
  * dialog actually changed is sent), but owner fields are dual-mode like the create/edit form:
  * exactly one of assignedUserId/ownerName may be set when the owner is being changed at all. */
 export function validateTransferInput(body: unknown): Result<TransferInput> {
@@ -207,7 +207,7 @@ export function validateDisposalInput(body: unknown): Result<DisposalInput> {
 }
 
 /** The disposal dialog posts multipart/form-data (fields + an optional attachment file share one
- * request, same pattern as phase-4's asset create/edit) — normalizes it for
+ * request, same pattern as phase-4's asset create/edit), normalizes it for
  * validateDisposalInput. */
 export function disposalInputFromFormData(
   formData: FormData,

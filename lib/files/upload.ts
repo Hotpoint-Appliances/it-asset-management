@@ -45,7 +45,7 @@ export function assertValidAttachment(file: File): void {
 }
 
 /** Writes `file` under `ASSET_FILES_BASE_PATH/<subdir>/<generated-name>` and returns the path
- * relative to the base — that's what gets stored in the DB, never an absolute path (see
+ * relative to the base, that's what gets stored in the DB, never an absolute path (see
  * itam-conventions' ASSET_FILES_BASE_PATH rule). */
 async function writeUploadedFile(
   file: File,
@@ -90,7 +90,7 @@ export function saveAssetDisposalAttachment(assetId: string, file: File) {
   );
 }
 
-/** Best-effort delete — a missing file (already removed, or never written) is not an error. */
+/** Best-effort delete, a missing file (already removed, or never written) is not an error. */
 export async function deleteUploadedFile(relativePath: string): Promise<void> {
   try {
     await unlink(path.join(basePath(), relativePath));

@@ -47,7 +47,7 @@ export function TreePicker<T extends WithParent>({
       <option value="">{placeholder}</option>
       {flat.map(({ item, depth }) => (
         <option key={item.id} value={item.id}>
-          {"— ".repeat(depth)}
+          {depth > 0 ? "  ".repeat(depth) + "└ " : ""}
           {item.name}
         </option>
       ))}

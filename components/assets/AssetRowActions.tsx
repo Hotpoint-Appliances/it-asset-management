@@ -26,7 +26,7 @@ import type { Department } from "@/types/department";
 /** Asset list row actions (phase-5-asset-lifecycle, per itam-design-system's "row-level actions
  * via DropdownMenu (View, Edit, Transfer, Dispose)" and phase-4's note that the list gains
  * Transfer/Dispose alongside its own View/Edit). Reuses the same TransferDialog/DisposalDialog
- * as the detail page — AssetListItem now carries the location/department/owner ids those need
+ * as the detail page, AssetListItem now carries the location/department/owner ids those need
  * (see types/asset.ts), so no second fetch is required to prefill Transfer. */
 export function AssetRowActions({
   asset,

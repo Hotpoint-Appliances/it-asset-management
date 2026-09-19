@@ -27,6 +27,7 @@ import { TreePicker } from "@/components/shared/TreePicker";
 import { buildTree, type TreeNode } from "@/lib/tree";
 import { useUIStore } from "@/store";
 import type { Category } from "@/types/category";
+import { RequiredMark } from "@/components/shared/RequiredMark";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -248,6 +249,7 @@ export function CategoriesManager({
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="category-name" className="text-sm font-medium">
                   Name
+                  <RequiredMark />
                 </label>
                 <Input
                   id="category-name"

@@ -20,7 +20,7 @@ export function AppShell({
       <LogoutOverlay />
       <Sidebar defaultCollapsed={sidebarCollapsed} className="print:hidden" />
       <div className="flex min-h-0 min-w-0 flex-1 flex-col print:min-h-0">
-        <Topbar className="print:hidden" />
+        <Topbar defaultCollapsed={sidebarCollapsed} className="print:hidden" />
         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto overscroll-contain print:h-auto print:overflow-visible">
           <main className="mx-auto w-full max-w-7xl min-w-0 flex-1 overflow-x-clip p-4 sm:p-6 print:max-w-none print:p-0">
             {children}

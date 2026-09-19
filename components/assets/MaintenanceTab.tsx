@@ -47,10 +47,10 @@ const STATUS_VARIANT: Record<
 };
 
 /** Maintenance module (phase-5-asset-lifecycle Step 4): create/list `asset_maintenance` records
- * and drive the two non-forced prompts docs/asset-lifecycle-flow.md rule 5 calls for — marking
+ * and drive the two non-forced prompts docs/asset-lifecycle-flow.md rule 5 calls for, marking
  * `in_progress` offers to also set the asset's status to `in_repair` (reusing Step 3's action),
  * marking `completed` offers to restore whatever status preceded that in_repair transition
- * (resolved server-side via the unified audit log — see the PATCH route's
+ * (resolved server-side via the unified audit log; see the PATCH route's
  * `suggestedRestoreStatusId`). Both are confirm dialogs, not automatic, per the lifecycle doc. */
 export function MaintenanceTab({
   assetId,
@@ -229,7 +229,7 @@ export function MaintenanceTab({
                 <span className="text-muted-foreground text-xs">
                   {record.scheduledDate
                     ? new Date(record.scheduledDate).toLocaleDateString()
-                    : "—"}
+                    : "N/A"}
                 </span>
               </div>
               <div className="text-muted-foreground flex flex-wrap gap-x-4 text-xs">

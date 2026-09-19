@@ -7,7 +7,7 @@ import { useUIStore } from "@/store";
 /** Thin progress bar pinned to the top of the app shell, driven by `routeLoading` (a counter, see
  * `store/index.ts`). Two things push it: `LinkProgress` (mounted inside a `<Link>`, via Next's
  * `useLinkStatus`) and `useRouteLoadingRouter` (a `useRouter()` drop-in for programmatic
- * push/replace/refresh). The pathname/search-param watcher below is a safety net only — if a
+ * push/replace/refresh). The pathname/search-param watcher below is a safety net only, if a
  * route actually finished changing, the counter must not stay stuck above zero because some
  * caller's start wasn't matched by an end. */
 export function RouteProgress() {
@@ -25,7 +25,7 @@ export function RouteProgress() {
 
   // Adjusting state during render (React-documented pattern, and the same one
   // `useSyncOnOpen` uses) for the start/complete edges, so the effect below only ever
-  // schedules timers — it never calls setState synchronously in its own body, just from
+  // schedules timers, it never calls setState synchronously in its own body, just from
   // timer callbacks that fire later. A ref can't stand in for `prevLoading` here since
   // reading/writing a ref during render is itself disallowed.
   const [prevLoading, setPrevLoading] = React.useState(0);

@@ -1,7 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Menu, Boxes, Bell, ArrowLeft } from "lucide-react";
+import {
+  Menu,
+  Boxes,
+  Bell,
+  ChevronLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import {
   Sheet,
@@ -12,13 +19,23 @@ import {
 import { ThemeToggle } from "./ThemeToggle";
 import { SidebarNav } from "./SidebarNav";
 import { UserMenu } from "./UserMenu";
+import { QuickActions } from "./QuickActions";
 import { useUIStore } from "@/store";
 import { cn } from "@/lib/utils";
 
-export function Topbar({ className }: { className?: string }) {
+export function Topbar({
+  className,
+  defaultCollapsed = false,
+}: {
+  className?: string;
+  defaultCollapsed?: boolean;
+}) {
   const router = useRouter();
   const mobileNavOpen = useUIStore((s) => s.mobileNavOpen);
   const setMobileNavOpen = useUIStore((s) => s.setMobileNavOpen);
+  const stored = useUIStore((s) => s.sidebarCollapsed);
+  const setSidebarCollapsed = useUIStore((s) => s.setSidebarCollapsed);
+  const collapsed = stored ?? defaultCollapsed;
 
   return (
     <header
@@ -50,13 +67,30 @@ export function Topbar({ className }: { className?: string }) {
       <Button
         variant="ghost"
         size="icon"
-        aria-label="Go back"
-        onClick={() => router.back()}
+        className="hidden md:inline-flex"
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        onClick={() => setSidebarCollapsed(!collapsed)}
       >
-        <ArrowLeft className="h-5 w-5" />
+        {collapsed ? (
+          <PanelLeftOpen className="h-5 w-5" />
+        ) : (
+          <PanelLeftClose className="h-5 w-5" />
+        )}
       </Button>
 
-      <div className="flex flex-1 items-center justify-end gap-1">
+      <div className="flex flex-1 justify-center">
+        <QuickActions />
+      </div>
+
+      <div className="flex items-center justify-end gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Go back"
+          onClick={() => router.back()}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
         <Button variant="ghost" size="icon" aria-label="Notifications">
           <Bell className="h-5 w-5" />
         </Button>

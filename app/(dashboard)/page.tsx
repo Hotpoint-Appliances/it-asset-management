@@ -7,7 +7,7 @@ export default function DashboardPage() {
         <CardTitle>Dashboard</CardTitle>
       </CardHeader>
       <CardContent className="text-muted-foreground text-sm">
-        Coming soon — fleet overview widgets land in Phase 6.
+        Coming soon: fleet overview widgets land in Phase 6.
       </CardContent>
     </Card>
   );

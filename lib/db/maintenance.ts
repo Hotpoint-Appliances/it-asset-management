@@ -12,7 +12,7 @@ interface MaintenanceRow {
   maintenance_type: AssetMaintenance["maintenanceType"];
   vendor_id: number | null;
   vendor_name: string | null;
-  // pg parses date/timestamptz columns into Date objects — see lib/db/dates.ts
+  // pg parses date/timestamptz columns into Date objects; see lib/db/dates.ts
   scheduled_date: Date | string | null;
   completed_date: Date | string | null;
   cost: string | null;
@@ -94,7 +94,7 @@ export async function createMaintenance(
   return mapMaintenance(result.rows[0]);
 }
 
-/** Status transitions and field edits share one endpoint (phase-5-asset-lifecycle Step 4) —
+/** Status transitions and field edits share one endpoint (phase-5-asset-lifecycle Step 4),
  * `completedDate` defaults to today when the caller marks `completed` without supplying one. */
 export async function updateMaintenance(
   id: number,

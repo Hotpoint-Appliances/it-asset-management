@@ -268,7 +268,7 @@ export function AssetsList({
                   <TableCell>{asset.locationName}</TableCell>
                   <TableCell>{asset.departmentName}</TableCell>
                   <TableCell>
-                    {asset.assignedUserName ?? asset.ownerName ?? "—"}
+                    {asset.assignedUserName ?? asset.ownerName ?? "N/A"}
                   </TableCell>
                   <TableCell className="text-right">
                     <AssetRowActions

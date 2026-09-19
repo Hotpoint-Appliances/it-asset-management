@@ -13,8 +13,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/Card";
+import { RequiredMark } from "@/components/shared/RequiredMark";
 
-/** Only a same-origin relative path is a safe redirect target — `from` is an attacker-controlled
+/** Only a same-origin relative path is a safe redirect target, `from` is an attacker-controlled
  * query param (`/login?from=https://evil.com` or `//evil.com`), so anything else falls back to
  * `/` rather than being handed to `window.location`. */
 function safeRedirectTarget(from: string | null): string {
@@ -43,8 +44,8 @@ export function LoginForm() {
 
     try {
       await axios.post("/api/auth/login", { email, password });
-      // Full reload (not next/navigation) so the whole app — client state, the session context,
-      // every store — starts fresh under the new session, matching the logout flow.
+      // Full reload (not next/navigation) so the whole app, client state, the session context,
+      // every store, starts fresh under the new session, matching the logout flow.
       window.location.assign(safeRedirectTarget(searchParams.get("from")));
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.data?.error) {
@@ -72,6 +73,7 @@ export function LoginForm() {
           <div className="flex flex-col gap-1.5">
             <label htmlFor="email" className="text-sm font-medium">
               Email
+              <RequiredMark />
             </label>
             <Input
               id="email"
@@ -86,6 +88,7 @@ export function LoginForm() {
           <div className="flex flex-col gap-1.5">
             <label htmlFor="password" className="text-sm font-medium">
               Password
+              <RequiredMark />
             </label>
             <Input
               id="password"

@@ -18,6 +18,7 @@ import { useUIStore } from "@/store";
 import { useSyncOnOpen } from "@/lib/hooks/useSyncOnOpen";
 import { formatLookupName } from "@/lib/badgeVariants";
 import type { AssetStatus } from "@/types/assetStatus";
+import { RequiredMark } from "@/components/shared/RequiredMark";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -31,7 +32,7 @@ function errorMessage(err: unknown): string {
 export const NOTE_REQUIRED_STATUSES = new Set(["lost", "stolen"]);
 
 /** Status change action (phase-5-asset-lifecycle Step 3). `disposed` is excluded from the
- * dropdown entirely (not just rejected server-side) — docs/asset-lifecycle-flow.md blocks that
+ * dropdown entirely (not just rejected server-side), docs/asset-lifecycle-flow.md blocks that
  * path so `asset_disposals` is never skipped; disabling the option here is a UX nicety on top of
  * the API's own 400, not a substitute for it. Selecting `in_repair` nudges (doesn't force, per
  * the lifecycle doc) logging a maintenance record via a toast, since that's a separate tab. */
@@ -118,7 +119,10 @@ export function StatusDialog({
 
             {noteRequired && (
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium">Note (required)</label>
+                <label className="text-sm font-medium">
+                  Note
+                  <RequiredMark />
+                </label>
                 <textarea
                   required
                   rows={3}

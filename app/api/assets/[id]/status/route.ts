@@ -12,7 +12,7 @@ const NOTE_REQUIRED_STATUSES = new Set(["lost", "stolen"]);
  * blocked here (must go through the dedicated /dispose flow, so an asset_disposals row is never
  * skipped) and lost/stolen requires a note. in_repair's "prompt to also create a maintenance
  * record" is a UI-only nudge (the dialog offers it after a successful call here), not enforced
- * server-side — the lifecycle doc says "don't force it". */
+ * server-side, the lifecycle doc says "don't force it". */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

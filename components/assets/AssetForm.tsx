@@ -17,6 +17,7 @@ import type { Department } from "@/types/department";
 import type { Vendor } from "@/types/vendor";
 import type { AssetCondition } from "@/types/assetCondition";
 import type { AssetStatus } from "@/types/assetStatus";
+import { RequiredMark } from "@/components/shared/RequiredMark";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -27,16 +28,19 @@ function errorMessage(err: unknown): string {
 function Field({
   label,
   htmlFor,
+  required,
   children,
 }: {
   label: string;
   htmlFor: string;
+  required?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={htmlFor} className="text-sm font-medium">
         {label}
+        {required && <RequiredMark />}
       </label>
       {children}
     </div>
@@ -186,7 +190,7 @@ export function AssetForm({
 
   // Per docs/asset-lifecycle-flow.md: default status is in_storage, unless an owner is set at
   // creation time, in which case active. Only auto-applies until the user picks a status
-  // themselves, and only on create — editing an existing asset never silently changes status.
+  // themselves, and only on create, editing an existing asset never silently changes status.
   // Applied at each owner-affecting call site (not a useEffect) so it stays one state update.
   function withDefaultStatus(next: FormState): FormState {
     if (mode !== "create" || next.statusTouched) return next;
@@ -273,7 +277,7 @@ export function AssetForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <Section title="Basic information">
-        <Field label="Asset tag" htmlFor="asset-tag">
+        <Field label="Asset tag" htmlFor="asset-tag" required>
           <Input
             id="asset-tag"
             required
@@ -281,7 +285,7 @@ export function AssetForm({
             onChange={(e) => update("assetTag", e.target.value)}
           />
         </Field>
-        <Field label="Name" htmlFor="asset-name">
+        <Field label="Name" htmlFor="asset-name" required>
           <Input
             id="asset-name"
             required
@@ -289,7 +293,7 @@ export function AssetForm({
             onChange={(e) => update("name", e.target.value)}
           />
         </Field>
-        <Field label="Category" htmlFor="asset-category">
+        <Field label="Category" htmlFor="asset-category" required>
           <TreePicker
             id="asset-category"
             items={categoryItems}
@@ -315,7 +319,7 @@ export function AssetForm({
       </Section>
 
       <Section title="Assignment">
-        <Field label="Location" htmlFor="asset-location">
+        <Field label="Location" htmlFor="asset-location" required>
           <TreePicker
             id="asset-location"
             items={locationItems}
@@ -324,7 +328,7 @@ export function AssetForm({
             placeholder="Select a location"
           />
         </Field>
-        <Field label="Department" htmlFor="asset-department">
+        <Field label="Department" htmlFor="asset-department" required>
           <Select
             id="asset-department"
             required
@@ -348,7 +352,10 @@ export function AssetForm({
         </Field>
 
         <div className="flex flex-col gap-1.5 sm:col-span-2">
-          <span className="text-sm font-medium">Owner</span>
+          <span className="text-sm font-medium">
+            Owner
+            <RequiredMark />
+          </span>
           <div className="flex gap-1.5">
             <Button
               type="button"
@@ -384,7 +391,7 @@ export function AssetForm({
           </div>
         ) : (
           <>
-            <Field label="Owner name" htmlFor="asset-owner-name">
+            <Field label="Owner name" htmlFor="asset-owner-name" required>
               <Input
                 id="asset-owner-name"
                 required={form.ownerMode === "external"}
@@ -405,7 +412,7 @@ export function AssetForm({
       </Section>
 
       <Section title="Condition & status">
-        <Field label="Condition" htmlFor="asset-condition">
+        <Field label="Condition" htmlFor="asset-condition" required>
           <Select
             id="asset-condition"
             required
@@ -427,7 +434,7 @@ export function AssetForm({
             ))}
           </Select>
         </Field>
-        <Field label="Status" htmlFor="asset-status">
+        <Field label="Status" htmlFor="asset-status" required>
           <Select
             id="asset-status"
             required

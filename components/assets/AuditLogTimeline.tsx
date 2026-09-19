@@ -19,7 +19,7 @@ const ACTION_LABELS: Record<string, string> = {
   deleted: "Deleted",
 };
 
-/** Which lookup table (if any) a tracked field's old_value/new_value is an id into — resolved
+/** Which lookup table (if any) a tracked field's old_value/new_value is an id into, resolved
  * against the id->name maps built below so the timeline shows "Warehouse A", not "5". */
 const LOOKUP_BY_FIELD: Record<string, keyof AuditLookups> = {
   location_id: "locations",
@@ -44,7 +44,7 @@ function formatValue(
   value: string | null,
   lookups: AuditLookups,
 ): string {
-  if (value == null) return "—";
+  if (value == null) return "N/A";
   const lookupKey = fieldName ? LOOKUP_BY_FIELD[fieldName] : undefined;
   if (lookupKey) {
     const id = Number(value);
@@ -61,10 +61,10 @@ function describe(entry: AssetAuditLogEntry, lookups: AuditLookups): string {
   const field = entry.fieldName.replace(/_id$/, "").replace(/_/g, " ");
   const oldValue = formatValue(entry.fieldName, entry.oldValue, lookups);
   const newValue = formatValue(entry.fieldName, entry.newValue, lookups);
-  return `${label} — ${field}: ${oldValue} → ${newValue}`;
+  return `${label} (${field}): ${oldValue} → ${newValue}`;
 }
 
-/** Audit Log tab (phase-5-asset-lifecycle Step 6) — the payoff of the unified audit log design
+/** Audit Log tab (phase-5-asset-lifecycle Step 6), the payoff of the unified audit log design
  * (itam-schema-reference point 1): one query (lib/db/auditLog.ts's listAuditLogForAsset), one
  * component, covers every action type recorded by phase-4 and this phase alike. Takes the same
  * lookup lists already fetched for the lifecycle dialogs (see app/(dashboard)/assets/[id]/

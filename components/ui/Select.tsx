@@ -5,9 +5,9 @@ import * as SelectPrimitive from "@radix-ui/react-select";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/** Sentinel Radix item value standing in for a real, selectable `<option value="">` — Radix
- * forbids an empty-string item value outright, so a selectable "None"/"— top level —" option
- * (as opposed to a disabled placeholder option, which never becomes an item at all — see
+/** Sentinel Radix item value standing in for a real, selectable `<option value="">`. Radix
+ * forbids an empty-string item value outright, so a selectable "None"/"top level" option
+ * (as opposed to a disabled placeholder option, which never becomes an item at all; see
  * parseOptions) is rendered with this value and translated back to "" at the value/onChange
  * boundary. */
 const EMPTY_VALUE = "__select-empty__";
@@ -76,14 +76,15 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
     );
     const items = options.filter((o) => o !== placeholderOption);
 
+    /** `""` maps to the empty sentinel when a real empty item exists, otherwise stays `""` (Radix
+     * shows the placeholder), so a controlled Select never hands Radix `undefined` and flips
+     * from uncontrolled to controlled when a form value goes from empty to a real selection. */
     function toRadixValue(
       v: string | number | null | undefined,
     ): string | undefined {
       if (v == null) return undefined;
       const s = String(v);
-      if (s === "") {
-        return items.some((o) => o.rawValue === "") ? EMPTY_VALUE : undefined;
-      }
+      if (s === "" && items.some((o) => o.rawValue === "")) return EMPTY_VALUE;
       return s;
     }
 

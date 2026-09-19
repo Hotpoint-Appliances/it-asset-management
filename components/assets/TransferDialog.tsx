@@ -21,6 +21,7 @@ import { useSyncOnOpen } from "@/lib/hooks/useSyncOnOpen";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import type { Location } from "@/types/location";
 import type { Department } from "@/types/department";
+import { RequiredMark } from "@/components/shared/RequiredMark";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -38,11 +39,11 @@ export interface TransferDialogAsset {
   ownerEmail: string | null;
 }
 
-/** Transfer action (phase-5-asset-lifecycle Step 1) — location/department/owner change in one
+/** Transfer action (phase-5-asset-lifecycle Step 1), location/department/owner change in one
  * submission, from a Dialog per itam-design-system's "quick action" modal guidance. Reused from
  * both the asset detail page and the asset list's row actions (see AssetDetail.tsx and
  * AssetRowActions.tsx), which is why every field it needs comes in via `asset` rather than a
- * full `AssetWithRelations` — the list only has AssetListItem. */
+ * full `AssetWithRelations`, the list only has AssetListItem. */
 export function TransferDialog({
   asset,
   locations,
@@ -188,7 +189,10 @@ export function TransferDialog({
             ) : (
               <>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium">Owner name</label>
+                  <label className="text-sm font-medium">
+                    Owner name
+                    <RequiredMark />
+                  </label>
                   <Input
                     required={ownerMode === "external"}
                     value={ownerName}

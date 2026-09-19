@@ -316,7 +316,7 @@ export function AssetDetail({
           description={
             <>
               This is for correcting a mistaken entry (e.g. a duplicate),{" "}
-              <strong>not</strong> for retiring a real asset — use Dispose for
+              <strong>not</strong> for retiring a real asset. Use Dispose for
               that. This removes <strong>{asset.name}</strong> from every list
               and search immediately; the record is kept for forensic purposes
               but is otherwise unreachable.
@@ -335,40 +335,42 @@ export function AssetDetail({
 function OverviewGrid({ asset }: { asset: AssetWithRelations }) {
   const rows: [string, ReactNode][] = [
     ["Category", asset.categoryName],
-    ["Model number", asset.modelNumber ?? "—"],
-    ["Serial number", asset.serialNumber ?? "—"],
-    ["Vendor", asset.vendorName ?? "—"],
+    ["Model number", asset.modelNumber ?? "N/A"],
+    ["Serial number", asset.serialNumber ?? "N/A"],
+    ["Vendor", asset.vendorName ?? "N/A"],
     [
       "Purchase date",
       asset.purchaseDate
         ? new Date(asset.purchaseDate).toLocaleDateString()
-        : "—",
+        : "N/A",
     ],
     [
       "Purchase cost",
-      asset.purchaseCost != null ? formatCurrency(asset.purchaseCost) : "—",
+      asset.purchaseCost != null ? formatCurrency(asset.purchaseCost) : "N/A",
     ],
     [
       "Warranty expiry",
       asset.warrantyExpiry
         ? new Date(asset.warrantyExpiry).toLocaleDateString()
-        : "—",
+        : "N/A",
     ],
     [
       "Depreciation method",
       asset.depreciationMethod
         ? formatLookupName(asset.depreciationMethod)
-        : "—",
+        : "N/A",
     ],
     [
       "Useful life",
-      asset.usefulLifeMonths != null ? `${asset.usefulLifeMonths} months` : "—",
+      asset.usefulLifeMonths != null
+        ? `${asset.usefulLifeMonths} months`
+        : "N/A",
     ],
     [
       "Salvage value",
-      asset.salvageValue != null ? formatCurrency(asset.salvageValue) : "—",
+      asset.salvageValue != null ? formatCurrency(asset.salvageValue) : "N/A",
     ],
-    ["Owner email", asset.ownerEmail ?? "—"],
+    ["Owner email", asset.ownerEmail ?? "N/A"],
     ["Created by", asset.createdByName],
     ["Created", new Date(asset.createdAt).toLocaleString()],
     ["Last updated", new Date(asset.updatedAt).toLocaleString()],

@@ -25,7 +25,7 @@ export function SessionProvider({
   );
 }
 
-/** Client-side access to the server-verified session — never decodes the JWT itself. */
+/** Client-side access to the server-verified session, never decodes the JWT itself. */
 export function useSession() {
   return useContext(SessionContext);
 }
