@@ -6,13 +6,6 @@ import axios from "axios";
 import { Boxes } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/Card";
 import { RequiredMark } from "@/components/shared/RequiredMark";
 
 /** Only a same-origin relative path is a safe redirect target, `from` is an attacker-controlled
@@ -58,17 +51,17 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-sm shadow-md">
-      <CardHeader className="items-center text-center">
-        <div className="bg-primary/10 text-primary mb-1 flex h-11 w-11 items-center justify-center rounded-xl">
-          <Boxes className="h-5 w-5" />
+    <div className="w-full max-w-sm">
+      <div className="mb-8 flex flex-col items-center gap-2 text-center">
+        <div className="bg-primary/10 text-primary mb-2 flex h-12 w-12 items-center justify-center rounded-xl">
+          <Boxes className="h-6 w-6" />
         </div>
-        <CardTitle>Welcome back</CardTitle>
-        <CardDescription>
+        <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
+        <p className="text-muted-foreground text-sm">
           Sign in to your IT Asset Manager account
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </p>
+      </div>
+      <div>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="email" className="text-sm font-medium">
@@ -109,7 +102,7 @@ export function LoginForm() {
             {submitting ? "Signing in…" : "Sign in"}
           </Button>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
