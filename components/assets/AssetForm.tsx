@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
-import { Upload, X } from "lucide-react";
+import { Image as LucideImage, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -548,7 +548,7 @@ export function AssetForm({
               />
             ) : (
               <div className="border-border bg-muted flex h-16 w-16 items-center justify-center rounded-lg border">
-                <Upload className="text-muted-foreground h-5 w-5" />
+                <LucideImage className="text-muted-foreground h-5 w-5" />
               </div>
             )}
             <div className="flex flex-col gap-1">
