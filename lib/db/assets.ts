@@ -87,7 +87,7 @@ const RELATIONS_SELECT = `
   au.full_name AS assigned_user_name, cb.full_name AS created_by_name
 `;
 
-const RELATIONS_JOIN = `
+export const RELATIONS_JOIN = `
   FROM assets a
   JOIN categories c ON c.id = a.category_id
   JOIN locations l ON l.id = a.location_id
@@ -170,7 +170,7 @@ export interface AssetRequester {
 /** Builds the shared WHERE clause + params for list/count, including the viewer department
  * scoping enforced at the query layer per itam-conventions (consistent with Phase 2's pattern
  * in listUsers). */
-function buildAssetFilterClause(
+export function buildAssetFilterClause(
   filters: AssetFilters,
   requester: AssetRequester,
 ): { where: string; params: unknown[] } {

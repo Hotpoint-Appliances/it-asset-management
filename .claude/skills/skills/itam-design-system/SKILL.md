@@ -29,6 +29,12 @@ decorative borders, or texture beyond what's specified below.
   becomes the trigger's placeholder text (not a selectable item); a non-disabled
   `<option value="">` (e.g. "None") stays a real selectable option internally mapped off Radix's
   empty-string restriction — don't invent a second convention for "clear" options.
+- `DatePicker` (`components/ui/DatePicker.tsx`) replaces every native `<input type="date">`
+  (browser date UIs ignore the theme and differ per OS). Same `value` shape as the native input
+  (ISO `YYYY-MM-DD` string, `""` = none) plus `onChange(value)`, `min`/`max`, `required`,
+  `placeholder`. Hand-rolled because Radix ships no date primitive and no new dependency is
+  allowed; it renders inline under the trigger rather than portaled, because anything portaled
+  outside a Radix `Dialog` is inert and dismisses it. Never add a raw `type="date"` input.
 - `Tooltip` (`components/ui/Tooltip.tsx`, Radix-based) is mounted app-wide via `TooltipProvider`
   in `components/providers.tsx`. Required on any icon-only control whose label is hidden
   (collapsed sidebar nav items, icon buttons without visible text).

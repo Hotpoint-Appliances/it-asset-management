@@ -9,6 +9,8 @@ interface AuditLogRow {
   field_name: string | null;
   old_value: string | null;
   new_value: string | null;
+  old_value_label: string | null;
+  new_value_label: string | null;
   note: string | null;
   performed_by: string;
   performed_by_name: string;
@@ -23,6 +25,8 @@ function mapAuditLogEntry(row: AuditLogRow): AssetAuditLogEntry {
     fieldName: row.field_name,
     oldValue: row.old_value,
     newValue: row.new_value,
+    oldValueLabel: row.old_value_label,
+    newValueLabel: row.new_value_label,
     note: row.note,
     performedBy: row.performed_by,
     performedByName: row.performed_by_name,
@@ -30,7 +34,15 @@ function mapAuditLogEntry(row: AuditLogRow): AssetAuditLogEntry {
   };
 }
 
+/** `assigned_user_id` audit values are user UUIDs; resolved to names here (comparing id::text so a
+ * malformed value can never raise a cast error) since, unlike the small lookup tables, the users
+ * table is too large to ship to the client. Null for every other field. */
+const userLabel = (col: "old_value" | "new_value") =>
+  `CASE WHEN l.field_name = 'assigned_user_id'
+     THEN (SELECT au.full_name FROM users au WHERE au.id::text = l.${col}) END`;
+
 const SELECT_COLUMNS = `l.id, l.asset_id, l.action_type, l.field_name, l.old_value, l.new_value,
+  ${userLabel("old_value")} AS old_value_label, ${userLabel("new_value")} AS new_value_label,
   l.note, l.performed_by, u.full_name AS performed_by_name, l.performed_at`;
 
 /** Chronological (newest first) timeline for the asset detail page's Audit Log tab, the payoff

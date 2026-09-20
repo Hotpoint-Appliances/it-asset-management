@@ -7,6 +7,7 @@ import {
 import type { TransferInput } from "@/lib/db/assets";
 import type {
   MaintenanceInput,
+  MaintenanceStatus,
   MaintenanceUpdateInput,
 } from "@/types/maintenance";
 import type { DisposalInput } from "@/types/disposal";
@@ -116,6 +117,26 @@ export function validateMaintenanceInput(
       notes,
     },
   };
+}
+
+/** Allowed maintenance status moves, mirroring the buttons MaintenanceTab offers (Start / Mark
+ * completed / Cancel); completed and cancelled are terminal. Enforced server-side so a direct API
+ * call can't reopen a finished record (same defense-in-depth as the disposed-asset guards). */
+const MAINTENANCE_TRANSITIONS: Record<
+  MaintenanceStatus,
+  readonly MaintenanceStatus[]
+> = {
+  scheduled: ["in_progress", "cancelled"],
+  in_progress: ["completed", "cancelled"],
+  completed: [],
+  cancelled: [],
+};
+
+export function isValidMaintenanceTransition(
+  from: MaintenanceStatus,
+  to: MaintenanceStatus,
+): boolean {
+  return MAINTENANCE_TRANSITIONS[from].includes(to);
 }
 
 export function validateMaintenanceUpdateInput(

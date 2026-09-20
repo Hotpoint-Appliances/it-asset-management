@@ -157,7 +157,7 @@ CREATE TABLE assets (
   purchase_date DATE,
   purchase_cost NUMERIC(12,2),
   warranty_expiry DATE,
-  depreciation_method VARCHAR(30), -- 'straight_line' | 'declining_balance' | NULL (not depreciated)
+  depreciation_method VARCHAR(30), -- 'straight_line' | NULL (not depreciated); declining_balance is out of scope, enforced in lib/validation/assets.ts (no CHECK)
   useful_life_months INT,
   salvage_value NUMERIC(12,2),
 

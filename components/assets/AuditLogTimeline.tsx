@@ -7,7 +7,7 @@ import type { Department } from "@/types/department";
 import type { AssetCondition } from "@/types/assetCondition";
 import type { AssetStatus } from "@/types/assetStatus";
 
-const ACTION_LABELS: Record<string, string> = {
+export const ACTION_LABELS: Record<string, string> = {
   created: "Created",
   updated: "Updated",
   location_change: "Location changed",
@@ -42,9 +42,11 @@ function toMap(items: { id: number; name: string }[]): Record<number, string> {
 function formatValue(
   fieldName: string | null,
   value: string | null,
+  label: string | null,
   lookups: AuditLookups,
 ): string {
   if (value == null) return "N/A";
+  if (label) return label;
   const lookupKey = fieldName ? LOOKUP_BY_FIELD[fieldName] : undefined;
   if (lookupKey) {
     const id = Number(value);
@@ -59,8 +61,18 @@ function describe(entry: AssetAuditLogEntry, lookups: AuditLookups): string {
     ACTION_LABELS[entry.actionType] ?? formatLookupName(entry.actionType);
   if (!entry.fieldName) return label;
   const field = entry.fieldName.replace(/_id$/, "").replace(/_/g, " ");
-  const oldValue = formatValue(entry.fieldName, entry.oldValue, lookups);
-  const newValue = formatValue(entry.fieldName, entry.newValue, lookups);
+  const oldValue = formatValue(
+    entry.fieldName,
+    entry.oldValue,
+    entry.oldValueLabel,
+    lookups,
+  );
+  const newValue = formatValue(
+    entry.fieldName,
+    entry.newValue,
+    entry.newValueLabel,
+    lookups,
+  );
   return `${label} (${field}): ${oldValue} → ${newValue}`;
 }
 

@@ -1,4 +1,4 @@
-export type DepreciationMethod = "straight_line" | "declining_balance";
+export type DepreciationMethod = "straight_line";
 
 export interface Asset {
   id: string;

@@ -38,11 +38,10 @@ No ORM is introduced. All queries go through a thin `lib/db` query layer using `
 proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts — auth-presence
                                  # redirect only (login gate), added in Phase 2
 /app
-  page.tsx                     # root route — renders AppShell directly (Phase 1 decision, no
-                                # separate homepage; Phase 2 adds the auth gate in front of it).
-                                # Deliberately NOT inside the (dashboard) group below — it did its
-                                # own requireSession()+AppShell before that group existed and was
-                                # left as-is rather than folded in for an unrelated refactor.
+  /(dashboard)/page.tsx         # root route `/` — the fleet dashboard (Phase 6; it lives inside
+                                # the (dashboard) group, the earlier standalone app/page.tsx no
+                                # longer exists)
+  /(dashboard)/reports/page.tsx # reports hub — download cards, role-aware (Phase 6)
   /(auth)/login/page.tsx        # Phase 2
   /(dashboard)/layout.tsx       # requireSession() + <AppShell> — added Phase 3 so pages stop
                                  # each wrapping themselves in AppShell individually
@@ -74,12 +73,21 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts �
   /api/assets/[id]/{transfer,condition,status,dispose}/route.ts   # POST, lifecycle actions (Phase 5)
   /api/assets/[id]/maintenance/route.ts               # GET/POST (Phase 5)
   /api/assets/[id]/maintenance/[maintenanceId]/route.ts       # PATCH (Phase 5)
+  /api/assets/[id]/dispose/attachment/route.ts        # GET, serves the disposal document (Phase 5 fix)
+  /api/reports/{asset-register,audit-trail,disposal-register,depreciation}/route.ts
+                                # GET, exceljs workbook as Content-Disposition: attachment.
+                                # asset-register/audit-trail: every role (viewer dept-scoped in the
+                                # query); disposal-register/depreciation: admin + asset_manager (Phase 6)
 /components
   providers.tsx                # ThemeProvider (next-themes) + TanStack QueryClientProvider
   /ui/                         # shadcn-style primitives: button, input, select, dialog, sheet,
                                 # table, badge, dropdown-menu, card, skeleton, toast, tabs
                                 # (Tabs added Phase 4, used by the asset detail page's four tabs);
-                                # DropdownMenu extended with DropdownMenuCheckboxItem (Phase 4)
+                                # DropdownMenu extended with DropdownMenuCheckboxItem (Phase 4);
+                                # DatePicker — hand-rolled (no Radix date primitive exists, no new
+                                # dependency): ISO "YYYY-MM-DD" string in/out, replaces every native
+                                # <input type="date">; renders inline (NOT portaled — anything
+                                # portaled outside a Radix Dialog is inert/dismisses it) (Phase 5 fix)
   /shared/                     # cross-module components: TreePicker, EmptyState (Phase 3);
                                 # MultiSelectFilter — checkbox dropdown built on
                                 # DropdownMenuCheckboxItem, since no Radix Popover/Combobox is in
@@ -92,6 +100,10 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts �
                                 # TransferDialog/ConditionDialog/StatusDialog/DisposalDialog,
                                 # AuditLogTimeline, MaintenanceTab, AssetRowActions (list row's
                                 # View/Edit/Transfer/Dispose DropdownMenu) (Phase 5)
+  /dashboard/                  # StatTile, BarBreakdown (hand-rolled CSS bars, no chart library),
+                                # WarrantyExpiringCard (client, window toggle), RecentActivityCard,
+                                # InRepairCard (Phase 6)
+  /reports/                    # ReportCard, AuditTrailReportCard (date-range options) (Phase 6)
   /auth/                        # LoginForm etc. (Phase 2)
   /layout/                     # AppShell, Sidebar, Topbar, SettingsNav, ThemeToggle, UserMenu, nav-items
                                 # (Sidebar/Topbar take a className prop so AppShell can pass
@@ -104,7 +116,12 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts �
                                 # itam-design-system's "define once, not per-component" rule
                                 # (Phase 4)
   format.ts                    # formatCurrency() — KES via Intl.NumberFormat (en-KE); every
-                                # money value in the schema is KES, no currency column (Phase 4)
+                                # money value in the schema is KES, no currency column (Phase 4);
+                                # formatRelativeTime() (Phase 6)
+  /reports/                    # workbook builders, one per report (reports.ts), shared exceljs
+                                # helpers (workbook.ts — styled header, KES/date formats, download
+                                # response), the pure straight-line formula (depreciation.ts) and
+                                # query-string parsing (params.ts) (Phase 6)
   /files/upload.ts              # disk upload helpers: assertValidImage/assertValidAttachment,
                                 # saveAssetImage/saveAssetAttachment, deleteUploadedFile,
                                 # resolveUploadedFilePath, mimeTypeForPath (Phase 4);
@@ -134,7 +151,12 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts �
                                 # findStatusBeforeMostRecentInRepair — the latter resolves the
                                 # maintenance module's "restore prior status" prompt purely from
                                 # the unified audit log, no schema change), maintenance.ts,
-                                # disposals.ts (Phase 5)
+                                # disposals.ts (Phase 5). dashboard.ts (widget aggregates),
+                                # reports.ts (full-dataset export queries, lookups resolved in SQL),
+                                # systemSettings.ts (getSetting/getWarrantyWindows) (Phase 6) —
+                                # every one takes the requester and scopes viewers in SQL;
+                                # assets.ts now exports buildAssetFilterClause/RELATIONS_JOIN for
+                                # reports.ts to reuse
   /auth/                       # jose session helpers (session.ts, session-context.tsx), password
                                 # hashing; api.ts's getApiSession()/requireApiRole() is the route-
                                 # handler counterpart (401/403 JSON, not a redirect) (Phase 3)
@@ -147,6 +169,8 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts �
                                 # (Phase 5)
   /email/                      # msal-node + Graph email senders
 /scripts/seed-admin.ts          # first-admin bootstrap, npm run seed:admin (Phase 2)
+/scripts/seed-demo.ts           # re-runnable demo data (14 DEMO-* assets + maintenance/disposal/
+                                # audit rows), npm run seed:demo; only ever deletes DEMO-* tags (Phase 6)
 /store                         # zustand stores (index.ts holds useUIStore: mobileNavOpen + the
                                 # toasts slice backing components/ui/Toast.tsx; add slices, not
                                 # new stores)

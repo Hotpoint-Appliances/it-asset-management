@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { requireSession } from "@/lib/auth/session";
 import { getAssetById } from "@/lib/db/assets";
 import { listAssetAttachments } from "@/lib/db/assetAttachments";
+import { getDisposalByAssetId } from "@/lib/db/disposals";
 import { listAuditLogForAsset } from "@/lib/db/auditLog";
 import { listMaintenanceForAsset } from "@/lib/db/maintenance";
 import { listLocations } from "@/lib/db/locations";
@@ -25,6 +26,7 @@ export default async function AssetDetailPage({
     attachments,
     auditLog,
     maintenance,
+    disposal,
     locations,
     departments,
     vendors,
@@ -34,6 +36,9 @@ export default async function AssetDetailPage({
     listAssetAttachments(id),
     listAuditLogForAsset(id),
     listMaintenanceForAsset(id),
+    asset.statusName === "disposed"
+      ? getDisposalByAssetId(id)
+      : Promise.resolve(null),
     listLocations(),
     listDepartments(500, 0),
     listVendors(500, 0),
@@ -47,6 +52,7 @@ export default async function AssetDetailPage({
       attachments={attachments}
       auditLog={auditLog}
       maintenance={maintenance}
+      disposal={disposal}
       canManage={
         session.roleName === "admin" || session.roleName === "asset_manager"
       }

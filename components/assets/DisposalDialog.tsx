@@ -6,6 +6,7 @@ import axios from "axios";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { DatePicker } from "@/components/ui/DatePicker";
 import {
   Dialog,
   DialogContent,
@@ -112,11 +113,10 @@ export function DisposalDialog({
                   Disposal date
                   <RequiredMark />
                 </label>
-                <Input
-                  type="date"
+                <DatePicker
                   required
                   value={disposalDate}
-                  onChange={(e) => setDisposalDate(e.target.value)}
+                  onChange={setDisposalDate}
                 />
               </div>
               <div className="flex flex-col gap-1.5">

@@ -7,6 +7,7 @@ import { Image as LucideImage, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { TreePicker } from "@/components/shared/TreePicker";
 import { UserTypeahead } from "./UserTypeahead";
 import { useUIStore } from "@/store";
@@ -84,7 +85,7 @@ interface FormState {
   purchaseDate: string;
   purchaseCost: string;
   warrantyExpiry: string;
-  depreciationMethod: "" | "straight_line" | "declining_balance";
+  depreciationMethod: "" | "straight_line";
   usefulLifeMonths: string;
   salvageValue: string;
   notes: string;
@@ -477,11 +478,11 @@ export function AssetForm({
           </Select>
         </Field>
         <Field label="Purchase date" htmlFor="asset-purchase-date">
-          <Input
+          <DatePicker
             id="asset-purchase-date"
-            type="date"
             value={form.purchaseDate}
-            onChange={(e) => update("purchaseDate", e.target.value)}
+            onChange={(v) => update("purchaseDate", v)}
+            placeholder="No date"
           />
         </Field>
         <Field label="Purchase cost (KES)" htmlFor="asset-purchase-cost">
@@ -495,11 +496,11 @@ export function AssetForm({
           />
         </Field>
         <Field label="Warranty expiry" htmlFor="asset-warranty-expiry">
-          <Input
+          <DatePicker
             id="asset-warranty-expiry"
-            type="date"
             value={form.warrantyExpiry}
-            onChange={(e) => update("warrantyExpiry", e.target.value)}
+            onChange={(v) => update("warrantyExpiry", v)}
+            placeholder="No date"
           />
         </Field>
       </Section>
@@ -518,7 +519,6 @@ export function AssetForm({
           >
             <option value="">Not depreciated</option>
             <option value="straight_line">Straight line</option>
-            <option value="declining_balance">Declining balance</option>
           </Select>
         </Field>
         <Field label="Useful life (months)" htmlFor="asset-useful-life">

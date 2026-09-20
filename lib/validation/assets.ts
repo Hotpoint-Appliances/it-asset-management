@@ -9,7 +9,9 @@ import type { AssetInput } from "@/types/asset";
 export type AssetValidationResult =
   { success: true; data: AssetInput } | { success: false; error: string };
 
-const DEPRECIATION_METHODS = new Set(["straight_line", "declining_balance"]);
+// Straight line is the only supported method (phase 6 depreciation report); anything else is
+// rejected rather than stored, so no row can carry a method the app can't compute.
+const DEPRECIATION_METHODS = new Set(["straight_line"]);
 
 export function validateAssetInput(body: unknown): AssetValidationResult {
   if (typeof body !== "object" || body === null) {
@@ -98,7 +100,7 @@ export function validateAssetInput(body: unknown): AssetValidationResult {
   ) {
     return {
       success: false,
-      error: "depreciationMethod must be straight_line or declining_balance",
+      error: "depreciationMethod must be straight_line or empty",
     };
   }
   const usefulLifeMonths = optionalNumber(b.usefulLifeMonths);
