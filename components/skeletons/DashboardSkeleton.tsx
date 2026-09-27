@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils";
 import { PageHeaderSkeleton } from "./PageHeaderSkeleton";
 
-/** Mirrors app/(dashboard)/page.tsx widget for widget: stat tiles, bar breakdowns, the two list
+/** Mirrors app/(dashboard)/(overview)/page.tsx widget for widget: stat tiles, bar breakdowns, the two list
  * cards and recent activity. */
 export function DashboardSkeleton() {
   return (

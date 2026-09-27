@@ -38,9 +38,10 @@ No ORM is introduced. All queries go through a thin `lib/db` query layer using `
 proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts — auth-presence
                                  # redirect only (login gate), added in Phase 2
 /app
-  /(dashboard)/page.tsx         # root route `/` — the fleet dashboard (Phase 6; it lives inside
-                                # the (dashboard) group, the earlier standalone app/page.tsx no
-                                # longer exists)
+  /(dashboard)/(overview)/page.tsx     # root route `/` — the fleet dashboard (Phase 6). The
+  /(dashboard)/(overview)/loading.tsx  # (overview) group scopes the dashboard skeleton to `/`
+                                # only; at the (dashboard) root it would be the first loading
+                                # boundary for every sibling route and flash on /reports, /settings
   /(dashboard)/reports/page.tsx # reports hub — download cards, role-aware (Phase 6)
   /(auth)/login/page.tsx        # Phase 2
   /(dashboard)/layout.tsx       # requireSession() + <AppShell> — added Phase 3 so pages stop

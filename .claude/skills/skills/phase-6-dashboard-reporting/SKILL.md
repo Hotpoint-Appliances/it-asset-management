@@ -57,7 +57,7 @@ section. The same pass introduced the shared `DatePicker` used by the reports pa
 
 ## Decisions made (confirmed with the user before building)
 
-- **Dashboard lives at `/`** (`app/(dashboard)/page.tsx`), not `/dashboard`: the sidebar's
+- **Dashboard lives at `/`** (`app/(dashboard)/(overview)/page.tsx`), not `/dashboard`: the sidebar's
   Dashboard item already points at `/`, so no nav change and no redirect. (The original Produces
   line said `/dashboard`; superseded.)
 - **No charting dependency**: bars are hand-rolled CSS (`BarBreakdown`), stat tiles and lists
@@ -78,7 +78,7 @@ section. The same pass introduced the shared `DatePicker` used by the reports pa
 
 ## Confirmed as built
 
-- **Dashboard** (`app/(dashboard)/page.tsx`, `components/dashboard/*`, `lib/db/dashboard.ts`):
+- **Dashboard** (`app/(dashboard)/(overview)/page.tsx`, `components/dashboard/*`, `lib/db/dashboard.ts`):
   stat tiles (total / in service / in repair / warranty ending within the first window), status,
   category and department bar breakdowns, warranty-expiring list with a 30/60/90 toggle, assets
   in repair (`asset_maintenance.status = 'in_progress'`), and the latest audit activity. Every
@@ -133,7 +133,7 @@ section. The same pass introduced the shared `DatePicker` used by the reports pa
 
 ## Produces (for later phases to reference)
 
-- `app/(dashboard)/page.tsx` (dashboard), `app/(dashboard)/reports/page.tsx`
+- `app/(dashboard)/(overview)/page.tsx` (dashboard), `app/(dashboard)/reports/page.tsx`
 - `app/api/reports/{asset-register,audit-trail,disposal-register,depreciation}/route.ts`
 - `lib/reports/{reports,workbook,depreciation,params}.ts` (one builder per report, shared exceljs
   helpers, pure straight-line formula, query-string parsing)
