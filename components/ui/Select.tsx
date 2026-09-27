@@ -47,6 +47,7 @@ export interface SelectProps extends Omit<
   defaultValue?: string | number | null;
   onChange?: (e: { target: { value: string } }) => void;
   placeholder?: string;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /** Drop-in replacement for a native `<select>`: same `value`/`onChange`/`<option>` children API
@@ -67,6 +68,8 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
       id,
       name,
       placeholder,
+      onOpenChange,
+      "aria-label": ariaLabel,
     },
     ref,
   ) => {
@@ -99,6 +102,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
         onValueChange={(v) =>
           onChange?.({ target: { value: fromRadixValue(v) } })
         }
+        onOpenChange={onOpenChange}
         disabled={disabled}
         required={required}
         name={name}
@@ -106,6 +110,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
         <SelectPrimitive.Trigger
           ref={ref}
           id={id}
+          aria-label={ariaLabel}
           className={cn(
             "border-border bg-background text-foreground flex h-10 w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm shadow-xs transition-colors",
             "data-[placeholder]:text-muted-foreground",
