@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Select } from "@/components/ui/Select";
 import { cn } from "@/lib/utils";
 
 const MONTHS = [
@@ -19,8 +20,10 @@ const MONTHS = [
   "December",
 ];
 const WEEKDAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
-
-type View = "days" | "months" | "years";
+/** Year dropdown spans OLDEST_YEAR to this year + FUTURE_YEARS (narrowed by min/max): far enough
+ * back for old purchase dates, far enough ahead for warranty expiry dates. */
+const OLDEST_YEAR = 1970;
+const FUTURE_YEARS = 15;
 
 interface YMD {
   year: number;
@@ -68,6 +71,10 @@ function addMonths(ymd: YMD, months: number): YMD {
   };
 }
 
+function daysIn(year: number, month: number): number {
+  return new Date(year, month + 1, 0).getDate();
+}
+
 function formatDisplay(ymd: YMD): string {
   return `${ymd.day} ${MONTHS[ymd.month].slice(0, 3)} ${ymd.year}`;
 }
@@ -90,15 +97,16 @@ export interface DatePickerProps {
  * differently per browser/OS and ignores the app's theme. Value in/out is an ISO "YYYY-MM-DD"
  * string, the same shape `<input type="date">` produced, so call sites swap in with no state or
  * API changes. Radix has no date-picker primitive, so this is hand-rolled (no new dependency)
- * with days / months / years views, min/max limits, and full keyboard support (arrows, PageUp/
+ * with month / year dropdowns, min/max limits, and full keyboard support (arrows, PageUp/
  * PageDown, Home/End, Enter, Escape).
  *
  * The calendar renders inline, absolutely positioned under the trigger (flipping above when
  * there's no room), *not* portaled to `document.body`: inside a Radix Dialog anything portaled
  * outside the dialog content is treated as "outside" (pointer events blocked, click dismisses
  * the dialog). Escape is intercepted on `window` in the capture phase so closing the calendar
- * doesn't also close a parent dialog. A visually hidden `<input>` mirrors the value so native
- * `required` form validation still works. */
+ * doesn't also close a parent dialog. The month/year dropdowns *are* portaled Radix Selects, so
+ * while one is open the calendar leaves outside-clicks and Escape to it (see menuOpenRef). A
+ * visually hidden `<input>` mirrors the value so native `required` form validation still works. */
 export function DatePicker({
   value,
   onChange,
@@ -115,7 +123,6 @@ export function DatePicker({
   const minYmd = parse(min);
   const maxYmd = parse(max);
   const [open, setOpen] = React.useState(false);
-  const [view, setView] = React.useState<View>("days");
   const [cursor, setCursor] = React.useState<YMD>(
     () => selected ?? fromDate(new Date()),
   );
@@ -125,6 +132,12 @@ export function DatePicker({
   const popoverRef = React.useRef<HTMLDivElement>(null);
   const gridRef = React.useRef<HTMLDivElement>(null);
   const popoverId = React.useId();
+  /** A month/year dropdown is open: its content is portaled outside rootRef, so the calendar's
+   * own outside-click and Escape handling must stand down until it closes. */
+  const menuOpenRef = React.useRef(false);
+  /** Move focus to the active day on the next cursor change: set on open and on grid keyboard
+   * navigation, not for arrow-button or dropdown changes, which keep focus where it is. */
+  const focusGridRef = React.useRef(false);
 
   const today = fromDate(new Date());
 
@@ -138,7 +151,8 @@ export function DatePicker({
   function openPicker() {
     if (disabled) return;
     setCursor(selected ?? fromDate(new Date()));
-    setView("days");
+    focusGridRef.current = true;
+    menuOpenRef.current = false;
     setOpen(true);
   }
 
@@ -157,6 +171,7 @@ export function DatePicker({
   React.useEffect(() => {
     if (!open) return;
     function onPointerDown(e: PointerEvent) {
+      if (menuOpenRef.current) return;
       if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
     }
     document.addEventListener("pointerdown", onPointerDown);
@@ -168,7 +183,7 @@ export function DatePicker({
   React.useEffect(() => {
     if (!open) return;
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key !== "Escape") return;
+      if (e.key !== "Escape" || menuOpenRef.current) return;
       e.stopPropagation();
       closePicker();
     }
@@ -183,76 +198,63 @@ export function DatePicker({
     const height = popoverRef.current.offsetHeight;
     const spaceBelow = window.innerHeight - rootRect.bottom;
     setOpenUp(spaceBelow < height + 8 && rootRect.top > height + 8);
-  }, [open, view]);
+  }, [open]);
 
-  // Focus the active day (or the selected month/year) when the popover opens or the cursor moves.
+  // Focus the active day when the popover opens or keyboard navigation moves the cursor.
   React.useEffect(() => {
-    if (!open) return;
+    if (!open || !focusGridRef.current) return;
+    focusGridRef.current = false;
     gridRef.current
       ?.querySelector<HTMLButtonElement>('[data-active="true"]')
       ?.focus({ preventScroll: true });
-  }, [open, view, cursor]);
+  }, [open, cursor]);
 
   function onGridKeyDown(e: React.KeyboardEvent) {
     let next: YMD | null = null;
-    if (view === "days") {
-      switch (e.key) {
-        case "ArrowLeft":
-          next = addDays(cursor, -1);
-          break;
-        case "ArrowRight":
-          next = addDays(cursor, 1);
-          break;
-        case "ArrowUp":
-          next = addDays(cursor, -7);
-          break;
-        case "ArrowDown":
-          next = addDays(cursor, 7);
-          break;
-        case "PageUp":
-          next = addMonths(cursor, e.shiftKey ? -12 : -1);
-          break;
-        case "PageDown":
-          next = addMonths(cursor, e.shiftKey ? 12 : 1);
-          break;
-        case "Home":
-          next = addDays(
-            cursor,
-            -(
-              (new Date(cursor.year, cursor.month, cursor.day).getDay() + 6) %
-              7
-            ),
-          );
-          break;
-        case "End":
-          next = addDays(
-            cursor,
-            6 -
-              ((new Date(cursor.year, cursor.month, cursor.day).getDay() + 6) %
-                7),
-          );
-          break;
-      }
-    } else if (view === "months") {
-      const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -3, ArrowDown: 3 }[
-        e.key as "ArrowLeft"
-      ];
-      if (step) next = addMonths(cursor, step);
-    } else {
-      const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -3, ArrowDown: 3 }[
-        e.key as "ArrowLeft"
-      ];
-      if (step) next = addMonths(cursor, step * 12);
+    switch (e.key) {
+      case "ArrowLeft":
+        next = addDays(cursor, -1);
+        break;
+      case "ArrowRight":
+        next = addDays(cursor, 1);
+        break;
+      case "ArrowUp":
+        next = addDays(cursor, -7);
+        break;
+      case "ArrowDown":
+        next = addDays(cursor, 7);
+        break;
+      case "PageUp":
+        next = addMonths(cursor, e.shiftKey ? -12 : -1);
+        break;
+      case "PageDown":
+        next = addMonths(cursor, e.shiftKey ? 12 : 1);
+        break;
+      case "Home":
+        next = addDays(
+          cursor,
+          -((new Date(cursor.year, cursor.month, cursor.day).getDay() + 6) % 7),
+        );
+        break;
+      case "End":
+        next = addDays(
+          cursor,
+          6 -
+            ((new Date(cursor.year, cursor.month, cursor.day).getDay() + 6) %
+              7),
+        );
+        break;
     }
     if (next) {
       e.preventDefault();
+      focusGridRef.current = true;
       setCursor(next);
     }
   }
 
   const firstOfMonth = new Date(cursor.year, cursor.month, 1);
   const leading = (firstOfMonth.getDay() + 6) % 7; // Monday-first
-  const daysInMonth = new Date(cursor.year, cursor.month + 1, 0).getDate();
+  const daysInMonth = daysIn(cursor.year, cursor.month);
   const cells: (YMD | null)[] = [
     ...Array<null>(leading).fill(null),
     ...Array.from({ length: daysInMonth }, (_, i) => ({
@@ -261,20 +263,42 @@ export function DatePicker({
       day: i + 1,
     })),
   ];
-  const yearBlockStart = cursor.year - (cursor.year % 12);
 
-  function shift(direction: 1 | -1) {
-    if (view === "days") setCursor(addMonths(cursor, direction));
-    else if (view === "months") setCursor(addMonths(cursor, direction * 12));
-    else setCursor(addMonths(cursor, direction * 144));
+  // Always include the cursor's year so an out-of-range value still shows in the dropdown.
+  const fromYear = Math.min(
+    Math.max(OLDEST_YEAR, minYmd?.year ?? OLDEST_YEAR),
+    cursor.year,
+  );
+  const toYear = Math.max(
+    Math.min(today.year + FUTURE_YEARS, maxYmd?.year ?? Infinity),
+    cursor.year,
+    fromYear,
+  );
+  const years = Array.from(
+    { length: toYear - fromYear + 1 },
+    (_, i) => fromYear + i,
+  );
+
+  /** A month is disabled when none of its days fall inside min/max. */
+  function isDisabledMonth(year: number, month: number) {
+    const first = toIso({ year, month, day: 1 });
+    const last = toIso({ year, month, day: daysIn(year, month) });
+    return (
+      (!!minYmd && last < toIso(minYmd)) || (!!maxYmd && first > toIso(maxYmd))
+    );
   }
 
-  const title =
-    view === "days"
-      ? `${MONTHS[cursor.month]} ${cursor.year}`
-      : view === "months"
-        ? String(cursor.year)
-        : `${yearBlockStart} – ${yearBlockStart + 11}`;
+  function jumpTo(year: number, month: number) {
+    setCursor({
+      year,
+      month,
+      day: Math.min(cursor.day, daysIn(year, month)),
+    });
+  }
+
+  function onMenuOpenChange(menuOpen: boolean) {
+    menuOpenRef.current = menuOpen;
+  }
 
   return (
     <div ref={rootRef} className={cn("relative", className)}>
@@ -329,165 +353,102 @@ export function DatePicker({
           role="dialog"
           aria-label="Choose date"
           className={cn(
-            "border-border bg-card text-card-foreground absolute right-0 z-50 w-72 max-w-[calc(100vw-2rem)] rounded-xl border p-3 shadow-lg",
+            "border-border bg-card text-card-foreground absolute right-0 z-50 w-76 max-w-[calc(100vw-2rem)] rounded-xl border p-3 shadow-lg",
             openUp ? "bottom-full mb-1.5" : "top-full mt-1.5",
           )}
         >
-          <div className="mb-2 flex items-center justify-between gap-1">
+          <div className="mb-2 flex items-center gap-1">
             <button
               type="button"
-              aria-label={view === "days" ? "Previous month" : "Previous"}
-              onClick={() => shift(-1)}
-              className="hover:bg-muted focus-visible:ring-ring flex h-8 w-8 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
+              aria-label="Previous month"
+              onClick={() => setCursor(addMonths(cursor, -1))}
+              className="hover:bg-muted focus-visible:ring-ring flex h-8 w-8 shrink-0 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <button
-              type="button"
-              onClick={() =>
-                setView(
-                  view === "days"
-                    ? "months"
-                    : view === "months"
-                      ? "years"
-                      : "days",
-                )
-              }
-              className="hover:bg-muted focus-visible:ring-ring rounded-md px-2 py-1 text-sm font-medium focus-visible:ring-2 focus-visible:outline-none"
+            <Select
+              aria-label="Month"
+              value={cursor.month}
+              onChange={(e) => jumpTo(cursor.year, Number(e.target.value))}
+              onOpenChange={onMenuOpenChange}
+              className="h-8 min-w-0 flex-1 gap-1 pr-1.5 pl-2.5 font-medium shadow-none"
             >
-              {title}
-            </button>
+              {MONTHS.map((name, m) => (
+                <option
+                  key={name}
+                  value={m}
+                  disabled={isDisabledMonth(cursor.year, m)}
+                >
+                  {name}
+                </option>
+              ))}
+            </Select>
+            <Select
+              aria-label="Year"
+              value={cursor.year}
+              onChange={(e) => jumpTo(Number(e.target.value), cursor.month)}
+              onOpenChange={onMenuOpenChange}
+              className="h-8 w-[4.75rem] shrink-0 gap-1 pr-1.5 pl-2.5 font-medium shadow-none"
+            >
+              {years.map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+            </Select>
             <button
               type="button"
-              aria-label={view === "days" ? "Next month" : "Next"}
-              onClick={() => shift(1)}
-              className="hover:bg-muted focus-visible:ring-ring flex h-8 w-8 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
+              aria-label="Next month"
+              onClick={() => setCursor(addMonths(cursor, 1))}
+              className="hover:bg-muted focus-visible:ring-ring flex h-8 w-8 shrink-0 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
 
           <div ref={gridRef} onKeyDown={onGridKeyDown}>
-            {view === "days" && (
-              <>
-                <div className="text-muted-foreground mb-1 grid grid-cols-7 text-center text-xs">
-                  {WEEKDAYS.map((d) => (
-                    <span key={d} className="py-1">
-                      {d}
-                    </span>
-                  ))}
-                </div>
-                <div role="grid" className="grid grid-cols-7 gap-y-0.5">
-                  {cells.map((cell, i) => {
-                    if (!cell) return <span key={`blank-${i}`} />;
-                    const iso = toIso(cell);
-                    const isSelected = !!selected && iso === toIso(selected);
-                    const isToday = iso === toIso(today);
-                    const isActive = cell.day === cursor.day;
-                    const dayDisabled = isDisabledDay(cell);
-                    return (
-                      <button
-                        key={iso}
-                        type="button"
-                        role="gridcell"
-                        data-active={isActive}
-                        tabIndex={isActive ? 0 : -1}
-                        aria-selected={isSelected}
-                        aria-current={isToday ? "date" : undefined}
-                        disabled={dayDisabled}
-                        onClick={() => selectDay(cell)}
-                        className={cn(
-                          "focus-visible:ring-ring mx-auto flex h-9 w-9 items-center justify-center rounded-md text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none",
-                          "disabled:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-40",
-                          isSelected
-                            ? "bg-primary text-primary-foreground"
-                            : "hover:bg-muted",
-                          isToday &&
-                            !isSelected &&
-                            "border-border border font-semibold",
-                        )}
-                      >
-                        {cell.day}
-                      </button>
-                    );
-                  })}
-                </div>
-              </>
-            )}
-
-            {view === "months" && (
-              <div className="grid grid-cols-3 gap-1">
-                {MONTHS.map((name, m) => {
-                  const isActive = m === cursor.month;
-                  return (
-                    <button
-                      key={name}
-                      type="button"
-                      data-active={isActive}
-                      tabIndex={isActive ? 0 : -1}
-                      onClick={() => {
-                        setCursor({
-                          ...cursor,
-                          month: m,
-                          day: Math.min(
-                            cursor.day,
-                            new Date(cursor.year, m + 1, 0).getDate(),
-                          ),
-                        });
-                        setView("days");
-                      }}
-                      className={cn(
-                        "focus-visible:ring-ring h-10 rounded-md text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none",
-                        selected &&
-                          selected.year === cursor.year &&
-                          selected.month === m
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted",
-                      )}
-                    >
-                      {name.slice(0, 3)}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            {view === "years" && (
-              <div className="grid grid-cols-3 gap-1">
-                {Array.from({ length: 12 }, (_, i) => yearBlockStart + i).map(
-                  (y) => {
-                    const isActive = y === cursor.year;
-                    return (
-                      <button
-                        key={y}
-                        type="button"
-                        data-active={isActive}
-                        tabIndex={isActive ? 0 : -1}
-                        onClick={() => {
-                          setCursor({
-                            ...cursor,
-                            year: y,
-                            day: Math.min(
-                              cursor.day,
-                              new Date(y, cursor.month + 1, 0).getDate(),
-                            ),
-                          });
-                          setView("months");
-                        }}
-                        className={cn(
-                          "focus-visible:ring-ring h-10 rounded-md text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none",
-                          selected && selected.year === y
-                            ? "bg-primary text-primary-foreground"
-                            : "hover:bg-muted",
-                        )}
-                      >
-                        {y}
-                      </button>
-                    );
-                  },
-                )}
-              </div>
-            )}
+            <div className="text-muted-foreground mb-1 grid grid-cols-7 text-center text-xs">
+              {WEEKDAYS.map((d) => (
+                <span key={d} className="py-1">
+                  {d}
+                </span>
+              ))}
+            </div>
+            <div role="grid" className="grid grid-cols-7 gap-y-0.5">
+              {cells.map((cell, i) => {
+                if (!cell) return <span key={`blank-${i}`} />;
+                const iso = toIso(cell);
+                const isSelected = !!selected && iso === toIso(selected);
+                const isToday = iso === toIso(today);
+                const isActive = cell.day === cursor.day;
+                const dayDisabled = isDisabledDay(cell);
+                return (
+                  <button
+                    key={iso}
+                    type="button"
+                    role="gridcell"
+                    data-active={isActive}
+                    tabIndex={isActive ? 0 : -1}
+                    aria-selected={isSelected}
+                    aria-current={isToday ? "date" : undefined}
+                    disabled={dayDisabled}
+                    onClick={() => selectDay(cell)}
+                    className={cn(
+                      "focus-visible:ring-ring mx-auto flex h-9 w-9 items-center justify-center rounded-md text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none",
+                      "disabled:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-40",
+                      isSelected
+                        ? "bg-primary text-primary-foreground"
+                        : "hover:bg-muted",
+                      isToday &&
+                        !isSelected &&
+                        "border-border border font-semibold",
+                    )}
+                  >
+                    {cell.day}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="mt-2 flex justify-between border-t pt-2">
