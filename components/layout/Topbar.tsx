@@ -2,13 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import {
-  Menu,
-  Bell,
-  ChevronLeft,
-  PanelLeftClose,
-  PanelLeftOpen,
-} from "lucide-react";
+import { Menu, Bell, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import {
   Sheet,
@@ -23,6 +17,10 @@ import { QuickActions } from "./QuickActions";
 import { useUIStore } from "@/store";
 import { cn } from "@/lib/utils";
 import { AppLogo } from "@/components/shared/AppLogo";
+import {
+  SidebarCollapsedIcon,
+  SidebarExpandedIcon,
+} from "@/components/shared/SidebarIcons";
 
 /** Mirrors `--breakpoint-nav` in globals.css, where the persistent sidebar takes over from the
  * drawer. */
@@ -87,11 +85,7 @@ export function Topbar({
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         onClick={() => setSidebarCollapsed(!collapsed)}
       >
-        {collapsed ? (
-          <PanelLeftOpen className="h-5 w-5" />
-        ) : (
-          <PanelLeftClose className="h-5 w-5" />
-        )}
+        {collapsed ? <SidebarCollapsedIcon /> : <SidebarExpandedIcon />}
       </Button>
 
       <div className="flex flex-1 justify-center">
