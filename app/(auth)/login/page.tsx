@@ -1,6 +1,7 @@
 import { Suspense } from "react";
-import { Boxes, ClipboardCheck, ShieldCheck, Laptop } from "lucide-react";
+import { ClipboardCheck, ShieldCheck, Laptop } from "lucide-react";
 import { LoginForm } from "@/components/auth/LoginForm";
+import { AppLogo } from "@/components/shared/AppLogo";
 import { Footer } from "@/components/layout/Footer";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -40,9 +41,7 @@ export default function LoginPage() {
       <div className="flex min-h-full flex-col">
         <div className="flex items-center justify-between gap-2 p-4 sm:p-6">
           <div className="flex items-center gap-2">
-            <div className="bg-primary text-primary-foreground flex h-7 w-7 shrink-0 items-center justify-center rounded-lg">
-              <Boxes className="h-4 w-4" />
-            </div>
+            <AppLogo />
             <span className="text-sm font-semibold">IT Asset Manager</span>
           </div>
           <ThemeToggle />

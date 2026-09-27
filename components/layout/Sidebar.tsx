@@ -1,9 +1,9 @@
 "use client";
 
-import { Boxes } from "lucide-react";
 import { SidebarNav } from "./SidebarNav";
 import { useUIStore } from "@/store";
 import { cn } from "@/lib/utils";
+import { AppLogo } from "@/components/shared/AppLogo";
 
 export function Sidebar({
   className,
@@ -30,9 +30,7 @@ export function Sidebar({
           collapsed ? "justify-center px-2" : "px-4",
         )}
       >
-        <div className="bg-primary text-primary-foreground flex h-7 w-7 shrink-0 items-center justify-center rounded-lg">
-          <Boxes className="h-4 w-4" />
-        </div>
+        <AppLogo />
         {!collapsed && (
           <span className="truncate text-sm font-semibold">
             IT Asset Manager

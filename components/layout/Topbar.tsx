@@ -4,7 +4,6 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
   Menu,
-  Boxes,
   Bell,
   ChevronLeft,
   PanelLeftClose,
@@ -23,6 +22,7 @@ import { UserMenu } from "./UserMenu";
 import { QuickActions } from "./QuickActions";
 import { useUIStore } from "@/store";
 import { cn } from "@/lib/utils";
+import { AppLogo } from "@/components/shared/AppLogo";
 
 /** Mirrors `--breakpoint-nav` in globals.css, where the persistent sidebar takes over from the
  * drawer. */
@@ -73,7 +73,7 @@ export function Topbar({
         </SheetTrigger>
         <SheetContent side="left">
           <SheetTitle className="flex items-center gap-2">
-            <Boxes className="h-5 w-5" />
+            <AppLogo />
             IT Asset Manager
           </SheetTitle>
           <SidebarNav onNavigate={() => setMobileNavOpen(false)} />

@@ -3,9 +3,9 @@
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
-import { Boxes } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { AppLogo } from "@/components/shared/AppLogo";
 import { RequiredMark } from "@/components/shared/RequiredMark";
 
 /** Only a same-origin relative path is a safe redirect target, `from` is an attacker-controlled
@@ -53,9 +53,7 @@ export function LoginForm() {
   return (
     <div className="w-full max-w-sm">
       <div className="mb-8 flex flex-col items-center gap-2 text-center">
-        <div className="bg-primary/10 text-primary mb-2 flex h-12 w-12 items-center justify-center rounded-xl">
-          <Boxes className="h-6 w-6" />
-        </div>
+        <AppLogo className="mb-2 h-12 w-12" />
         <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
         <p className="text-muted-foreground text-sm">
           Sign in to your IT Asset Manager account
