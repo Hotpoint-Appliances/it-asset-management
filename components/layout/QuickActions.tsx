@@ -6,15 +6,16 @@ import { useTheme } from "next-themes";
 import {
   ArrowRight,
   Boxes,
+  FileBarChart,
   LayoutDashboard,
   Moon,
   Plus,
   Search,
-  Settings,
   type LucideIcon,
 } from "lucide-react";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import { useSession } from "@/lib/auth/session-context";
+import { settingsSections } from "@/components/layout/settings-sections";
 import type { RoleName } from "@/lib/auth/session";
 import { cn } from "@/lib/utils";
 
@@ -29,16 +30,6 @@ interface QuickAction {
   roles?: RoleName[];
   keywords?: string;
 }
-
-const SETTINGS_LINKS = [
-  ["Categories", "/settings/categories"],
-  ["Locations", "/settings/locations"],
-  ["Departments", "/settings/departments"],
-  ["Vendors", "/settings/vendors"],
-  ["Conditions", "/settings/conditions"],
-  ["Statuses", "/settings/statuses"],
-  ["Users", "/settings/users"],
-] as const;
 
 /** Keys that should keep typing a literal `/` instead of toggling the quick actions. */
 function isTypingTarget(target: EventTarget | null) {
@@ -112,14 +103,24 @@ export function QuickActions({ className }: { className?: string }) {
         href: "/",
         keywords: "home overview",
       },
-      ...SETTINGS_LINKS.map(([label, href]): QuickAction => ({
-        id: href,
-        label: `Settings: ${label}`,
-        icon: Settings,
-        href,
-        roles: ["admin"],
-        keywords: label,
-      })),
+      {
+        id: "reports",
+        label: "Reports",
+        icon: FileBarChart,
+        href: "/reports",
+        keywords:
+          "export excel xlsx download register audit trail disposal depreciation",
+      },
+      ...settingsSections.map(
+        ({ label, href, description, icon }): QuickAction => ({
+          id: href,
+          label: `Settings: ${label}`,
+          icon,
+          href,
+          roles: ["admin"],
+          keywords: description,
+        }),
+      ),
       {
         id: "theme",
         label: "Toggle theme",
