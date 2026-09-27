@@ -18,10 +18,10 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "hidden md:flex md:h-full md:shrink-0 md:flex-col",
-        "md:border-border md:bg-sidebar md:text-sidebar-foreground md:border-r",
+        "nav:flex nav:h-full nav:shrink-0 nav:flex-col hidden",
+        "nav:border-border nav:bg-sidebar nav:text-sidebar-foreground nav:border-r",
         "transition-[width] duration-200 ease-in-out",
-        collapsed ? "md:w-19" : "md:w-64",
+        collapsed ? "nav:w-19" : "nav:w-64",
         className,
       )}
     >

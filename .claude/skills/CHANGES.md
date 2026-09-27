@@ -1,13 +1,14 @@
 <!-- This file is for documenting proposed changes to various logic and UI in the project -->
 
-# Loading skeletons UI Revamp
+# Custom 1000px breakpoint for the desktop sidebar
 
-- Explore the various loading skeletons used in the project.
-- Some do not quite match the content they hold placeholders for in terms of layout, colour and structure, e.g the loading skeleton used in the dashboard route.
-- The goal is to revamp all the various loading skeletons to match the content they hold placeholders for as close as possible in terms of structure, color tokens used, and layout.
-- Seek clarifications you might have regarding these proposed changes.
-- You critiques and recommendations are strongly encouraged.
+- Let the desktop sidebar show upto a custom `1000px` breakpoint after which the mobile menu drawer will be triggered at that point. Seek further clarifications on this if need be.
 
-# Add the reports route to QuickActions
+# Clicking on an asset row automatically goes to that particular asset page
 
-- Currently the reports route is not included in the quick actions links and buttons.
+- Let clicking an asset row go to the asset page.
+- You can seek clarifications on this also if need be.
+
+# Critiques and recommendations
+
+- Your critiques and recommendations are strongly encouraged.

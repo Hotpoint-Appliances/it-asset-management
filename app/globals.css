@@ -92,6 +92,15 @@
   --toast-destructive: #dc2626;
 }
 
+/* App-shell breakpoint: the persistent sidebar shows from 1200px up, below
+   that the topbar hamburger opens the Sheet drawer instead. Sits between
+   `md` (768px) and `lg` (1024px) so the 16rem sidebar still leaves room for
+   the content column at small-laptop / landscape-tablet widths. Used as the
+   `nav:` variant; keep `NAV_BREAKPOINT_QUERY` in Topbar.tsx in sync. */
+@theme {
+  --breakpoint-nav: 1200px;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

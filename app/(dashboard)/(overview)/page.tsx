@@ -68,7 +68,7 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile
           label="Total assets"
           value={overview.total}
@@ -87,7 +87,7 @@ export default async function DashboardPage() {
           tone={inRepair > 0 ? "warning" : "default"}
         />
         <StatTile
-          label={`Warranty ends ≤ ${windows[0]}d`}
+          label={`Warranty ≤ ${windows[0]}d`}
           value={expiringSoon}
           icon={ShieldAlert}
           tone={expiringSoon > 0 ? "warning" : "default"}

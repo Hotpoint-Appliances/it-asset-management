@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
   Menu,
@@ -23,6 +24,10 @@ import { QuickActions } from "./QuickActions";
 import { useUIStore } from "@/store";
 import { cn } from "@/lib/utils";
 
+/** Mirrors `--breakpoint-nav` in globals.css, where the persistent sidebar takes over from the
+ * drawer. */
+const NAV_BREAKPOINT_QUERY = "(min-width: 62.5rem)";
+
 export function Topbar({
   className,
   defaultCollapsed = false,
@@ -37,6 +42,17 @@ export function Topbar({
   const setSidebarCollapsed = useUIStore((s) => s.setSidebarCollapsed);
   const collapsed = stored ?? defaultCollapsed;
 
+  // Widening past the breakpoint hides the hamburger but not an already-open drawer (it's a
+  // portal, outside the `nav:hidden` trigger), so close it rather than leave it over the sidebar.
+  React.useEffect(() => {
+    const mql = window.matchMedia(NAV_BREAKPOINT_QUERY);
+    const onChange = (e: MediaQueryListEvent) => {
+      if (e.matches) setMobileNavOpen(false);
+    };
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, [setMobileNavOpen]);
+
   return (
     <header
       className={cn(
@@ -49,7 +65,7 @@ export function Topbar({
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="nav:hidden"
             aria-label="Open navigation"
           >
             <Menu className="h-6 w-6" />
@@ -67,7 +83,7 @@ export function Topbar({
       <Button
         variant="ghost"
         size="icon"
-        className="hidden md:inline-flex"
+        className="nav:inline-flex hidden"
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         onClick={() => setSidebarCollapsed(!collapsed)}
       >

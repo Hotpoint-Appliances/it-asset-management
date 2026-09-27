@@ -263,11 +263,23 @@ export function AssetsList({
             </TableHeader>
             <TableBody>
               {assets.map((asset) => (
-                <TableRow key={asset.id}>
+                // The whole row links to the asset via a stretched `::after` on the name link
+                // (a real anchor, so ctrl/middle-click, prefetch and keyboard focus all work),
+                // not a row onClick, which would also fire for clicks inside the actions menu's
+                // portaled dialogs since React bubbles events through portals.
+                <TableRow key={asset.id} className="relative">
                   <TableCell className="font-mono text-xs font-medium">
                     {asset.assetTag}
                   </TableCell>
-                  <TableCell className="font-medium">{asset.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link
+                      href={`/assets/${asset.id}`}
+                      className="focus-visible:after:ring-ring after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-inset"
+                    >
+                      {asset.name}
+                      <LinkProgress />
+                    </Link>
+                  </TableCell>
                   <TableCell>{asset.categoryName}</TableCell>
                   <TableCell>
                     <Badge variant={statusBadgeVariant(asset.statusName)}>
@@ -284,7 +296,7 @@ export function AssetsList({
                   <TableCell>
                     {asset.assignedUserName ?? asset.ownerName ?? "N/A"}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="relative z-10 text-right">
                     <AssetRowActions
                       asset={asset}
                       canManage={canManage}
