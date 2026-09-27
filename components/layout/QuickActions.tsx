@@ -17,7 +17,7 @@ import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import { useSession } from "@/lib/auth/session-context";
 import { settingsSections } from "@/components/layout/settings-sections";
 import type { RoleName } from "@/lib/auth/session";
-import { cn } from "@/lib/utils";
+import { cn, isTypingTarget } from "@/lib/utils";
 
 interface QuickAction {
   id: string;
@@ -29,15 +29,6 @@ interface QuickAction {
   /** Omit to show to every role, matching the guards on the destination pages. */
   roles?: RoleName[];
   keywords?: string;
-}
-
-/** Keys that should keep typing a literal `/` instead of toggling the quick actions. */
-function isTypingTarget(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) return false;
-  return (
-    target.isContentEditable ||
-    ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)
-  );
 }
 
 /** Desktop-only middle bar for the top bar. Clicking it (or pressing `/`) opens a modal of quick
