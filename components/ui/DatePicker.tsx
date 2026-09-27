@@ -441,7 +441,7 @@ export function DatePicker({
                         : "hover:bg-muted",
                       isToday &&
                         !isSelected &&
-                        "border-border border font-semibold",
+                        "bg-foreground text-background hover:bg-foreground/85 font-semibold",
                     )}
                   >
                     {cell.day}
