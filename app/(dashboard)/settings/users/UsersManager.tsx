@@ -35,6 +35,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
 import type { User, Role } from "@/types/user";
 import type { Department } from "@/types/department";
+import { RequiredMark } from "@/components/shared/RequiredMark";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -147,8 +148,8 @@ export function UsersManager({
   }
 
   function departmentName(id: number | null): string {
-    if (id == null) return "—";
-    return departments.find((d) => d.id === id)?.name ?? "—";
+    if (id == null) return "N/A";
+    return departments.find((d) => d.id === id)?.name ?? "N/A";
   }
 
   return (
@@ -236,6 +237,7 @@ export function UsersManager({
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="user-full-name" className="text-sm font-medium">
                   Full name
+                  <RequiredMark />
                 </label>
                 <Input
                   id="user-full-name"
@@ -249,6 +251,7 @@ export function UsersManager({
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="user-email" className="text-sm font-medium">
                   Email
+                  <RequiredMark />
                 </label>
                 <Input
                   id="user-email"
@@ -263,6 +266,7 @@ export function UsersManager({
                   {editing
                     ? "New password (leave blank to keep current)"
                     : "Password"}
+                  {!editing && <RequiredMark />}
                 </label>
                 <Input
                   id="user-password"
@@ -277,6 +281,7 @@ export function UsersManager({
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="user-role" className="text-sm font-medium">
                   Role
+                  <RequiredMark />
                 </label>
                 <Select
                   id="user-role"

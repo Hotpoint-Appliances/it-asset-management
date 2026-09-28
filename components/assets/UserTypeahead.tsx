@@ -10,7 +10,7 @@ import type { User } from "@/types/user";
 
 /** Type-ahead search over `users`, per phase-4-asset-management Step 2 ("type-ahead search over
  * users for assigned_user_id, with free-text fallback"). Fetches the (already department/role
- * scoped, per lib/db/users.listUsers) user list once and filters client-side — the list is
+ * scoped, per lib/db/users.listUsers) user list once and filters client-side, the list is
  * small enough that a dedicated search endpoint isn't justified yet. */
 export function UserTypeahead({
   value,

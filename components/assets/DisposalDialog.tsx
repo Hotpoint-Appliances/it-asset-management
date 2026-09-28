@@ -6,6 +6,7 @@ import axios from "axios";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { DatePicker } from "@/components/ui/DatePicker";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,7 @@ import {
 import { useUIStore } from "@/store";
 import { useSyncOnOpen } from "@/lib/hooks/useSyncOnOpen";
 import type { DisposalMethod } from "@/types/disposal";
+import { RequiredMark } from "@/components/shared/RequiredMark";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -35,9 +37,9 @@ const METHODS: { value: DisposalMethod; label: string }[] = [
   { value: "other", label: "Other" },
 ];
 
-/** Disposal flow (phase-5-asset-lifecycle Step 5) — a dedicated action, not a status dropdown
+/** Disposal flow (phase-5-asset-lifecycle Step 5), a dedicated action, not a status dropdown
  * option (docs/asset-lifecycle-flow.md rule 6), with the consequence stated explicitly per
- * itam-design-system's "destructive/terminal actions" rule. `approved_by` is not a form field —
+ * itam-design-system's "destructive/terminal actions" rule. `approved_by` is not a form field,
  * see lib/db/disposals.ts's disposeAsset() doc comment. */
 export function DisposalDialog({
   assetId,
@@ -107,12 +109,14 @@ export function DisposalDialog({
           <DialogBody>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium">Disposal date</label>
-                <Input
-                  type="date"
+                <label className="text-sm font-medium">
+                  Disposal date
+                  <RequiredMark />
+                </label>
+                <DatePicker
                   required
                   value={disposalDate}
-                  onChange={(e) => setDisposalDate(e.target.value)}
+                  onChange={setDisposalDate}
                 />
               </div>
               <div className="flex flex-col gap-1.5">

@@ -3,18 +3,12 @@
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
-import { Boxes } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/Card";
+import { AppLogo } from "@/components/shared/AppLogo";
+import { RequiredMark } from "@/components/shared/RequiredMark";
 
-/** Only a same-origin relative path is a safe redirect target — `from` is an attacker-controlled
+/** Only a same-origin relative path is a safe redirect target, `from` is an attacker-controlled
  * query param (`/login?from=https://evil.com` or `//evil.com`), so anything else falls back to
  * `/` rather than being handed to `window.location`. */
 function safeRedirectTarget(from: string | null): string {
@@ -43,8 +37,8 @@ export function LoginForm() {
 
     try {
       await axios.post("/api/auth/login", { email, password });
-      // Full reload (not next/navigation) so the whole app — client state, the session context,
-      // every store — starts fresh under the new session, matching the logout flow.
+      // Full reload (not next/navigation) so the whole app, client state, the session context,
+      // every store, starts fresh under the new session, matching the logout flow.
       window.location.assign(safeRedirectTarget(searchParams.get("from")));
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.data?.error) {
@@ -57,21 +51,20 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-sm shadow-md">
-      <CardHeader className="items-center text-center">
-        <div className="bg-primary/10 text-primary mb-1 flex h-11 w-11 items-center justify-center rounded-xl">
-          <Boxes className="h-5 w-5" />
-        </div>
-        <CardTitle>Welcome back</CardTitle>
-        <CardDescription>
+    <div className="w-full max-w-sm">
+      <div className="mb-8 flex flex-col items-center gap-2 text-center">
+        <AppLogo className="mb-2 h-12 w-12" />
+        <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
+        <p className="text-muted-foreground text-sm">
           Sign in to your IT Asset Manager account
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </p>
+      </div>
+      <div>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="email" className="text-sm font-medium">
               Email
+              <RequiredMark />
             </label>
             <Input
               id="email"
@@ -86,6 +79,7 @@ export function LoginForm() {
           <div className="flex flex-col gap-1.5">
             <label htmlFor="password" className="text-sm font-medium">
               Password
+              <RequiredMark />
             </label>
             <Input
               id="password"
@@ -106,7 +100,7 @@ export function LoginForm() {
             {submitting ? "Signing in…" : "Sign in"}
           </Button>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

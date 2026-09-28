@@ -1,7 +1,8 @@
 "use client";
 
+import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Menu, Boxes, Bell, ArrowLeft } from "lucide-react";
+import { Menu, Bell, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import {
   Sheet,
@@ -12,13 +13,43 @@ import {
 import { ThemeToggle } from "./ThemeToggle";
 import { SidebarNav } from "./SidebarNav";
 import { UserMenu } from "./UserMenu";
+import { QuickActions } from "./QuickActions";
 import { useUIStore } from "@/store";
 import { cn } from "@/lib/utils";
+import { AppLogo } from "@/components/shared/AppLogo";
+import {
+  SidebarCollapsedIcon,
+  SidebarExpandedIcon,
+} from "@/components/shared/SidebarIcons";
 
-export function Topbar({ className }: { className?: string }) {
+/** Mirrors `--breakpoint-nav` in globals.css, where the persistent sidebar takes over from the
+ * drawer. */
+const NAV_BREAKPOINT_QUERY = "(min-width: 62.5rem)";
+
+export function Topbar({
+  className,
+  defaultCollapsed = false,
+}: {
+  className?: string;
+  defaultCollapsed?: boolean;
+}) {
   const router = useRouter();
   const mobileNavOpen = useUIStore((s) => s.mobileNavOpen);
   const setMobileNavOpen = useUIStore((s) => s.setMobileNavOpen);
+  const stored = useUIStore((s) => s.sidebarCollapsed);
+  const setSidebarCollapsed = useUIStore((s) => s.setSidebarCollapsed);
+  const collapsed = stored ?? defaultCollapsed;
+
+  // Widening past the breakpoint hides the hamburger but not an already-open drawer (it's a
+  // portal, outside the `nav:hidden` trigger), so close it rather than leave it over the sidebar.
+  React.useEffect(() => {
+    const mql = window.matchMedia(NAV_BREAKPOINT_QUERY);
+    const onChange = (e: MediaQueryListEvent) => {
+      if (e.matches) setMobileNavOpen(false);
+    };
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, [setMobileNavOpen]);
 
   return (
     <header
@@ -32,7 +63,7 @@ export function Topbar({ className }: { className?: string }) {
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="nav:hidden"
             aria-label="Open navigation"
           >
             <Menu className="h-6 w-6" />
@@ -40,7 +71,7 @@ export function Topbar({ className }: { className?: string }) {
         </SheetTrigger>
         <SheetContent side="left">
           <SheetTitle className="flex items-center gap-2">
-            <Boxes className="h-5 w-5" />
+            <AppLogo />
             IT Asset Manager
           </SheetTitle>
           <SidebarNav onNavigate={() => setMobileNavOpen(false)} />
@@ -50,13 +81,26 @@ export function Topbar({ className }: { className?: string }) {
       <Button
         variant="ghost"
         size="icon"
-        aria-label="Go back"
-        onClick={() => router.back()}
+        className="nav:inline-flex hidden"
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        onClick={() => setSidebarCollapsed(!collapsed)}
       >
-        <ArrowLeft className="h-5 w-5" />
+        {collapsed ? <SidebarCollapsedIcon /> : <SidebarExpandedIcon />}
       </Button>
 
-      <div className="flex flex-1 items-center justify-end gap-1">
+      <div className="flex flex-1 justify-center">
+        <QuickActions />
+      </div>
+
+      <div className="flex items-center justify-end gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Go back"
+          onClick={() => router.back()}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
         <Button variant="ghost" size="icon" aria-label="Notifications">
           <Bell className="h-5 w-5" />
         </Button>

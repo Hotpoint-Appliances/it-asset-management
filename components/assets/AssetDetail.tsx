@@ -18,6 +18,7 @@ import {
   AlertOctagon,
   BroomSparkles,
   UserRound,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -49,6 +50,7 @@ import type { AssetWithRelations } from "@/types/asset";
 import type { AssetAttachment } from "@/types/assetAttachment";
 import type { AssetAuditLogEntry } from "@/types/auditLog";
 import type { AssetMaintenance } from "@/types/maintenance";
+import type { AssetDisposal } from "@/types/disposal";
 import type { Location } from "@/types/location";
 import type { Department } from "@/types/department";
 import type { Vendor } from "@/types/vendor";
@@ -69,6 +71,7 @@ export function AssetDetail({
   attachments,
   auditLog,
   maintenance,
+  disposal,
   canManage,
   isAdmin,
   locations,
@@ -81,6 +84,8 @@ export function AssetDetail({
   attachments: AssetAttachment[];
   auditLog: AssetAuditLogEntry[];
   maintenance: AssetMaintenance[];
+  /** Present only for a disposed asset. */
+  disposal: AssetDisposal | null;
   canManage: boolean;
   isAdmin: boolean;
   locations: Location[];
@@ -248,16 +253,34 @@ export function AssetDetail({
         </TabsList>
 
         <TabsContent value="overview">
-          <OverviewGrid asset={asset} />
+          <div className="flex flex-col gap-4">
+            {disposal && (
+              <DisposalSummary assetId={asset.id} disposal={disposal} />
+            )}
+            <OverviewGrid asset={asset} />
+          </div>
         </TabsContent>
         <TabsContent value="audit">
-          <AuditLogTimeline
-            entries={auditLog}
-            locations={locations}
-            departments={departments}
-            conditions={conditions}
-            statuses={statuses}
-          />
+          <div className="flex flex-col gap-3">
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm" asChild>
+                <a
+                  href={`/api/reports/audit-trail?assetId=${asset.id}`}
+                  download
+                >
+                  <Download className="h-4 w-4" />
+                  Export audit trail
+                </a>
+              </Button>
+            </div>
+            <AuditLogTimeline
+              entries={auditLog}
+              locations={locations}
+              departments={departments}
+              conditions={conditions}
+              statuses={statuses}
+            />
+          </div>
         </TabsContent>
         <TabsContent value="attachments">
           <AssetAttachments
@@ -272,7 +295,8 @@ export function AssetDetail({
             initialMaintenance={maintenance}
             vendors={vendors}
             statuses={statuses}
-            canManage={canManage}
+            currentStatusId={asset.statusId}
+            canManage={canManage && !isDisposed}
           />
         </TabsContent>
       </Tabs>
@@ -316,7 +340,7 @@ export function AssetDetail({
           description={
             <>
               This is for correcting a mistaken entry (e.g. a duplicate),{" "}
-              <strong>not</strong> for retiring a real asset — use Dispose for
+              <strong>not</strong> for retiring a real asset. Use Dispose for
               that. This removes <strong>{asset.name}</strong> from every list
               and search immediately; the record is kept for forensic purposes
               but is otherwise unreachable.
@@ -332,43 +356,101 @@ export function AssetDetail({
   );
 }
 
+function DisposalSummary({
+  assetId,
+  disposal,
+}: {
+  assetId: string;
+  disposal: AssetDisposal;
+}) {
+  const rows: [string, ReactNode][] = [
+    ["Disposal date", new Date(disposal.disposalDate).toLocaleDateString()],
+    ["Method", formatLookupName(disposal.disposalMethod)],
+    [
+      "Disposal value",
+      disposal.disposalValue != null
+        ? formatCurrency(disposal.disposalValue)
+        : "N/A",
+    ],
+    ["Approved by", disposal.approvedByName],
+  ];
+  if (disposal.notes) rows.push(["Notes", disposal.notes]);
+  if (disposal.attachmentPath) {
+    rows.push([
+      "Attachment",
+      <a
+        key="attachment"
+        href={`/api/assets/${assetId}/dispose/attachment`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-primary underline-offset-4 hover:underline"
+      >
+        View disposal document
+      </a>,
+    ]);
+  }
+
+  return (
+    <Card>
+      <CardContent className="flex flex-col gap-4 p-6">
+        <h2 className="flex items-center gap-2 text-sm font-semibold">
+          <AlertOctagon className="text-destructive h-4 w-4" />
+          Disposal record
+        </h2>
+        <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+          {rows.map(([label, value]) => (
+            <div key={label} className="flex flex-col gap-0.5">
+              <dt className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                {label}
+              </dt>
+              <dd className="text-sm">{value}</dd>
+            </div>
+          ))}
+        </dl>
+      </CardContent>
+    </Card>
+  );
+}
+
 function OverviewGrid({ asset }: { asset: AssetWithRelations }) {
   const rows: [string, ReactNode][] = [
     ["Category", asset.categoryName],
-    ["Model number", asset.modelNumber ?? "—"],
-    ["Serial number", asset.serialNumber ?? "—"],
-    ["Vendor", asset.vendorName ?? "—"],
+    ["Model number", asset.modelNumber ?? "N/A"],
+    ["Serial number", asset.serialNumber ?? "N/A"],
+    ["Vendor", asset.vendorName ?? "N/A"],
     [
       "Purchase date",
       asset.purchaseDate
         ? new Date(asset.purchaseDate).toLocaleDateString()
-        : "—",
+        : "N/A",
     ],
     [
       "Purchase cost",
-      asset.purchaseCost != null ? formatCurrency(asset.purchaseCost) : "—",
+      asset.purchaseCost != null ? formatCurrency(asset.purchaseCost) : "N/A",
     ],
     [
       "Warranty expiry",
       asset.warrantyExpiry
         ? new Date(asset.warrantyExpiry).toLocaleDateString()
-        : "—",
+        : "N/A",
     ],
     [
       "Depreciation method",
       asset.depreciationMethod
         ? formatLookupName(asset.depreciationMethod)
-        : "—",
+        : "N/A",
     ],
     [
       "Useful life",
-      asset.usefulLifeMonths != null ? `${asset.usefulLifeMonths} months` : "—",
+      asset.usefulLifeMonths != null
+        ? `${asset.usefulLifeMonths} months`
+        : "N/A",
     ],
     [
       "Salvage value",
-      asset.salvageValue != null ? formatCurrency(asset.salvageValue) : "—",
+      asset.salvageValue != null ? formatCurrency(asset.salvageValue) : "N/A",
     ],
-    ["Owner email", asset.ownerEmail ?? "—"],
+    ["Owner email", asset.ownerEmail ?? "N/A"],
     ["Created by", asset.createdByName],
     ["Created", new Date(asset.createdAt).toLocaleString()],
     ["Last updated", new Date(asset.updatedAt).toLocaleString()],

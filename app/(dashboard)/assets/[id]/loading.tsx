@@ -1,5 +1,5 @@
-import { DetailSkeleton } from "@/components/skeletons/DetailSkeleton";
+import { AssetDetailSkeleton } from "@/components/skeletons/AssetDetailSkeleton";
 
 export default function AssetDetailLoading() {
-  return <DetailSkeleton />;
+  return <AssetDetailSkeleton />;
 }

@@ -5,9 +5,9 @@ import * as SelectPrimitive from "@radix-ui/react-select";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/** Sentinel Radix item value standing in for a real, selectable `<option value="">` — Radix
- * forbids an empty-string item value outright, so a selectable "None"/"— top level —" option
- * (as opposed to a disabled placeholder option, which never becomes an item at all — see
+/** Sentinel Radix item value standing in for a real, selectable `<option value="">`. Radix
+ * forbids an empty-string item value outright, so a selectable "None"/"top level" option
+ * (as opposed to a disabled placeholder option, which never becomes an item at all; see
  * parseOptions) is rendered with this value and translated back to "" at the value/onChange
  * boundary. */
 const EMPTY_VALUE = "__select-empty__";
@@ -47,6 +47,7 @@ export interface SelectProps extends Omit<
   defaultValue?: string | number | null;
   onChange?: (e: { target: { value: string } }) => void;
   placeholder?: string;
+  onOpenChange?: (open: boolean) => void;
 }
 
 /** Drop-in replacement for a native `<select>`: same `value`/`onChange`/`<option>` children API
@@ -67,6 +68,8 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
       id,
       name,
       placeholder,
+      onOpenChange,
+      "aria-label": ariaLabel,
     },
     ref,
   ) => {
@@ -76,14 +79,15 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
     );
     const items = options.filter((o) => o !== placeholderOption);
 
+    /** `""` maps to the empty sentinel when a real empty item exists, otherwise stays `""` (Radix
+     * shows the placeholder), so a controlled Select never hands Radix `undefined` and flips
+     * from uncontrolled to controlled when a form value goes from empty to a real selection. */
     function toRadixValue(
       v: string | number | null | undefined,
     ): string | undefined {
       if (v == null) return undefined;
       const s = String(v);
-      if (s === "") {
-        return items.some((o) => o.rawValue === "") ? EMPTY_VALUE : undefined;
-      }
+      if (s === "" && items.some((o) => o.rawValue === "")) return EMPTY_VALUE;
       return s;
     }
 
@@ -98,6 +102,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
         onValueChange={(v) =>
           onChange?.({ target: { value: fromRadixValue(v) } })
         }
+        onOpenChange={onOpenChange}
         disabled={disabled}
         required={required}
         name={name}
@@ -105,6 +110,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
         <SelectPrimitive.Trigger
           ref={ref}
           id={id}
+          aria-label={ariaLabel}
           className={cn(
             "border-border bg-background text-foreground flex h-10 w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm shadow-xs transition-colors",
             "data-[placeholder]:text-muted-foreground",

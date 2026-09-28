@@ -1,6 +1,6 @@
 /** `pg` parses DATE/TIMESTAMP(TZ) columns into native `Date` objects, not strings. That's
- * invisible when a mapper's output only ever flows through `NextResponse.json()` — JSON.stringify
- * calls `Date#toJSON()` and papers over it — but lib/db functions are also called directly from
+ * invisible when a mapper's output only ever flows through `NextResponse.json()`, JSON.stringify
+ * calls `Date#toJSON()` and papers over it, but lib/db functions are also called directly from
  * Server Components (no JSON round-trip), where a raw `Date` reaches the client component as-is
  * and breaks anything expecting the `string` the type declares (e.g. `.slice(0, 10)` on a date
  * input's default value). Every lib/db mapper must normalize date/timestamp columns through this
@@ -10,7 +10,7 @@ export function toIsoString(value: unknown): string | null {
   return value instanceof Date ? value.toISOString() : String(value);
 }
 
-/** For pure DATE columns (purchase_date, warranty_expiry, ...) — no time-of-day, so unlike
+/** For pure DATE columns (purchase_date, warranty_expiry, ...), no time-of-day, so unlike
  * `toIsoString()` this must NOT round-trip through UTC. `pg` constructs a DATE's `Date` object
  * at **local** midnight (`new Date(year, month, day)`, not `Date.UTC(...)`) to represent that
  * exact calendar date; reading it back with UTC getters (or `toISOString().slice(0, 10)`) shifts

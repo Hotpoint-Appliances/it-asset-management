@@ -7,13 +7,14 @@ import {
 import type { TransferInput } from "@/lib/db/assets";
 import type {
   MaintenanceInput,
+  MaintenanceStatus,
   MaintenanceUpdateInput,
 } from "@/types/maintenance";
 import type { DisposalInput } from "@/types/disposal";
 
 type Result<T> = { success: true; data: T } | { success: false; error: string };
 
-/** Transfer action (phase-5-asset-lifecycle Step 1) — every field is optional (only what the
+/** Transfer action (phase-5-asset-lifecycle Step 1), every field is optional (only what the
  * dialog actually changed is sent), but owner fields are dual-mode like the create/edit form:
  * exactly one of assignedUserId/ownerName may be set when the owner is being changed at all. */
 export function validateTransferInput(body: unknown): Result<TransferInput> {
@@ -118,6 +119,26 @@ export function validateMaintenanceInput(
   };
 }
 
+/** Allowed maintenance status moves, mirroring the buttons MaintenanceTab offers (Start / Mark
+ * completed / Cancel); completed and cancelled are terminal. Enforced server-side so a direct API
+ * call can't reopen a finished record (same defense-in-depth as the disposed-asset guards). */
+const MAINTENANCE_TRANSITIONS: Record<
+  MaintenanceStatus,
+  readonly MaintenanceStatus[]
+> = {
+  scheduled: ["in_progress", "cancelled"],
+  in_progress: ["completed", "cancelled"],
+  completed: [],
+  cancelled: [],
+};
+
+export function isValidMaintenanceTransition(
+  from: MaintenanceStatus,
+  to: MaintenanceStatus,
+): boolean {
+  return MAINTENANCE_TRANSITIONS[from].includes(to);
+}
+
 export function validateMaintenanceUpdateInput(
   body: unknown,
 ): Result<MaintenanceUpdateInput> {
@@ -207,7 +228,7 @@ export function validateDisposalInput(body: unknown): Result<DisposalInput> {
 }
 
 /** The disposal dialog posts multipart/form-data (fields + an optional attachment file share one
- * request, same pattern as phase-4's asset create/edit) — normalizes it for
+ * request, same pattern as phase-4's asset create/edit), normalizes it for
  * validateDisposalInput. */
 export function disposalInputFromFormData(
   formData: FormData,

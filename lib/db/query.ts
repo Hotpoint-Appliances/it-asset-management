@@ -25,7 +25,7 @@ export async function withTransaction<T>(
   }
 }
 
-/** Postgres unique_violation (23505) — e.g. a duplicate email on `users`. */
+/** Postgres unique_violation (23505), e.g. a duplicate email on `users`. */
 export function isUniqueViolation(err: unknown): boolean {
   return (
     typeof err === "object" &&
@@ -35,7 +35,7 @@ export function isUniqueViolation(err: unknown): boolean {
   );
 }
 
-/** Postgres foreign_key_violation (23503) — e.g. an asset referencing a category/vendor id
+/** Postgres foreign_key_violation (23503), e.g. an asset referencing a category/vendor id
  * that doesn't exist. Lets route handlers return a clean 400 instead of a raw 500. */
 export function isForeignKeyViolation(err: unknown): boolean {
   return (

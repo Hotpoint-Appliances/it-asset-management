@@ -10,7 +10,7 @@ interface AssetAttachmentRow {
   file_type: string | null;
   uploaded_by: string;
   uploaded_by_name: string;
-  uploaded_at: Date | string; // pg parses timestamptz into a Date — see lib/db/dates.ts
+  uploaded_at: Date | string; // pg parses timestamptz into a Date; see lib/db/dates.ts
 }
 
 function mapAttachment(row: AssetAttachmentRow): AssetAttachment {

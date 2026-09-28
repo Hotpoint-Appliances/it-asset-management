@@ -34,7 +34,7 @@ export function UserMenu() {
     setLoggingOut(true);
     try {
       await axios.post("/api/auth/logout");
-      // Full reload (not next/navigation) so every client-only React and store state resets —
+      // Full reload (not next/navigation) so every client-only React and store state resets,
       // matches the login flow's own full reload. `replace`, not `assign`, so Back can't land on
       // a stale authenticated page.
       window.location.replace("/login");

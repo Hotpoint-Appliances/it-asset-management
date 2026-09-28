@@ -3,7 +3,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* refined shadcn radius scale — see radius-* mappings below */
+  /* refined shadcn radius scale; see radius-* mappings below */
   --radius: 0.625rem;
 
   --background: #ffffff;
@@ -92,6 +92,15 @@
   --toast-destructive: #dc2626;
 }
 
+/* App-shell breakpoint: the persistent sidebar shows from 1200px up, below
+   that the topbar hamburger opens the Sheet drawer instead. Sits between
+   `md` (768px) and `lg` (1024px) so the 16rem sidebar still leaves room for
+   the content column at small-laptop / landscape-tablet widths. Used as the
+   `nav:` variant; keep `NAV_BREAKPOINT_QUERY` in Topbar.tsx in sync. */
+@theme {
+  --breakpoint-nav: 1200px;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -132,7 +141,7 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* refined shadcn radius scale — rounded-sm/md/lg/xl derive from --radius */
+  /* refined shadcn radius scale, rounded-sm/md/lg/xl derive from --radius */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -144,14 +153,14 @@ body {
   color: var(--foreground);
 }
 
-/* Styled scrollbar for document-level scrolling pages (login, 403, 404) —
+/* Styled scrollbar for document-level scrolling pages (login, 403, 404),
    the dashboard shell scrolls internally via `.scroll-area` instead, so a
    Radix scroll-lock on `body` never touches these pages' own scrollport. */
 html {
   scrollbar-color: var(--scrollbar-thumb) transparent;
   overflow: hidden;
   /* `overflow: hidden` alone doesn't stop touch-driven rubber-band/bounce
-     scrolling on mobile browsers — nested `overflow-x/y: auto` containers
+     scrolling on mobile browsers: nested `overflow-x/y: auto` containers
      (e.g. a wide table) still inflate the root's scrollWidth/scrollHeight,
      and touch gestures can drag against that even though nothing here is
      meant to scroll. This disables that instead of chasing every nested
@@ -220,8 +229,8 @@ html::-webkit-scrollbar-thumb:hover {
 
 /* Enter/exit animations for Radix primitives (Dialog, Sheet, DropdownMenu,
    Select, Tooltip), driven by their `data-state` attribute. Radix's
-   Presence only defers unmount for an `animationend`/animationName event —
-   it does not wait on CSS transitions — so these must be real @keyframes
+   Presence only defers unmount for an `animationend`/animationName event:
+   it does not wait on CSS transitions, so these must be real @keyframes
    animations, not `transition-*` utilities, for exit to be visible at all. */
 @keyframes fade-in {
   from {
@@ -267,7 +276,7 @@ html::-webkit-scrollbar-thumb:hover {
 }
 
 /* Declared via `@utility` (not plain classes) so Tailwind v4 can compile
-   arbitrary variants against them, e.g. `data-[state=open]:animate-in` —
+   arbitrary variants against them, e.g. `data-[state=open]:animate-in`:
    a plain class here would make that compound candidate invalid, and
    Tailwind would silently drop it instead of emitting any CSS for it. */
 @utility animate-in {

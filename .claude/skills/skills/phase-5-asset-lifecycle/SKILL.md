@@ -139,6 +139,34 @@ asset detail page.
   (clearing `.next/dev`) did. Worth knowing if a route 500s with an empty body and no visible
   cause despite clean `tsc`/lint: restart the dev server before assuming the code is wrong.
 
+## Re-verified before Phase 6 (defects found and fixed)
+
+An independent read-only verification pass at the start of Phase 6 confirmed every deliverable
+above and `tsc`/lint clean, and found six gaps, all fixed in the Phase 6 preamble:
+
+- **D1 — raw UUID in the audit timeline.** `owner_change` rows whose field is
+  `assigned_user_id` rendered the user's UUID, contradicting the "lookup names, not raw ids" exit
+  criterion below (earlier live runs only used free-text owners). Fixed by resolving the name in
+  SQL (`lib/db/auditLog.ts` `oldValueLabel`/`newValueLabel`, comparing `id::text` so a malformed
+  value can't raise a cast error) rather than shipping the users table to the client.
+- **D2 — disposal attachment was write-only.** Stored but never readable, and no disposal record
+  was shown anywhere. Added `GET /api/assets/[id]/dispose/attachment` and a "Disposal record"
+  panel on a disposed asset's Overview tab (`getDisposalByAssetId` now has a caller).
+- **D3** maintenance PATCH is now blocked (400) on a disposed asset, matching POST.
+- **D4** maintenance status moves are validated server-side (`isValidMaintenanceTransition`:
+  scheduled -> in_progress/cancelled, in_progress -> completed/cancelled, completed/cancelled
+  terminal); previously only the UI limited them.
+- **D5** `MaintenanceTab` takes `currentStatusId` and skips the in_repair / restore prompts when
+  they would be no-ops.
+- **D6** the bare `<input type="date">`s were replaced by the new shared `DatePicker` (see
+  `itam-design-system`) everywhere: asset form (purchase date, warranty expiry), maintenance
+  scheduled date, disposal date.
+- **Depreciation type narrowed to straight line** (Phase 6 scope decision): `DepreciationMethod`
+  is now `"straight_line"` only, the asset form offers "Not depreciated" / "Straight line", and
+  `lib/validation/assets.ts` rejects anything else server-side (cheap defense in depth so a direct
+  API call can't store a method no report can compute). The column comment in `schema.sql` is
+  updated; no migration was needed (the dataset had no legacy `declining_balance` rows).
+
 ## Exit criteria
 
 - Every mutation described above produces the correct `asset_audit_log` row(s) — verified live

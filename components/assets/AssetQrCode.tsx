@@ -1,6 +1,6 @@
 import QRCode from "qrcode";
 
-/** Server component — generates the QR code at render time, no schema/storage needed (per
+/** Server component, generates the QR code at render time, no schema/storage needed (per
  * phase-4-asset-management Step 6). Encodes the full asset detail URL so any phone camera jumps
  * straight to the record. */
 export async function AssetQrCode({

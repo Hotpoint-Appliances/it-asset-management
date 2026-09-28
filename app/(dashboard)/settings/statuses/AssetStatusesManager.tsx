@@ -26,6 +26,7 @@ import {
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
 import type { AssetStatus } from "@/types/assetStatus";
+import { RequiredMark } from "@/components/shared/RequiredMark";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -173,6 +174,7 @@ export function AssetStatusesManager({
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="status-name" className="text-sm font-medium">
                   Name
+                  <RequiredMark />
                 </label>
                 <Input
                   id="status-name"

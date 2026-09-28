@@ -11,7 +11,7 @@ import type { AssetDisposal, DisposalInput } from "@/types/disposal";
 interface DisposalRow {
   id: number;
   asset_id: string;
-  // pg parses date/timestamptz columns into Date objects — see lib/db/dates.ts
+  // pg parses date/timestamptz columns into Date objects; see lib/db/dates.ts
   disposal_date: Date | string;
   disposal_method: AssetDisposal["disposalMethod"];
   disposal_value: string | null;
@@ -52,10 +52,10 @@ export async function getDisposalByAssetId(
   return result.rows[0] ? mapDisposal(result.rows[0]) : null;
 }
 
-/** Disposal flow (phase-5-asset-lifecycle Step 5 / docs/asset-lifecycle-flow.md rule 6) — one
+/** Disposal flow (phase-5-asset-lifecycle Step 5 / docs/asset-lifecycle-flow.md rule 6), one
  * transaction: insert `asset_disposals`, set `assets.status_id` to the given `disposedStatusId`,
  * write a `disposed` audit row. `approvedBy` is the session user performing the action (the
- * route already gates this to admin/asset_manager), not a separate form field — the actor
+ * route already gates this to admin/asset_manager), not a separate form field, the actor
  * carrying out disposal *is* the approver, so there's nothing else to collect. The caller must
  * check the asset isn't already disposed before calling this; `asset_disposals.asset_id` is
  * UNIQUE regardless, so a race still surfaces as a clean unique_violation (isUniqueViolation()),

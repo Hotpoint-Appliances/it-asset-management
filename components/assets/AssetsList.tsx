@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Plus, Search, X, Boxes } from "lucide-react";
+import { Plus, Search, X, Boxes, Download } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -113,6 +113,12 @@ export function AssetsList({
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
+  // The register export takes the same filter params as this page (minus pagination), so what
+  // downloads is exactly the filtered set on screen, all pages of it.
+  const exportParams = new URLSearchParams(searchParams.toString());
+  exportParams.delete("page");
+  const exportHref = `/api/reports/asset-register${exportParams.size ? `?${exportParams.toString()}` : ""}`;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
@@ -122,15 +128,23 @@ export function AssetsList({
             {total} asset{total === 1 ? "" : "s"}
           </p>
         </div>
-        {canManage && (
-          <Button asChild>
-            <Link href="/assets/new">
-              <Plus className="h-4 w-4" />
-              New Asset
-              <LinkProgress />
-            </Link>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <a href={exportHref} download>
+              <Download className="h-4 w-4" />
+              Export
+            </a>
           </Button>
-        )}
+          {canManage && (
+            <Button asChild>
+              <Link href="/assets/new">
+                <Plus className="h-4 w-4" />
+                New Asset
+                <LinkProgress />
+              </Link>
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col gap-3">
@@ -249,11 +263,23 @@ export function AssetsList({
             </TableHeader>
             <TableBody>
               {assets.map((asset) => (
-                <TableRow key={asset.id}>
+                // The whole row links to the asset via a stretched `::after` on the name link
+                // (a real anchor, so ctrl/middle-click, prefetch and keyboard focus all work),
+                // not a row onClick, which would also fire for clicks inside the actions menu's
+                // portaled dialogs since React bubbles events through portals.
+                <TableRow key={asset.id} className="relative">
                   <TableCell className="font-mono text-xs font-medium">
                     {asset.assetTag}
                   </TableCell>
-                  <TableCell className="font-medium">{asset.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link
+                      href={`/assets/${asset.id}`}
+                      className="focus-visible:after:ring-ring after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-inset"
+                    >
+                      {asset.name}
+                      <LinkProgress />
+                    </Link>
+                  </TableCell>
                   <TableCell>{asset.categoryName}</TableCell>
                   <TableCell>
                     <Badge variant={statusBadgeVariant(asset.statusName)}>
@@ -268,9 +294,9 @@ export function AssetsList({
                   <TableCell>{asset.locationName}</TableCell>
                   <TableCell>{asset.departmentName}</TableCell>
                   <TableCell>
-                    {asset.assignedUserName ?? asset.ownerName ?? "—"}
+                    {asset.assignedUserName ?? asset.ownerName ?? "N/A"}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="relative z-10 text-right">
                     <AssetRowActions
                       asset={asset}
                       canManage={canManage}

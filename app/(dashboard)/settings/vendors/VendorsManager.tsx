@@ -26,6 +26,7 @@ import {
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
 import type { Vendor } from "@/types/vendor";
+import { RequiredMark } from "@/components/shared/RequiredMark";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -154,9 +155,9 @@ export function VendorsManager({
             {initialVendors.map((vendor) => (
               <TableRow key={vendor.id}>
                 <TableCell className="font-medium">{vendor.name}</TableCell>
-                <TableCell>{vendor.contactName ?? "—"}</TableCell>
-                <TableCell>{vendor.contactEmail ?? "—"}</TableCell>
-                <TableCell>{vendor.contactPhone ?? "—"}</TableCell>
+                <TableCell>{vendor.contactName ?? "N/A"}</TableCell>
+                <TableCell>{vendor.contactEmail ?? "N/A"}</TableCell>
+                <TableCell>{vendor.contactPhone ?? "N/A"}</TableCell>
                 <TableCell className="text-right">
                   <Button
                     variant="ghost"
@@ -194,6 +195,7 @@ export function VendorsManager({
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="vendor-name" className="text-sm font-medium">
                   Name
+                  <RequiredMark />
                 </label>
                 <Input
                   id="vendor-name"

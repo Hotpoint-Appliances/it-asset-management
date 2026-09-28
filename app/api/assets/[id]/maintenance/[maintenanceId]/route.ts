@@ -4,7 +4,10 @@ import { getAssetById } from "@/lib/db/assets";
 import { getMaintenanceById, updateMaintenance } from "@/lib/db/maintenance";
 import { listAssetStatuses } from "@/lib/db/assetStatuses";
 import { findStatusBeforeMostRecentInRepair } from "@/lib/db/auditLog";
-import { validateMaintenanceUpdateInput } from "@/lib/validation/assetLifecycle";
+import {
+  validateMaintenanceUpdateInput,
+  isValidMaintenanceTransition,
+} from "@/lib/validation/assetLifecycle";
 
 export async function PATCH(
   request: NextRequest,
@@ -25,6 +28,12 @@ export async function PATCH(
   if (!asset) {
     return NextResponse.json({ error: "Asset not found" }, { status: 404 });
   }
+  if (asset.statusName === "disposed") {
+    return NextResponse.json(
+      { error: "This asset is disposed and can no longer be modified" },
+      { status: 400 },
+    );
+  }
   const existing = await getMaintenanceById(numericId);
   if (!existing || existing.assetId !== id) {
     return NextResponse.json(
@@ -39,10 +48,19 @@ export async function PATCH(
     return NextResponse.json({ error: validated.error }, { status: 400 });
   }
 
+  if (!isValidMaintenanceTransition(existing.status, validated.data.status)) {
+    return NextResponse.json(
+      {
+        error: `Cannot move a ${existing.status.replace("_", " ")} maintenance record to ${validated.data.status.replace("_", " ")}`,
+      },
+      { status: 400 },
+    );
+  }
+
   const maintenance = await updateMaintenance(numericId, validated.data);
 
   // "Marking completed prompts restoring the asset's prior status" (docs/asset-lifecycle-flow.md
-  // rule 5) — resolved here (via the unified audit log, no schema change) so the client can offer
+  // rule 5), resolved here (via the unified audit log, no schema change) so the client can offer
   // the prompt without a second round trip. Null means "no known prior status" (e.g. the asset
   // was created directly in_repair); the client falls back to leaving status untouched.
   let suggestedRestoreStatusId: number | null = null;

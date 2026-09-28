@@ -14,9 +14,9 @@ import {
   UploadValidationError,
 } from "@/lib/files/upload";
 
-/** Disposal flow (phase-5-asset-lifecycle Step 5) — a dedicated action, not a status-dropdown
+/** Disposal flow (phase-5-asset-lifecycle Step 5), a dedicated action, not a status-dropdown
  * option, so `asset_disposals` is never skipped (docs/asset-lifecycle-flow.md rule 6).
- * `approvedBy` is the session user performing this call, not a form field — see
+ * `approvedBy` is the session user performing this call, not a form field, see
  * lib/db/disposals.ts's disposeAsset() doc comment for why. */
 export async function POST(
   request: NextRequest,

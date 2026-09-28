@@ -29,6 +29,12 @@ decorative borders, or texture beyond what's specified below.
   becomes the trigger's placeholder text (not a selectable item); a non-disabled
   `<option value="">` (e.g. "None") stays a real selectable option internally mapped off Radix's
   empty-string restriction — don't invent a second convention for "clear" options.
+- `DatePicker` (`components/ui/DatePicker.tsx`) replaces every native `<input type="date">`
+  (browser date UIs ignore the theme and differ per OS). Same `value` shape as the native input
+  (ISO `YYYY-MM-DD` string, `""` = none) plus `onChange(value)`, `min`/`max`, `required`,
+  `placeholder`. Hand-rolled because Radix ships no date primitive and no new dependency is
+  allowed; it renders inline under the trigger rather than portaled, because anything portaled
+  outside a Radix `Dialog` is inert and dismisses it. Never add a raw `type="date"` input.
 - `Tooltip` (`components/ui/Tooltip.tsx`, Radix-based) is mounted app-wide via `TooltipProvider`
   in `components/providers.tsx`. Required on any icon-only control whose label is hidden
   (collapsed sidebar nav items, icon buttons without visible text).
@@ -102,13 +108,17 @@ decorative borders, or texture beyond what's specified below.
 
 The app must be built responsive from the start — not audited-in during polish. Use Tailwind's
 default breakpoints (`sm` 640px, `md` 768px, `lg` 1024px, `xl` 1280px, `2xl` 1536px) as the
-standard scale across every component and page:
+standard scale across every component and page. The one custom addition is `nav` (1000px /
+`62.5rem`, declared as `--breakpoint-nav` in `globals.css`), used only for the app-shell
+sidebar/drawer switch below; don't reach for it elsewhere:
 
 - **Mobile-first CSS**: write unprefixed (base) styles for the smallest viewport, then layer
   `sm:`/`md:`/`lg:` overrides upward — never the reverse.
 - **App shell**: sidebar collapses to an off-canvas `Sheet` (slide-over, per the primitive
-  list above) below `md`, triggered by a hamburger icon in the topbar; persistent sidebar at
-  `md` and above.
+  list above) below `nav` (1000px), triggered by a hamburger icon in the topbar; persistent
+  sidebar at `nav` and above. `md` (768px) left too little room beside the 16rem sidebar at
+  landscape-tablet widths. `Topbar` also closes an open drawer when the viewport widens past
+  `nav` (its `NAV_BREAKPOINT_QUERY` mirrors the CSS value, so keep the two in sync).
 - **Data tables**: below `md`, either horizontally scroll within a contained `overflow-x-auto`
   wrapper (never let the page itself scroll horizontally) or switch to a stacked card-per-row
   layout for the asset list — pick one pattern and apply it consistently across every list view
@@ -139,7 +149,7 @@ standard scale across every component and page:
   container. Don't reintroduce document-level scrolling in the dashboard, and don't swap the
   sidebar to `position: fixed` either — that only fixes the sidebar, still requires manually
   syncing a content-column margin/padding to the collapsed/expanded width, and does nothing for
-  the same shift on any other in-flow element. It's desktop-only (`hidden md:flex`); below `md`
+  the same shift on any other in-flow element. It's desktop-only (`hidden nav:flex`); below `nav`
   the mobile `Sheet` drawer (triggered from `Topbar`) is the nav, unchanged by any of this.
   Non-dashboard document-scrolling pages (`/login`, `/403`, the 404 page) are unaffected and keep
   the browser's native scrollbar.
@@ -153,7 +163,7 @@ standard scale across every component and page:
     carrying the label, since the text disappears. Because this reads client state, `Sidebar` and
     `SidebarNav` are client components.
   - **Topbar** (`components/layout/Topbar.tsx`) carries, left to right: mobile hamburger
-    (`md:hidden`, opens the Sheet drawer), a `router.back()` button (always visible, every page —
+    (`nav:hidden`, opens the Sheet drawer), a `router.back()` button (always visible, every page —
     this is the app's only back-navigation affordance, don't add a second one per-page unless a
     flow genuinely needs breadcrumbs instead), then notifications bell / theme toggle / user menu
     on the right.
@@ -166,7 +176,11 @@ standard scale across every component and page:
     `components/layout/nav-items.ts`.
 - **List/table pages** (assets, users, etc.): data table with column sorting, filter bar above
   (status, category, department, location, condition as multi-select filters), search input,
-  pagination footer, row-level actions via `DropdownMenu` (View, Edit, Transfer, Dispose).
+  pagination footer, row-level actions via `DropdownMenu` (View, Edit, Transfer, Dispose). Clicking anywhere on an
+  asset row opens that asset: the name cell's `<Link>` carries a stretched `after:absolute
+  after:inset-0` over the `relative` row, and the actions cell is `relative z-10` to sit above it.
+  Use this stretched-link pattern, not a row `onClick` + `router.push` (no ctrl/middle-click or
+  prefetch, and React bubbles clicks from the actions menu's portaled dialogs up to the row).
 - **Detail pages** (single asset): header card (tag, name, status/condition badges, image),
   tabbed sections — Overview, Audit Log (timeline), Attachments, Maintenance.
 - **Create/edit forms**: use a `Dialog` (modal) for quick actions (transfer owner/location,

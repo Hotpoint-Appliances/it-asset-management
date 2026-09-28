@@ -9,10 +9,12 @@ interface AuditLogRow {
   field_name: string | null;
   old_value: string | null;
   new_value: string | null;
+  old_value_label: string | null;
+  new_value_label: string | null;
   note: string | null;
   performed_by: string;
   performed_by_name: string;
-  performed_at: Date | string; // pg parses timestamptz into a Date — see lib/db/dates.ts
+  performed_at: Date | string; // pg parses timestamptz into a Date; see lib/db/dates.ts
 }
 
 function mapAuditLogEntry(row: AuditLogRow): AssetAuditLogEntry {
@@ -23,6 +25,8 @@ function mapAuditLogEntry(row: AuditLogRow): AssetAuditLogEntry {
     fieldName: row.field_name,
     oldValue: row.old_value,
     newValue: row.new_value,
+    oldValueLabel: row.old_value_label,
+    newValueLabel: row.new_value_label,
     note: row.note,
     performedBy: row.performed_by,
     performedByName: row.performed_by_name,
@@ -30,10 +34,18 @@ function mapAuditLogEntry(row: AuditLogRow): AssetAuditLogEntry {
   };
 }
 
+/** `assigned_user_id` audit values are user UUIDs; resolved to names here (comparing id::text so a
+ * malformed value can never raise a cast error) since, unlike the small lookup tables, the users
+ * table is too large to ship to the client. Null for every other field. */
+const userLabel = (col: "old_value" | "new_value") =>
+  `CASE WHEN l.field_name = 'assigned_user_id'
+     THEN (SELECT au.full_name FROM users au WHERE au.id::text = l.${col}) END`;
+
 const SELECT_COLUMNS = `l.id, l.asset_id, l.action_type, l.field_name, l.old_value, l.new_value,
+  ${userLabel("old_value")} AS old_value_label, ${userLabel("new_value")} AS new_value_label,
   l.note, l.performed_by, u.full_name AS performed_by_name, l.performed_at`;
 
-/** Chronological (newest first) timeline for the asset detail page's Audit Log tab — the payoff
+/** Chronological (newest first) timeline for the asset detail page's Audit Log tab, the payoff
  * of the unified audit log design (itam-schema-reference point 1): one query, every event type. */
 export async function listAuditLogForAsset(
   assetId: string,
@@ -47,11 +59,11 @@ export async function listAuditLogForAsset(
 }
 
 /** Finds the status an asset was in immediately before its most recent transition into
- * `inRepairStatusId`, by reading the `status_change` row that made that transition — used by the
+ * `inRepairStatusId`, by reading the `status_change` row that made that transition, used by the
  * maintenance module's "mark completed -> prompt to restore the prior status" flow
  * (docs/asset-lifecycle-flow.md rule 5) without a schema change, per the unified-audit-log
  * design. Returns null if no such transition is on record (e.g. the asset was created directly
- * in_repair) — the caller falls back to letting the user pick a status manually. */
+ * in_repair), the caller falls back to letting the user pick a status manually. */
 export async function findStatusBeforeMostRecentInRepair(
   assetId: string,
   inRepairStatusId: number,

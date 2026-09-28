@@ -6,6 +6,7 @@ import axios from "axios";
 import { Wrench, Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { Badge } from "@/components/ui/Badge";
 import {
   Dialog,
@@ -47,16 +48,17 @@ const STATUS_VARIANT: Record<
 };
 
 /** Maintenance module (phase-5-asset-lifecycle Step 4): create/list `asset_maintenance` records
- * and drive the two non-forced prompts docs/asset-lifecycle-flow.md rule 5 calls for — marking
+ * and drive the two non-forced prompts docs/asset-lifecycle-flow.md rule 5 calls for, marking
  * `in_progress` offers to also set the asset's status to `in_repair` (reusing Step 3's action),
  * marking `completed` offers to restore whatever status preceded that in_repair transition
- * (resolved server-side via the unified audit log — see the PATCH route's
+ * (resolved server-side via the unified audit log; see the PATCH route's
  * `suggestedRestoreStatusId`). Both are confirm dialogs, not automatic, per the lifecycle doc. */
 export function MaintenanceTab({
   assetId,
   initialMaintenance,
   vendors,
   statuses,
+  currentStatusId,
   canManage,
   defaultCreateType,
 }: {
@@ -64,6 +66,8 @@ export function MaintenanceTab({
   initialMaintenance: AssetMaintenance[];
   vendors: Vendor[];
   statuses: AssetStatus[];
+  /** The asset's current status, so the prompts below are skipped when they'd be no-ops. */
+  currentStatusId: number;
   canManage: boolean;
   defaultCreateType?: MaintenanceType;
 }) {
@@ -144,11 +148,16 @@ export function MaintenanceTab({
       addToast({ title: "Maintenance record updated", variant: "success" });
       router.refresh();
 
-      if (status === "in_progress" && inRepairStatus) {
+      if (
+        status === "in_progress" &&
+        inRepairStatus &&
+        inRepairStatus.id !== currentStatusId
+      ) {
         setInRepairPrompt(record);
       } else if (
         status === "completed" &&
-        res.data.suggestedRestoreStatusId != null
+        res.data.suggestedRestoreStatusId != null &&
+        res.data.suggestedRestoreStatusId !== currentStatusId
       ) {
         setRestorePrompt({
           record,
@@ -229,7 +238,7 @@ export function MaintenanceTab({
                 <span className="text-muted-foreground text-xs">
                   {record.scheduledDate
                     ? new Date(record.scheduledDate).toLocaleDateString()
-                    : "—"}
+                    : "N/A"}
                 </span>
               </div>
               <div className="text-muted-foreground flex flex-wrap gap-x-4 text-xs">
@@ -326,11 +335,10 @@ export function MaintenanceTab({
                 </div>
                 <div className="flex flex-col gap-1.5 sm:col-span-2">
                   <label className="text-sm font-medium">Scheduled date</label>
-                  <input
-                    type="date"
+                  <DatePicker
                     value={scheduledDate}
-                    onChange={(e) => setScheduledDate(e.target.value)}
-                    className="border-border bg-background focus-visible:ring-ring flex h-10 w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                    onChange={setScheduledDate}
+                    placeholder="No date"
                   />
                 </div>
               </div>

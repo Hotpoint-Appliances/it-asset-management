@@ -1,6 +1,6 @@
 import * as React from "react";
 
-/** Runs `sync()` synchronously during render, the moment `open` flips from false to true — the
+/** Runs `sync()` synchronously during render, the moment `open` flips from false to true, the
  * React-documented "adjusting state when a prop changes" pattern
  * (https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes),
  * used instead of a `useEffect` because this project's eslint config

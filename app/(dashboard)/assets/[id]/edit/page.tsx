@@ -35,7 +35,7 @@ export default async function EditAssetPage({
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Edit asset</h1>
         <p className="text-muted-foreground text-sm">
-          {asset.assetTag} — {asset.name}
+          {asset.assetTag} - {asset.name}
         </p>
       </div>
       <AssetForm

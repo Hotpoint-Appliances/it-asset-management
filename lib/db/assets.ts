@@ -26,7 +26,7 @@ export interface AssetRow {
   condition_id: number;
   status_id: number;
   vendor_id: number | null;
-  // pg parses date/timestamptz columns into Date objects at runtime — see lib/db/dates.ts
+  // pg parses date/timestamptz columns into Date objects at runtime; see lib/db/dates.ts
   purchase_date: Date | string | null;
   purchase_cost: string | null;
   warranty_expiry: Date | string | null;
@@ -87,7 +87,7 @@ const RELATIONS_SELECT = `
   au.full_name AS assigned_user_name, cb.full_name AS created_by_name
 `;
 
-const RELATIONS_JOIN = `
+export const RELATIONS_JOIN = `
   FROM assets a
   JOIN categories c ON c.id = a.category_id
   JOIN locations l ON l.id = a.location_id
@@ -170,7 +170,7 @@ export interface AssetRequester {
 /** Builds the shared WHERE clause + params for list/count, including the viewer department
  * scoping enforced at the query layer per itam-conventions (consistent with Phase 2's pattern
  * in listUsers). */
-function buildAssetFilterClause(
+export function buildAssetFilterClause(
   filters: AssetFilters,
   requester: AssetRequester,
 ): { where: string; params: unknown[] } {
@@ -226,7 +226,7 @@ export async function listAssets(
 }
 
 /** Returns null both when the asset doesn't exist and when a viewer requests one outside their
- * own department — the caller (page/route) treats both as a 404, never leaking existence. */
+ * own department, the caller (page/route) treats both as a 404, never leaking existence. */
 export async function getAssetById(
   id: string,
   requester: AssetRequester,
@@ -303,7 +303,7 @@ const AUDIT_ACTION_BY_FIELD: Record<string, string> = {
   status_id: "status_change",
 };
 
-/** Columns considered for audit-log diffing on update — everything mutable via the edit form
+/** Columns considered for audit-log diffing on update, everything mutable via the edit form
  * except asset_tag/name, which change rarely enough that a generic "updated" row still covers
  * them if they do. */
 const TRACKED_FIELDS: { column: string; get: (i: AssetInput) => unknown }[] = [
@@ -356,7 +356,7 @@ function fieldFromAsset(asset: Asset, column: string): unknown {
 }
 
 /** Strips the non-input fields off a mapped `Asset` so it can be used as the base for a
- * merge-patch (see `patchAssetFields`) — the inverse of what `updateAssetInternal` writes. */
+ * merge-patch (see `patchAssetFields`), the inverse of what `updateAssetInternal` writes. */
 function assetToInput(asset: Asset): AssetInput {
   return {
     assetTag: asset.assetTag,
@@ -382,7 +382,7 @@ function assetToInput(asset: Asset): AssetInput {
   };
 }
 
-/** Shared body for every full-column `assets` UPDATE — a full-form edit (`updateAsset`) and
+/** Shared body for every full-column `assets` UPDATE, a full-form edit (`updateAsset`) and
  * every dedicated lifecycle action (`patchAssetFields`) below both funnel through this so the
  * field-level audit diffing (see `AUDIT_ACTION_BY_FIELD`/`TRACKED_FIELDS`) only lives once.
  * `note` (used by the lost/stolen status-change rule in docs/asset-lifecycle-flow.md) is
@@ -475,7 +475,7 @@ export async function updateAsset(
 
 /** Shared by every dedicated lifecycle action (transfer/condition/status change): merges `patch`
  * over whatever `updateAssetInternal`'s own `FOR UPDATE` read finds (not a separate unlocked
- * read — a stale merge base could otherwise silently revert a field touched by a concurrent
+ * read, a stale merge base could otherwise silently revert a field touched by a concurrent
  * transaction), so only the touched fields generate audit rows. */
 async function patchAssetFields(
   id: string,
@@ -504,7 +504,7 @@ export interface TransferInput {
 }
 
 /** Transfer action (phase-5-asset-lifecycle Step 1): location/department/owner change in one
- * submission. Owner fields are dual-mode per itam-schema-reference — setting `assignedUserId`
+ * submission. Owner fields are dual-mode per itam-schema-reference, setting `assignedUserId`
  * clears the free-text owner fields and vice versa, mirroring AssetForm's owner-mode toggle. */
 export async function transferAsset(
   id: string,
@@ -540,7 +540,7 @@ export async function changeAssetCondition(
 
 /** Status change action (phase-5-asset-lifecycle Step 3). Transition-rule enforcement (disposed
  * blocked, lost/stolen requires `note`) lives in the API route, which resolves status names
- * before calling this — this function only applies the change and attaches `note` to the
+ * before calling this, this function only applies the change and attaches `note` to the
  * `status_change` audit row when provided. */
 export async function changeAssetStatus(
   id: string,
@@ -551,7 +551,7 @@ export async function changeAssetStatus(
   return patchAssetFields(id, { statusId }, performedBy, note);
 }
 
-/** Soft delete (phase-5-asset-lifecycle Step 7) — data-entry correction only, never disposal.
+/** Soft delete (phase-5-asset-lifecycle Step 7), data-entry correction only, never disposal.
  * Every `lib/db/assets.ts` read already filters on `deleted_at IS NULL`, so this alone removes
  * the asset from every list/detail/API path immediately. */
 export async function softDeleteAsset(

@@ -11,7 +11,7 @@ export interface NavItem {
 }
 
 // Categories/Locations/Departments/Users live under Settings (phase-3-core-data) rather than as
-// their own top-level items — keeps the sidebar from growing one entry per lookup table.
+// their own top-level items, keeps the sidebar from growing one entry per lookup table.
 export const navItems: NavItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
   { label: "Assets", href: "/assets", icon: Boxes },

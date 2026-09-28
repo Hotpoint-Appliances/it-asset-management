@@ -4,23 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { LinkProgress } from "./LinkProgress";
-
-const settingsNavItems = [
-  { label: "Categories", href: "/settings/categories" },
-  { label: "Locations", href: "/settings/locations" },
-  { label: "Departments", href: "/settings/departments" },
-  { label: "Vendors", href: "/settings/vendors" },
-  { label: "Conditions", href: "/settings/conditions" },
-  { label: "Statuses", href: "/settings/statuses" },
-  { label: "Users", href: "/settings/users" },
-];
+import { settingsSections } from "./settings-sections";
 
 export function SettingsNav() {
   const pathname = usePathname();
 
   return (
     <nav className="border-border scroll-area-thin flex gap-1 overflow-x-auto border-b">
-      {settingsNavItems.map((item) => {
+      {settingsSections.map((item) => {
         const active =
           pathname === item.href || pathname.startsWith(`${item.href}/`);
         return (

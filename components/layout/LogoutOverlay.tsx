@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 import { Portal } from "@/components/ui/Portal";
 import { useUIStore } from "@/store";
 
-/** Mounted once at the `AppShell` level (not inside `UserMenu`'s `DropdownMenuContent` — that
+/** Mounted once at the `AppShell` level (not inside `UserMenu`'s `DropdownMenuContent`, that
  * unmounts on `onSelect`, which would take this down with it before the redirect fires) and
  * driven by the shared `loggingOut` flag so it survives the menu closing. */
 export function LogoutOverlay() {

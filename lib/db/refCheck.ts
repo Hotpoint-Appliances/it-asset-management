@@ -24,7 +24,7 @@ export async function assertNotReferencedByAssets(
   column: AssetRefColumn,
   id: number | string,
 ): Promise<void> {
-  // `column` is interpolated directly into SQL below — guard against a caller bypassing the
+  // `column` is interpolated directly into SQL below, guard against a caller bypassing the
   // AssetRefColumn type (e.g. via `as`) rather than trusting the type alone.
   if (!ASSET_REF_COLUMNS.includes(column)) {
     throw new Error(`Invalid asset reference column: ${column}`);

@@ -26,5 +26,9 @@ export async function proxy(request: NextRequest) {
 export const config = {
   // API routes verify the session themselves (see the Route Handlers note in
   // itam-conventions) and return JSON 401/403 rather than an HTML redirect.
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  // App icons are excluded too: redirecting them to /login hands the browser an
+  // HTML page instead of an image (Firefox prefers icon.svg over favicon.ico).
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png).*)",
+  ],
 };

@@ -26,6 +26,7 @@ import {
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
 import type { Department } from "@/types/department";
+import { RequiredMark } from "@/components/shared/RequiredMark";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -135,7 +136,7 @@ export function DepartmentsManager({
             {initialDepartments.map((department) => (
               <TableRow key={department.id}>
                 <TableCell className="font-medium">{department.name}</TableCell>
-                <TableCell>{department.code ?? "—"}</TableCell>
+                <TableCell>{department.code ?? "N/A"}</TableCell>
                 <TableCell className="text-right">
                   <Button
                     variant="ghost"
@@ -175,6 +176,7 @@ export function DepartmentsManager({
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="dept-name" className="text-sm font-medium">
                   Name
+                  <RequiredMark />
                 </label>
                 <Input
                   id="dept-name"
