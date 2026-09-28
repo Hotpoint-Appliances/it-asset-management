@@ -23,7 +23,8 @@ export function ThemeToggle() {
 
   React.useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key.toLowerCase() !== "d") return;
+      // Chrome autofill dispatches a synthetic `keydown` with no `key`.
+      if (e.key?.toLowerCase() !== "d") return;
       if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
       if (isTypingTarget(e.target)) return;
       e.preventDefault();
