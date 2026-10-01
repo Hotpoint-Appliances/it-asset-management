@@ -25,7 +25,8 @@ done — this phase is a sweep, not new feature work.
    in [[itam-design-system]]. This phase catches what slipped through — responsiveness itself
    should already be built in from Phase 1 onward, not introduced here for the first time.
 3. **Empty states** — every list view (assets, categories, locations, departments, vendors,
-   users, notifications, reports) has a designed empty state, not a blank table.
+   users, notifications, reports) has a designed empty state, not a blank table. (Phase 7's
+   `/notifications` page and bell dropdown already ship one each — confirm, don't rebuild.)
 4. **Loading states** — `Skeleton` components on every data-dependent view, no unstyled
    spinner-only screens.
 5. **Error boundaries** — a root error boundary and per-route error handling
@@ -42,6 +43,13 @@ done — this phase is a sweep, not new feature work.
 10. **End-to-end smoke pass** — walk the full asset lifecycle once manually: create → assign →
     transfer (location/department/owner) → condition change → send to repair → return to
     active → dispose. Confirm the audit log timeline reads correctly at the end.
+
+11. **Deployment check for Phase 7's scheduled notifications** — on the Windows Server host:
+    migration `schema/migrations/001_notifications_dedupe_key.sql` applied, `CRON_SECRET` /
+    `ITAM_APP_URL` set in the app's env (and `NOTIFICATION_EMAIL_ENABLED` not `false` in
+    production), the `ITAM Notifications Check` task registered per
+    `scripts/run-notifications-check.ps1`'s help, one manual `Start-ScheduledTask` run returning
+    `LastTaskResult` 0 with an `OK` line in its log. Record the deployed schedule in the ops notes.
 
 ## Exit criteria
 

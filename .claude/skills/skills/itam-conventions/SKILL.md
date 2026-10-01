@@ -43,6 +43,8 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
                                 # only; at the (dashboard) root it would be the first loading
                                 # boundary for every sibling route and flash on /reports, /settings
   /(dashboard)/reports/page.tsx # reports hub â€” download cards, role-aware (Phase 6)
+  /(dashboard)/notifications/{page,loading}.tsx  # the user's notifications, paginated, All/Unread
+                                # filter; the bell's "View all" target, no sidebar entry (Phase 7)
   /(auth)/login/page.tsx        # Phase 2
   /(dashboard)/layout.tsx       # requireSession() + <AppShell> â€” added Phase 3 so pages stop
                                  # each wrapping themselves in AppShell individually
@@ -79,6 +81,12 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
                                 # GET, exceljs workbook as Content-Disposition: attachment.
                                 # asset-register/audit-trail: every role (viewer dept-scoped in the
                                 # query); disposal-register/depreciation: admin + asset_manager (Phase 6)
+  /api/notifications/route.ts   # GET, session user's own only (limit/offset/unread=1) (Phase 7)
+  /api/notifications/[id]/route.ts        # PATCH {isRead} (Phase 7)
+  /api/notifications/read-all/route.ts    # POST (Phase 7)
+  /api/cron/notifications-check/route.ts  # POST, no session â€” Bearer CRON_SECRET (constant-time
+                                # compare; 503 if unset). Every /api/cron/* route follows this
+                                # pattern. Called by scripts/run-notifications-check.ps1 (Phase 7)
 /components
   providers.tsx                # ThemeProvider (next-themes) + TanStack QueryClientProvider
   /ui/                         # shadcn-style primitives: button, input, select, dialog, sheet,
@@ -105,6 +113,8 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
                                 # WarrantyExpiringCard (client, window toggle), RecentActivityCard,
                                 # InRepairCard (Phase 6)
   /reports/                    # ReportCard, AuditTrailReportCard (date-range options) (Phase 6)
+  /notifications/              # NotificationBell (Topbar), NotificationItem (shared row),
+                                # NotificationsList (/notifications page) (Phase 7)
   /auth/                        # LoginForm etc. (Phase 2)
   /layout/                     # AppShell, Sidebar, Topbar, SettingsNav, ThemeToggle, UserMenu, nav-items
                                 # (Sidebar/Topbar take a className prop so AppShell can pass
@@ -130,6 +140,11 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
   /hooks/useSyncOnOpen.ts       # resets a Dialog's form to current values when it reopens, via
                                 # render-time state adjustment rather than useEffect (this repo's
                                 # eslint config flags synchronous setState-in-effect) (Phase 5)
+  /hooks/useNotifications.ts    # TanStack Query hooks for the bell + page; shared ["notifications"]
+                                # key prefix, 60 s poll + refetch on focus (Phase 7)
+  /notifications/triggers.ts    # every notification rule: scheduleAssetChangeNotifications() (runs
+                                # in next/server after(), post-commit) and runScheduledChecks()
+                                # (warranty_expiring, maintenance_due, email retry) (Phase 7)
   /db/                         # pg pool + query functions, one file per table/domain;
                                 # refCheck.ts's assertNotReferencedByAssets() guards every lookup
                                 # table's DELETE against a live asset FK (Phase 3); query.ts
@@ -157,7 +172,9 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
                                 # systemSettings.ts (getSetting/getWarrantyWindows) (Phase 6) â€”
                                 # every one takes the requester and scopes viewers in SQL;
                                 # assets.ts now exports buildAssetFilterClause/RELATIONS_JOIN for
-                                # reports.ts to reuse
+                                # reports.ts to reuse. notifications.ts (Phase 7); updateAsset()/
+                                # transferAsset() return AssetChange {before, after} so triggers
+                                # diff the locked pre-update row (Phase 7)
   /auth/                       # jose session helpers (session.ts, session-context.tsx), password
                                 # hashing; api.ts's getApiSession()/requireApiRole() is the route-
                                 # handler counterpart (401/403 JSON, not a redirect) (Phase 3)
@@ -168,10 +185,15 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
                                 # transfer/maintenance/disposal validators (condition/status
                                 # changes are simple enough to validate inline in their routes)
                                 # (Phase 5)
-  /email/                      # msal-node + Graph email senders
+  /email/                      # graphClient.ts (MSAL client-credentials token, isEmailConfigured),
+                                # sendEmail.ts (Graph sendMail), templates.ts (single/digest HTML,
+                                # appUrl()). Email is always best-effort and never inside an asset
+                                # transaction (Phase 7)
 /scripts/seed-admin.ts          # first-admin bootstrap, npm run seed:admin (Phase 2)
 /scripts/seed-demo.ts           # re-runnable demo data (14 DEMO-* assets + maintenance/disposal/
                                 # audit rows), npm run seed:demo; only ever deletes DEMO-* tags (Phase 6)
+/scripts/run-notifications-check.ps1  # thin Task Scheduler trigger for /api/cron/notifications-check;
+                                # its comment-based help holds the server setup steps (Phase 7)
 /store                         # zustand stores (index.ts holds useUIStore: mobileNavOpen + the
                                 # toasts slice backing components/ui/Toast.tsx; add slices, not
                                 # new stores)
@@ -180,7 +202,9 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
                                 # multiple components; narrow/local types (e.g. AuthUser) stay in
                                 # their lib/db file instead; asset.ts/assetAttachment.ts added
                                 # Phase 4
-/schema/schema.sql              # source of truth for DB structure
+/schema/schema.sql              # source of truth for DB structure (lives in .claude/skills/schema/)
+/schema/migrations/NNN_*.sql    # idempotent changes for existing DBs (from Phase 7), see
+                                # itam-schema-reference "Schema changes"
 /docs                          # flow docs, ERD notes
 ```
 
@@ -202,10 +226,16 @@ ASSET_FILES_BASE_PATH=D:\itam-files          # Windows server disk path for imag
 MSAL_CLIENT_ID=...
 MSAL_CLIENT_SECRET=...
 MSAL_TENANT_ID=...
-NOTIFICATION_FROM_EMAIL=...
+NOTIFICATION_FROM_EMAIL=...                  # sender mailbox; app needs Graph Mail.Send (application)
+NOTIFICATION_EMAIL_ENABLED=true              # false = in-app only; dev/staging kill switch (Phase 7)
 CRON_SECRET=...                              # shared secret required by /api/cron/* routes
-ITAM_APP_URL=https://itam.internal.example   # base URL the scheduled PowerShell script calls
+ITAM_APP_URL=https://itam.internal.example   # base URL for email links + what the scheduled script calls
 ```
+
+The Task Scheduler host side doesn't read `.env`: `scripts/run-notifications-check.ps1` takes
+`-AppUrl` (or `$env:ITAM_APP_URL`) and reads the secret from an ACL-restricted file
+(`C:\ProgramData\ITAM\cron-secret.txt`) or `$env:ITAM_CRON_SECRET`. Its value must equal the
+app's `CRON_SECRET`.
 
 `ASSET_FILES_BASE_PATH` is the root directory for all uploaded files. `assets.image_path` and
 `asset_attachments.file_path` store paths **relative** to this root â€” never store absolute

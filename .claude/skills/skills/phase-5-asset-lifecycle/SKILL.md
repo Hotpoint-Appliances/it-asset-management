@@ -167,6 +167,14 @@ above and `tsc`/lint clean, and found six gaps, all fixed in the Phase 6 preambl
   API call can't store a method no report can compute). The column comment in `schema.sql` is
   updated; no migration was needed (the dataset had no legacy `declining_balance` rows).
 
+## Changed by Phase 7
+
+- `transferAsset()` (and Phase 4's `updateAsset()`) now return `AssetChange` (`{ before, after }`)
+  instead of `Asset`, so the notification triggers diff the locked pre-update row. The transfer
+  route responds with `change.after` (response shape unchanged) and calls
+  `scheduleAssetChangeNotifications()` after the transaction commits — see
+  `phase-7-notifications`.
+
 ## Exit criteria
 
 - Every mutation described above produces the correct `asset_audit_log` row(s) — verified live

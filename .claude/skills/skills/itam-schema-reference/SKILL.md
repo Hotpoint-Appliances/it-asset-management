@@ -50,6 +50,23 @@ looks the way it does so implementation stays consistent with the design decisio
    Room; Hardware → Laptops). Phase 3 (core data) must build a tree-aware picker component, not
    a flat dropdown.
 
+8. **Scheduled notifications are idempotent by key, not by timing.** `notifications.dedupe_key`
+   (nullable, unique per `user_id` where not null) lets the daily warranty/maintenance check
+   `INSERT ... ON CONFLICT DO NOTHING` and be re-run safely. Event notifications leave it `NULL`.
+   Key formats are documented in `schema/migrations/001_notifications_dedupe_key.sql`.
+
+## Schema changes (migrations)
+
+`schema.sql` always describes the current schema for a fresh install. Any change to an existing
+table also gets a numbered, idempotent script in `schema/migrations/` (`NNN_short_name.sql`,
+using `IF NOT EXISTS` etc.) with a header explaining why, so an already-deployed database can be
+brought up to date in order. Update both in the same change. There's no migration runner (no
+ORM): apply with `psql "$DATABASE_URL" -f <file>`.
+
+| Migration                        | Phase | Change                                                          |
+| -------------------------------- | ----- | --------------------------------------------------------------- |
+| `001_notifications_dedupe_key`   | 7     | `notifications.dedupe_key` + partial unique index + `(user_id, created_at DESC)` index |
+
 ## Table reference
 
 | Table               | Purpose                                                                                          |
@@ -67,7 +84,7 @@ looks the way it does so implementation stays consistent with the design decisio
 | `asset_attachments` | Multiple files per asset (invoices, warranty cards, extra photos) beyond `assets.image_path`     |
 | `asset_maintenance` | Repair/service/inspection events                                                                 |
 | `asset_disposals`   | One row per disposed asset — required before status can become `disposed`                        |
-| `notifications`     | In-app notifications + email-sent flag (Graph email)                                             |
+| `notifications`     | In-app notifications + email-sent flag (Graph email); `dedupe_key` makes scheduled alerts idempotent (Phase 7) |
 | `system_settings`   | Admin-editable key/value config                                                                  |
 
 ## When writing query functions (`lib/db/*.ts`)

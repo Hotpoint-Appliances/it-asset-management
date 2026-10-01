@@ -393,7 +393,7 @@ async function updateAssetInternal(
   inputOrMerge: AssetInput | ((before: Asset) => AssetInput),
   performedBy: string,
   note?: string | null,
-): Promise<{ before: Asset; after: Asset } | null> {
+): Promise<AssetChange | null> {
   const existingResult = await client.query<AssetRow>(
     `SELECT ${SELECT_COLUMNS} FROM assets WHERE id = $1 AND deleted_at IS NULL FOR UPDATE`,
     [id],
@@ -462,15 +462,22 @@ async function updateAssetInternal(
   return { before, after };
 }
 
+/** The row as the update's own `FOR UPDATE` read found it, and as written. Returned by the
+ * owner/location-changing writes (full edit, transfer) so phase-7's notification triggers diff
+ * against the locked pre-update state rather than a separate, racy read. */
+export interface AssetChange {
+  before: Asset;
+  after: Asset;
+}
+
 export async function updateAsset(
   id: string,
   input: AssetInput,
   performedBy: string,
-): Promise<Asset | null> {
-  return withTransaction(async (client) => {
-    const result = await updateAssetInternal(client, id, input, performedBy);
-    return result?.after ?? null;
-  });
+): Promise<AssetChange | null> {
+  return withTransaction((client) =>
+    updateAssetInternal(client, id, input, performedBy),
+  );
 }
 
 /** Shared by every dedicated lifecycle action (transfer/condition/status change): merges `patch`
@@ -482,17 +489,16 @@ async function patchAssetFields(
   patch: Partial<AssetInput>,
   performedBy: string,
   note?: string | null,
-): Promise<Asset | null> {
-  return withTransaction(async (client) => {
-    const result = await updateAssetInternal(
+): Promise<AssetChange | null> {
+  return withTransaction((client) =>
+    updateAssetInternal(
       client,
       id,
       (before) => ({ ...assetToInput(before), ...patch }),
       performedBy,
       note,
-    );
-    return result?.after ?? null;
-  });
+    ),
+  );
 }
 
 export interface TransferInput {
@@ -510,7 +516,7 @@ export async function transferAsset(
   id: string,
   input: TransferInput,
   performedBy: string,
-): Promise<Asset | null> {
+): Promise<AssetChange | null> {
   const patch: Partial<AssetInput> = {};
   if (input.locationId !== undefined) patch.locationId = input.locationId;
   if (input.departmentId !== undefined) patch.departmentId = input.departmentId;
@@ -535,7 +541,9 @@ export async function changeAssetCondition(
   conditionId: number,
   performedBy: string,
 ): Promise<Asset | null> {
-  return patchAssetFields(id, { conditionId }, performedBy);
+  return (
+    (await patchAssetFields(id, { conditionId }, performedBy))?.after ?? null
+  );
 }
 
 /** Status change action (phase-5-asset-lifecycle Step 3). Transition-rule enforcement (disposed
@@ -548,7 +556,9 @@ export async function changeAssetStatus(
   performedBy: string,
   note?: string | null,
 ): Promise<Asset | null> {
-  return patchAssetFields(id, { statusId }, performedBy, note);
+  return (
+    (await patchAssetFields(id, { statusId }, performedBy, note))?.after ?? null
+  );
 }
 
 /** Soft delete (phase-5-asset-lifecycle Step 7), data-entry correction only, never disposal.

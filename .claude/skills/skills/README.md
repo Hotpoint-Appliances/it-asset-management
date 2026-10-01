@@ -27,7 +27,7 @@ when development starts.
    | 4     | `phase-4-asset-management`    | Asset CRUD, image upload, QR code labels                                          |
    | 5     | `phase-5-asset-lifecycle`     | Transfers, condition/status changes, maintenance, disposal, audit timeline        |
    | 6     | `phase-6-dashboard-reporting` | Dashboard widgets, exceljs exports                                                |
-   | 7     | `phase-7-notifications`       | MSAL/Graph email, in-app notifications                                            |
+   | 7     | `phase-7-notifications`       | MSAL/Graph email, bell + /notifications page, daily check via Task Scheduler     |
    | 8     | `phase-8-polish`              | Theming/responsive/a11y sweep, QA smoke pass                                      |
 
 ## Model routing
@@ -41,5 +41,7 @@ codebase, not as the default for every phase.
 
 ## Supporting documents (not skills, referenced by skills above)
 
-- `schema/schema.sql` — source-of-truth DDL
+- `schema/schema.sql` — source-of-truth DDL (always reflects the latest state, for fresh installs)
+- `schema/migrations/NNN_*.sql` — idempotent, numbered changes to apply to an existing database,
+  in order (first one: `001_notifications_dedupe_key.sql`, Phase 7)
 - `docs/asset-lifecycle-flow.md` — asset state machine and transition rules

@@ -94,6 +94,58 @@ export async function createMaintenance(
   return mapMaintenance(result.rows[0]);
 }
 
+export interface MaintenanceDueItem {
+  id: number;
+  assetId: string;
+  assetTag: string;
+  assetName: string;
+  maintenanceType: AssetMaintenance["maintenanceType"];
+  vendorName: string | null;
+  scheduledDate: string;
+  daysOverdue: number;
+  createdBy: string;
+}
+
+/** Scheduled maintenance whose date has arrived (or passed) and that nobody has started: the
+ * `maintenance_due` trigger's input (phase-7). Records on disposed or soft-deleted assets are
+ * skipped, nothing about them is actionable. Every due record is returned each run; the
+ * notification's dedupe key is what stops it being re-sent. */
+export async function listMaintenanceDue(): Promise<MaintenanceDueItem[]> {
+  const result = await query<{
+    id: number;
+    asset_id: string;
+    asset_tag: string;
+    asset_name: string;
+    maintenance_type: AssetMaintenance["maintenanceType"];
+    vendor_name: string | null;
+    scheduled_date: Date | string;
+    days_overdue: number;
+    created_by: string;
+  }>(
+    `SELECT m.id, m.asset_id, a.asset_tag, a.name AS asset_name, m.maintenance_type,
+            v.name AS vendor_name, m.scheduled_date,
+            (CURRENT_DATE - m.scheduled_date)::int AS days_overdue, m.created_by
+     FROM asset_maintenance m
+     JOIN assets a ON a.id = m.asset_id
+     JOIN asset_statuses st ON st.id = a.status_id
+     LEFT JOIN vendors v ON v.id = m.vendor_id
+     WHERE m.status = 'scheduled' AND m.scheduled_date <= CURRENT_DATE
+       AND a.deleted_at IS NULL AND st.name <> 'disposed'
+     ORDER BY m.scheduled_date, a.asset_tag`,
+  );
+  return result.rows.map((r) => ({
+    id: r.id,
+    assetId: r.asset_id,
+    assetTag: r.asset_tag,
+    assetName: r.asset_name,
+    maintenanceType: r.maintenance_type,
+    vendorName: r.vendor_name,
+    scheduledDate: toDateOnlyString(r.scheduled_date)!,
+    daysOverdue: r.days_overdue,
+    createdBy: r.created_by,
+  }));
+}
+
 /** Status transitions and field edits share one endpoint (phase-5-asset-lifecycle Step 4),
  * `completedDate` defaults to today when the caller marks `completed` without supplying one. */
 export async function updateMaintenance(

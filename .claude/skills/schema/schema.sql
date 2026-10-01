@@ -264,9 +264,15 @@ CREATE TABLE notifications (
   related_asset_id UUID REFERENCES assets(id) ON DELETE SET NULL,
   is_read BOOLEAN NOT NULL DEFAULT FALSE,
   email_sent BOOLEAN NOT NULL DEFAULT FALSE,
+  -- Idempotency key for scheduled alerts (warranty_expiring / maintenance_due) so a daily run
+  -- never re-sends the same one; NULL for event-driven types. See migrations/001.
+  dedupe_key VARCHAR(200),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_notifications_user ON notifications(user_id, is_read);
+CREATE INDEX idx_notifications_user_created ON notifications(user_id, created_at DESC);
+CREATE UNIQUE INDEX uq_notifications_user_dedupe
+  ON notifications(user_id, dedupe_key) WHERE dedupe_key IS NOT NULL;
 
 -- ============================================================
 -- System settings (key/value config editable by admins)
