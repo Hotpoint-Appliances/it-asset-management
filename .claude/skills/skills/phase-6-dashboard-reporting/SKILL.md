@@ -116,20 +116,26 @@ section. The same pass introduced the shared `DatePicker` used by the reports pa
   shows both disposals; no raw ids anywhere; the timeline shows the assigned user's name (D1).
 - Unauthenticated HTTP against the running dev server: all four report routes and the disposal
   attachment route return 401; `/reports` and `/` redirect to `/login`.
-- **Not yet verified in a browser** (Claude in Chrome tools were unavailable in this session, so
-  authenticated pages and downloads were not exercised end to end): rendering of `/`, `/reports`,
-  the disposal panel, the `DatePicker` (open/select/keyboard/Escape inside a Dialog), the Export
-  buttons, the 403 on disposal/depreciation for a viewer, and a 390px pass. Do this before
-  treating Phase 6 as closed.
+- **Browser verification, completed as Phase 7's preamble** (originally left pending here because
+  Claude in Chrome was unavailable): admin `/` in the user's Chrome session (dashboard renders,
+  30/60/90 toggle works, no console errors), plus headless Playwright with temporary admin and
+  Operations-viewer users (18 checks, zero console/page errors). Viewer: asset register and audit
+  trail 200, disposal register and depreciation **403**, `/reports` hides both cards, dashboard
+  renders scoped. Admin: dashboard renders; all four `/api/reports/*` return real `.xlsx`
+  (zip magic, correct content-type); the `DatePicker` inside the Disposal `Dialog` opens, supports
+  keyboard selection, Escape closes only the calendar and a second Escape closes the Dialog; the
+  audit-trail card's From/To pickers support keyboard selection; the Assets list **Export**
+  downloads `asset-register-<date>.xlsx`. 390px: no horizontal scroll on `/`, `/reports` or asset
+  detail. No defects found.
 
 ## Exit criteria
 
 - Dashboard loads with real data from the seeded/test dataset, correctly scoped per role
-  (data layer verified as above; page rendering pending browser check).
+  (data layer and page rendering both verified, see above).
 - Each report exports a valid `.xlsx` file openable in Excel with correctly resolved lookup
   names (no raw foreign key ids in the output), verified by reading the generated files back.
 - Viewer access to the disposal register / depreciation summary is 403 (route-level
-  `requireApiRole`; live 403 check pending an authenticated session).
+  `requireApiRole`; verified live with an authenticated viewer session).
 
 ## Produces (for later phases to reference)
 
@@ -137,8 +143,8 @@ section. The same pass introduced the shared `DatePicker` used by the reports pa
 - `app/api/reports/{asset-register,audit-trail,disposal-register,depreciation}/route.ts`
 - `lib/reports/{reports,workbook,depreciation,params}.ts` (one builder per report, shared exceljs
   helpers, pure straight-line formula, query-string parsing)
-- `lib/db/{dashboard,reports,systemSettings}.ts`; `listWarrantyExpiring()` is the query Phase 7's
-  warranty notification trigger should reuse
+- `lib/db/{dashboard,reports,systemSettings}.ts`; `listWarrantyExpiring()` is reused by Phase 7's
+  `runWarrantyExpiringCheck()` (with an unscoped requester and a high limit)
 - `types/dashboard.ts`; `components/dashboard/*`, `components/reports/*`
 - `components/ui/DatePicker.tsx`, `scripts/seed-demo.ts`, `npm run seed:demo`
 

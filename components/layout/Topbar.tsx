@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Menu, Bell, ChevronLeft } from "lucide-react";
+import { Menu, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import {
   Sheet,
@@ -14,6 +14,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { SidebarNav } from "./SidebarNav";
 import { UserMenu } from "./UserMenu";
 import { QuickActions } from "./QuickActions";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useUIStore } from "@/store";
 import { cn } from "@/lib/utils";
 import { AppLogo } from "@/components/shared/AppLogo";
@@ -101,9 +102,7 @@ export function Topbar({
         >
           <ChevronLeft className="h-5 w-5" />
         </Button>
-        <Button variant="ghost" size="icon" aria-label="Notifications">
-          <Bell className="h-5 w-5" />
-        </Button>
+        <NotificationBell />
         <ThemeToggle />
         <UserMenu />
       </div>

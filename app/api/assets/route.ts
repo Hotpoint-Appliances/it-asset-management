@@ -11,6 +11,7 @@ import {
   saveAssetImage,
   UploadValidationError,
 } from "@/lib/files/upload";
+import { scheduleAssetChangeNotifications } from "@/lib/notifications/triggers";
 import type { AssetFilters } from "@/types/asset";
 
 function parseIds(searchParams: URLSearchParams, key: string): number[] {
@@ -92,6 +93,10 @@ export async function POST(request: NextRequest) {
     }
     throw err;
   }
+  scheduleAssetChangeNotifications(
+    { before: null, after: asset },
+    session.userId,
+  );
 
   if (imageFile) {
     const { relativePath } = await saveAssetImage(asset.id, imageFile);

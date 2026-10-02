@@ -17,6 +17,7 @@ import {
   deleteUploadedFile,
   UploadValidationError,
 } from "@/lib/files/upload";
+import { scheduleAssetChangeNotifications } from "@/lib/notifications/triggers";
 
 export async function GET(
   _request: NextRequest,
@@ -78,9 +79,9 @@ export async function PATCH(
     return NextResponse.json({ error: validated.error }, { status: 400 });
   }
 
-  let asset;
+  let change;
   try {
-    asset = await updateAsset(id, validated.data, session.userId);
+    change = await updateAsset(id, validated.data, session.userId);
   } catch (err) {
     if (isUniqueViolation(err)) {
       return NextResponse.json(
@@ -99,9 +100,11 @@ export async function PATCH(
     }
     throw err;
   }
-  if (!asset) {
+  if (!change) {
     return NextResponse.json({ error: "Asset not found" }, { status: 404 });
   }
+  scheduleAssetChangeNotifications(change, session.userId);
+  let asset = change.after;
 
   if (imageFile) {
     const previousImagePath = existing.imagePath;
