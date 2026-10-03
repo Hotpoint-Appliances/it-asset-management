@@ -9,6 +9,7 @@ import type {
   AssetFilters,
 } from "@/types/asset";
 import type { RoleName } from "@/lib/auth/session";
+import type { AssetSort } from "@/lib/assetSort";
 
 export interface AssetRow {
   id: string;
@@ -197,11 +198,41 @@ export function buildAssetFilterClause(
   return { where, params };
 }
 
+/** SQL for each sortable column (lib/assetSort.ts keys) over RELATIONS_JOIN's aliases. A fixed
+ * whitelist: the user's `sort` value only ever selects one of these strings, never reaches SQL.
+ * Status/condition follow their admin-editable sort_order, not the alphabet. */
+const ASSET_SORT_SQL: Record<AssetSort["key"], string> = {
+  tag: "a.asset_tag",
+  name: "lower(a.name)",
+  category: "lower(c.name)",
+  status: "st.sort_order",
+  condition: "cond.sort_order",
+  location: "lower(l.name)",
+  department: "lower(d.name)",
+  owner: "lower(COALESCE(au.full_name, a.owner_name))",
+  updated: "a.updated_at",
+};
+
+/** ORDER BY for the asset list / register: the requested column (with a.id as a stable
+ * tiebreaker so paging never shuffles equal rows), or `fallback` when no sort was asked for. */
+export function buildAssetOrderBy(
+  sort: AssetSort | null | undefined,
+  fallback: string,
+): string {
+  if (!sort) return fallback;
+  const dir = sort.dir === "desc" ? "DESC" : "ASC";
+  return `${ASSET_SORT_SQL[sort.key]} ${dir} NULLS LAST, a.id ${dir}`;
+}
+
 export async function listAssets(
   filters: AssetFilters,
   requester: AssetRequester,
 ): Promise<PageResult<AssetListItem>> {
   const { where, params } = buildAssetFilterClause(filters, requester);
+  const orderBy = buildAssetOrderBy(
+    filters.sort,
+    "a.created_at DESC, a.id DESC",
+  );
   const [rows, count] = await Promise.all([
     query<AssetListRow>(
       `SELECT a.id, a.asset_tag, a.name, a.image_path,
@@ -210,7 +241,7 @@ export async function listAssets(
               a.assigned_user_id, au.full_name AS assigned_user_name, a.owner_name, a.owner_email
        ${RELATIONS_JOIN}
        WHERE ${where}
-       ORDER BY a.created_at DESC
+       ORDER BY ${orderBy}
        LIMIT $9 OFFSET $10`,
       [...params, filters.limit, filters.offset],
     ),

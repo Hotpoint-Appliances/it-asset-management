@@ -11,11 +11,24 @@
     The endpoint is idempotent. Running this twice, or manually after the scheduled run, creates
     no duplicate notifications (see notifications.dedupe_key) and only emails what is still unsent.
 
+    Retries: if the app can't be reached at all (connection refused / DNS, e.g. PM2 restarting
+    it) or answers with a 5xx other than 503, the script waits -RetryDelaySeconds and tries again,
+    up to -MaxAttempts in total. It does NOT retry:
+      - 401 / 503: configuration errors (wrong secret / CRON_SECRET unset) that waiting won't fix;
+      - a timeout: the request reached the app, which may still be sending emails, and a second
+        overlapping run could email the same digest twice. The next scheduled run picks up
+        whatever is left.
+    (Task Scheduler's own -RestartCount setting is not a substitute: it reacts to the task failing
+    to launch, not to this script exiting 1.)
+
     Exit code 0 on success, 1 on any failure, so Task Scheduler's "Last Run Result" reflects it.
+    ASCII-only on purpose: Windows PowerShell 5.1 reads BOM-less files as the ANSI code page.
     Compatible with Windows PowerShell 5.1 and PowerShell 7+.
 
 .PARAMETER AppUrl
-    Base URL of the app, e.g. https://itam.internal.example. Defaults to $env:ITAM_APP_URL.
+    Base URL of the app. On the app server use the local Node port directly, e.g.
+    http://127.0.0.1:3000: it skips nginx, DNS and certificate trust, and the secret never leaves
+    the host. Defaults to $env:ITAM_APP_URL.
 
 .PARAMETER SecretFile
     Path to a file whose only content is the app's CRON_SECRET value. Preferred over the
@@ -27,8 +40,19 @@
     Log file. Defaults to C:\ProgramData\ITAM\logs\notifications-check.log. Rolled over to
     .log.old at 5 MB, so at most ~10 MB is kept.
 
+.PARAMETER MaxAttempts
+    Total attempts for retryable failures (see DESCRIPTION). Default 3.
+
+.PARAMETER RetryDelaySeconds
+    Wait between attempts. Default 300 (5 minutes).
+
+.PARAMETER TimeoutSec
+    Per-attempt HTTP timeout. Default 300. Worst case the script runs about
+    MaxAttempts x TimeoutSec + (MaxAttempts - 1) x RetryDelaySeconds (25 minutes with the
+    defaults); keep the scheduled task's -ExecutionTimeLimit above that.
+
 .EXAMPLE
-    .\run-notifications-check.ps1 -AppUrl https://itam.internal.example
+    .\run-notifications-check.ps1 -AppUrl http://127.0.0.1:3000
 
 .NOTES
     =====================================================================================
@@ -50,26 +74,29 @@
          $b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b)
         and put the same value in the app's .env as CRON_SECRET.)
 
-    3. Test it by hand first:
+    3. Test it by hand first (the app must be running under PM2; 3000 = the port in
+       ecosystem.config.js):
 
-         powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\ITAM\scripts\run-notifications-check.ps1 -AppUrl https://itam.internal.example
+         powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\ITAM\scripts\run-notifications-check.ps1 -AppUrl http://127.0.0.1:3000
          Get-Content C:\ProgramData\ITAM\logs\notifications-check.log -Tail 5
 
     4. Register the daily task (07:00; warranty/maintenance alerts aren't minute-sensitive):
 
          $action = New-ScheduledTaskAction -Execute 'powershell.exe' `
-             -Argument '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "C:\ITAM\scripts\run-notifications-check.ps1" -AppUrl "https://itam.internal.example"'
+             -Argument '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "C:\ITAM\scripts\run-notifications-check.ps1" -AppUrl "http://127.0.0.1:3000"'
          $trigger = New-ScheduledTaskTrigger -Daily -At 07:00
          $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable `
-             -ExecutionTimeLimit (New-TimeSpan -Minutes 10) `
-             -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 15)
+             -ExecutionTimeLimit (New-TimeSpan -Minutes 30) `
+             -MultipleInstances IgnoreNew
          $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Limited
          Register-ScheduledTask -TaskName 'ITAM Notifications Check' -TaskPath '\ITAM\' `
              -Action $action -Trigger $trigger -Settings $settings -Principal $principal `
              -Description 'Daily warranty/maintenance notification check for the IT Asset Manager (POST /api/cron/notifications-check).'
 
-       -StartWhenAvailable runs a missed 07:00 (server off/rebooting) as soon as possible;
-       -RestartCount/-RestartInterval retries if the app was down (the script exits 1).
+       -StartWhenAvailable runs a missed 07:00 (server off/rebooting) as soon as possible.
+       Retrying while the app is down is done by this script itself (see DESCRIPTION);
+       -ExecutionTimeLimit 30 min covers the default worst case (25 min), and
+       -MultipleInstances IgnoreNew prevents a manual run overlapping the scheduled one.
 
     5. Verify:
 
@@ -80,16 +107,20 @@
     To change the time:  Set-ScheduledTask -TaskPath '\ITAM\' -TaskName 'ITAM Notifications Check' -Trigger (New-ScheduledTaskTrigger -Daily -At 06:30)
     To remove:           Unregister-ScheduledTask -TaskPath '\ITAM\' -TaskName 'ITAM Notifications Check' -Confirm:$false
 
-    HTTPS: if the app uses a certificate from an internal CA, import that CA into the machine's
-    Trusted Root store rather than disabling certificate validation in this script.
-    Record the deployed schedule (time, host, account) in the ops notes; the phase-7 skill
+    If you do call the public HTTPS URL instead of 127.0.0.1 and it uses a certificate from an
+    internal CA, import that CA into the machine's Trusted Root store rather than disabling
+    certificate validation in this script.
+    Record the deployed schedule (time, host, account) in the ops notes; docs/deployment.md
     documents 07:00 daily as the default.
 #>
 [CmdletBinding()]
 param(
     [string]$AppUrl = $env:ITAM_APP_URL,
     [string]$SecretFile = 'C:\ProgramData\ITAM\cron-secret.txt',
-    [string]$LogPath = 'C:\ProgramData\ITAM\logs\notifications-check.log'
+    [string]$LogPath = 'C:\ProgramData\ITAM\logs\notifications-check.log',
+    [ValidateRange(1, 10)][int]$MaxAttempts = 3,
+    [ValidateRange(0, 3600)][int]$RetryDelaySeconds = 300,
+    [ValidateRange(10, 3600)][int]$TimeoutSec = 300
 )
 
 $ErrorActionPreference = 'Stop'
@@ -112,6 +143,36 @@ function Write-Log {
     Write-Output $line
 }
 
+# Classifies a failed Invoke-RestMethod so the loop knows whether waiting could help.
+# Works on Windows PowerShell 5.1 (WebException) and PowerShell 7+ (HttpRequestException /
+# HttpResponseException / TaskCanceledException). Type names are compared as strings so a type
+# that doesn't exist in one edition can't throw "Unable to find type".
+function Get-FailureInfo {
+    param($ErrorRecord)
+    $ex = $ErrorRecord.Exception
+    $info = @{ Kind = 'other'; Status = $null; Detail = $ex.Message }
+    if ($ex.Response) {
+        $info.Kind = 'http'
+        $info.Status = [int]$ex.Response.StatusCode
+        $info.Detail = "HTTP $($info.Status) - $($ex.Message)"
+        return $info
+    }
+    $typeNames = @()
+    $e = $ex
+    while ($e) { $typeNames += $e.GetType().FullName; $e = $e.InnerException }
+    if ($ex -is [System.Net.WebException]) {
+        if ($ex.Status -eq [System.Net.WebExceptionStatus]::Timeout) { $info.Kind = 'timeout' }
+        else { $info.Kind = 'connect' }
+    } elseif ($typeNames -contains 'System.Threading.Tasks.TaskCanceledException' -or
+              $typeNames -contains 'System.TimeoutException') {
+        $info.Kind = 'timeout'
+    } elseif ($typeNames -contains 'System.Net.Http.HttpRequestException' -or
+              $typeNames -contains 'System.Net.Sockets.SocketException') {
+        $info.Kind = 'connect'
+    }
+    return $info
+}
+
 try {
     if ([string]::IsNullOrWhiteSpace($AppUrl)) {
         throw 'No app URL: pass -AppUrl or set the ITAM_APP_URL environment variable.'
@@ -127,15 +188,38 @@ try {
         throw "No cron secret: create $SecretFile or set the ITAM_CRON_SECRET environment variable."
     }
 
-    # Windows PowerShell 5.1 may default to TLS 1.0/1.1, which modern servers refuse.
+    # Windows PowerShell 5.1 may default to TLS 1.0/1.1, which modern servers refuse (only
+    # relevant when -AppUrl is an https:// URL).
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
     $uri = '{0}/api/cron/notifications-check' -f $AppUrl.TrimEnd('/')
-    Write-Log 'INFO' "POST $uri"
+    $response = $null
 
-    $response = Invoke-RestMethod -Uri $uri -Method Post `
-        -Headers @{ Authorization = "Bearer $secret" } `
-        -ContentType 'application/json' -TimeoutSec 300
+    for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+        Write-Log 'INFO' "POST $uri (attempt $attempt of $MaxAttempts)"
+        try {
+            $response = Invoke-RestMethod -Uri $uri -Method Post `
+                -Headers @{ Authorization = "Bearer $secret" } `
+                -ContentType 'application/json' -TimeoutSec $TimeoutSec
+            break
+        } catch {
+            $failure = Get-FailureInfo $_
+            $detail = $failure.Detail
+            if ($failure.Status -eq 401) { $detail += ' (secret does not match the app''s CRON_SECRET)' }
+            if ($failure.Status -eq 503) { $detail += ' (CRON_SECRET is not set in the app''s environment)' }
+            if ($failure.Kind -eq 'timeout') {
+                $detail += " (no answer within $TimeoutSec s; not retried, the app may still be sending emails)"
+            }
+
+            $retryable = ($failure.Kind -eq 'connect') -or
+                         ($failure.Kind -eq 'http' -and $failure.Status -ge 500 -and $failure.Status -ne 503)
+            if (-not $retryable -or $attempt -ge $MaxAttempts) {
+                throw $detail
+            }
+            Write-Log 'WARN' "$detail; retrying in $RetryDelaySeconds s"
+            Start-Sleep -Seconds $RetryDelaySeconds
+        }
+    }
 
     $w = $response.warrantyExpiring
     $m = $response.maintenanceDue
@@ -147,14 +231,6 @@ try {
     }
     exit 0
 } catch {
-    $detail = $_.Exception.Message
-    $webResponse = $_.Exception.Response
-    if ($webResponse) {
-        $status = [int]$webResponse.StatusCode
-        $detail = "HTTP $status - $detail"
-        if ($status -eq 401) { $detail += ' (secret does not match the app''s CRON_SECRET)' }
-        if ($status -eq 503) { $detail += ' (CRON_SECRET is not set in the app''s environment)' }
-    }
-    Write-Log 'ERROR' $detail
+    Write-Log 'ERROR' $_.Exception.Message
     exit 1
 }

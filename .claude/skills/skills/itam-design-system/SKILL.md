@@ -108,19 +108,21 @@ decorative borders, or texture beyond what's specified below.
 
 The app must be built responsive from the start — not audited-in during polish. Use Tailwind's
 default breakpoints (`sm` 640px, `md` 768px, `lg` 1024px, `xl` 1280px, `2xl` 1536px) as the
-standard scale across every component and page. The one custom addition is `nav` (1000px /
-`62.5rem`, declared as `--breakpoint-nav` in `globals.css`), used only for the app-shell
-sidebar/drawer switch below; don't reach for it elsewhere:
-
+standard scale across every component and page. The one custom addition is `nav` (1200px /
+`75rem`, declared as `--breakpoint-nav` in `globals.css`), used only for the app-shell
+sidebar/drawer switch below; don't reach for it elsewhere. (Confirmed in Phase 8: the CSS had
+1200px while `Topbar`'s JS and this doc said 1000px; the user chose 1200px and both now agree.)
 - **Mobile-first CSS**: write unprefixed (base) styles for the smallest viewport, then layer
   `sm:`/`md:`/`lg:` overrides upward — never the reverse.
 - **App shell**: sidebar collapses to an off-canvas `Sheet` (slide-over, per the primitive
-  list above) below `nav` (1000px), triggered by a hamburger icon in the topbar; persistent
-  sidebar at `nav` and above. `md` (768px) left too little room beside the 16rem sidebar at
-  landscape-tablet widths. `Topbar` also closes an open drawer when the viewport widens past
+  list above) below `nav` (1200px), triggered by a hamburger icon in the topbar; persistent
+  sidebar at `nav` and above. Narrower screens (small laptops, landscape tablets) keep the full
+  content width for the dense asset table. `Topbar` also closes an open drawer when the viewport widens past
   `nav` (its `NAV_BREAKPOINT_QUERY` mirrors the CSS value, so keep the two in sync).
 - **Data tables**: below `md`, either horizontally scroll within a contained `overflow-x-auto`
-  wrapper (never let the page itself scroll horizontally) or switch to a stacked card-per-row
+  wrapper (never let the page itself scroll horizontally; `Table`'s wrapper is also `relative`,
+  so absolutely positioned descendants such as `sr-only` labels can't escape the clip and widen
+  the page, which was a real Phase 8 bug on the users/vendors tables) or switch to a stacked card-per-row
   layout for the asset list — pick one pattern and apply it consistently across every list view
   (assets, categories, locations, users, etc.), don't mix patterns per page.
 - **Forms**: multi-column field layouts (e.g. the asset create/edit form) collapse to a single
@@ -174,9 +176,15 @@ sidebar/drawer switch below; don't reach for it elsewhere:
     third standalone layout (e.g. a future print/report view) needs one.
   - Sidebar groups: Dashboard, Assets, Reports, Settings (admin-only), driven by
     `components/layout/nav-items.ts`.
-- **List/table pages** (assets, users, etc.): data table with column sorting, filter bar above
-  (status, category, department, location, condition as multi-select filters), search input,
-  pagination footer, row-level actions via `DropdownMenu` (View, Edit, Transfer, Dispose). Clicking anywhere on an
+- **List/table pages** (assets, users, etc.): data table, filter bar above (status, category,
+  department, location, condition as multi-select filters), search input, pagination footer,
+  row-level actions via `DropdownMenu` (View, Edit, Transfer, Dispose).
+  - **Column sorting is on the assets list only** (Phase 8 decision): `?sort=<key>&dir=asc|desc`
+    with keys from `lib/assetSort.ts`, mapped to SQL through a whitelist in `lib/db/assets.ts`
+    (`buildAssetOrderBy`, `a.id` tiebreaker); status/condition sort by their `sort_order`. Headers
+    are buttons inside `<th aria-sort>`; clicks cycle asc → desc → default, reset to page 1, and
+    "Clear filters" keeps the sort. Export and `GET /api/assets` take the same params. The
+    settings tables are small and name-ordered, so they stay unsorted. Clicking anywhere on an
   asset row opens that asset: the name cell's `<Link>` carries a stretched `after:absolute
   after:inset-0` over the `relative` row, and the actions cell is `relative z-10` to sit above it.
   Use this stretched-link pattern, not a row `onClick` + `router.push` (no ctrl/middle-click or
@@ -203,8 +211,11 @@ flex-col">` (not the whole `DialogContent`) so the footer's buttons stay outside
 
 ## Feedback & state
 
-- Mutations go through TanStack Query `useMutation` with optimistic or invalidate-on-success
-  patterns; show a `Toast` on success/failure.
+- Mutations (the pattern as actually built): server-rendered pages mutate with `axios`, then
+  `useRouteLoadingRouter().refresh()` (or `push`), and show a `Toast` on success/failure. TanStack
+  Query `useMutation` is used where there's a client-side cache to keep in sync (the
+  notifications bell and page, `lib/hooks/useNotifications.ts`). Don't rewrite the axios+refresh
+  call sites to `useMutation` for its own sake.
 - Empty states: every list view needs a designed empty state (icon + short copy + primary
   action), not a blank table.
 - Loading states: two tools for two different delays — a route segment's own data fetch (a fresh
@@ -222,12 +233,37 @@ flex-col">` (not the whole `DialogContent`) so the footer's buttons stay outside
   local `animate-pulse` skeleton state instead (see `UserTypeahead`'s results panel) — never a
   spinner-only page.
 
+## Error boundaries (Phase 8)
+
+`app/(dashboard)/error.tsx` (inside the shell, so navigation keeps working),
+`app/error.tsx` (`/login`, `/403`) and `app/global-error.tsx` (root layout failures, e.g. the DB
+being down, since the root layout resolves the session) all render
+`components/shared/ErrorFallback.tsx`: `StatusPage` + "Try again" (Next 16.3's `retry()`, not
+`reset()`) + the error **digest** as a reference, never `error.message`. `global-error` owns
+`<html>`/`<body>`, imports `globals.css` and applies the saved theme itself (no ThemeProvider
+there).
+
+## Print
+
+The `.dark` token block in `globals.css` is wrapped in `@media not print`, so anything printed
+(asset labels, a browser print of any page) uses the light palette whatever the screen theme.
+Browsers drop background colours by default, so dark-theme text would print near-white on white.
+
 ## Accessibility baseline
 
 - All interactive elements keyboard-navigable (Radix gives this by default — don't override
   focus handling).
 - Color is never the only signal for status — pair badges with text labels, not color alone.
-- Form errors announced via `aria-describedby`, not color-only.
+- Form errors announced via `aria-describedby`, not color-only. The pattern (Phase 8):
+  `lib/hooks/useFieldErrors.ts` + `components/shared/FieldError.tsx`. On submit, `validate({...},
+  form)` runs cheap client checks that mirror what the server would reject, marks controls
+  `aria-invalid` (the primitives `Input`/`Select`/`TreePicker`/`UserTypeahead` style and forward
+  it; `DatePicker`'s trigger is a plain `<button>`, which can't take `aria-invalid`, so it gets
+  `data-invalid` plus `aria-describedby`), shows the message under the field, focuses the first
+  invalid control, and sends nothing. Forms are `noValidate` (no unthemed browser bubbles), but
+  keep `required` for its semantics. Server errors stay a single form-level `role="alert"` block.
+- Every form control has a programmatic label (`<label htmlFor>` + `id`, or `aria-label` when
+  there's no visible label).
 
 ## Related skills
 

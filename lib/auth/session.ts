@@ -1,8 +1,10 @@
 import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
+import { findActiveSessionUser } from "@/lib/db/users";
 
-const SESSION_COOKIE = "itam_session";
+export const SESSION_COOKIE = "itam_session";
 const SESSION_DURATION_SECONDS = 60 * 60 * 8; // 8h workday session
 
 function getSecretKey(): Uint8Array {
@@ -62,13 +64,39 @@ export async function clearSessionCookie(): Promise<void> {
   cookieStore.delete(SESSION_COOKIE);
 }
 
-/** Reads and verifies the session cookie. Returns null if absent/invalid/expired. */
-export async function getSession(): Promise<SessionPayload | null> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE)?.value;
+/** Verifies the token, then re-reads the user (phase-8 session revocation): null once they're
+ * deactivated, and their *current* role/department/name rather than the token's, so an admin's
+ * change takes effect on the next request instead of when the 8h token expires. The cookie isn't
+ * re-signed here (it can't be set during a Server Component render); the DB is the source of
+ * truth on every request instead.
+ *
+ * proxy.ts calls this directly. It must agree with getSession(): if the proxy accepted a token
+ * the layout rejects, /login and / would redirect into each other forever. */
+export async function resolveSessionToken(
+  token: string | undefined,
+): Promise<SessionPayload | null> {
   if (!token) return null;
-  return verifySession(token);
+  const payload = await verifySession(token);
+  if (!payload) return null;
+  const user = await findActiveSessionUser(payload.userId);
+  if (!user) return null;
+  return {
+    ...payload,
+    roleId: user.roleId,
+    roleName: user.roleName,
+    departmentId: user.departmentId,
+    fullName: user.fullName,
+    email: user.email,
+  };
 }
+
+/** Reads and verifies the session cookie. Returns null if absent/invalid/expired, or if the user
+ * has since been deactivated. Memoized per request, so the layout, page and route share one
+ * user lookup. */
+export const getSession = cache(async (): Promise<SessionPayload | null> => {
+  const cookieStore = await cookies();
+  return resolveSessionToken(cookieStore.get(SESSION_COOKIE)?.value);
+});
 
 /** Reads the session, redirecting to /login if absent/invalid/expired. */
 export async function requireSession(): Promise<SessionPayload> {

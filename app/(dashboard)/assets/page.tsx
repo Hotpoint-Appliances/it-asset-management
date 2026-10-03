@@ -7,6 +7,7 @@ import { listAssetConditions } from "@/lib/db/assetConditions";
 import { listAssetStatuses } from "@/lib/db/assetStatuses";
 import { AssetsList } from "@/components/assets/AssetsList";
 import type { AssetFilters } from "@/types/asset";
+import { parseAssetSort } from "@/lib/assetSort";
 
 const PAGE_SIZE = 25;
 
@@ -30,6 +31,10 @@ export default async function AssetsPage({
   const session = await requireSession();
   const params = await searchParams;
   const page = Math.max(1, Number(params.page ?? 1) || 1);
+  const sort = parseAssetSort(
+    typeof params.sort === "string" ? params.sort : null,
+    typeof params.dir === "string" ? params.dir : null,
+  );
 
   const filters: AssetFilters = {
     statusIds: toIds(params.statusId),
@@ -39,6 +44,7 @@ export default async function AssetsPage({
     conditionIds: toIds(params.conditionId),
     search:
       typeof params.search === "string" && params.search ? params.search : null,
+    sort,
     limit: PAGE_SIZE,
     offset: (page - 1) * PAGE_SIZE,
   };
@@ -64,6 +70,7 @@ export default async function AssetsPage({
       assets={assetsResult.items}
       total={assetsResult.total}
       page={page}
+      sort={sort}
       pageSize={PAGE_SIZE}
       canManage={
         session.roleName === "admin" || session.roleName === "asset_manager"

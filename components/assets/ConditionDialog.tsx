@@ -43,6 +43,7 @@ export function ConditionDialog({
   const [conditionId, setConditionId] = React.useState(currentConditionId);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const conditionFieldId = React.useId();
 
   useSyncOnOpen(open, () => {
     setConditionId(currentConditionId);
@@ -74,8 +75,11 @@ export function ConditionDialog({
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <DialogBody>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium">Condition</label>
+              <label htmlFor={conditionFieldId} className="text-sm font-medium">
+                Condition
+              </label>
               <Select
+                id={conditionFieldId}
                 value={conditionId}
                 onChange={(e) => setConditionId(Number(e.target.value))}
               >

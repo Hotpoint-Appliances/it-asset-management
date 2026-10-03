@@ -19,6 +19,8 @@ import { useSyncOnOpen } from "@/lib/hooks/useSyncOnOpen";
 import { formatLookupName } from "@/lib/badgeVariants";
 import type { AssetStatus } from "@/types/assetStatus";
 import { RequiredMark } from "@/components/shared/RequiredMark";
+import { FieldError } from "@/components/shared/FieldError";
+import { useFieldErrors } from "@/lib/hooks/useFieldErrors";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -59,19 +61,33 @@ export function StatusDialog({
   const [note, setNote] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const fields = useFieldErrors<"note">();
+  const statusFieldId = React.useId();
+  const noteFieldId = React.useId();
 
   useSyncOnOpen(open, () => {
     setStatusId(currentStatusId);
     setNote("");
     setError(null);
+    fields.reset();
   });
 
   const targetStatus = statuses.find((s) => s.id === statusId);
   const noteRequired =
     !!targetStatus && NOTE_REQUIRED_STATUSES.has(targetStatus.name);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const ok = fields.validate(
+      {
+        note:
+          noteRequired &&
+          !note.trim() &&
+          `A note is required when marking an asset ${formatLookupName(targetStatus.name).toLowerCase()}.`,
+      },
+      e.currentTarget,
+    );
+    if (!ok) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -101,13 +117,23 @@ export function StatusDialog({
         <DialogHeader>
           <DialogTitle>Change status</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="flex min-h-0 flex-1 flex-col"
+        >
           <DialogBody>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium">Status</label>
+              <label htmlFor={statusFieldId} className="text-sm font-medium">
+                Status
+              </label>
               <Select
+                id={statusFieldId}
                 value={statusId}
-                onChange={(e) => setStatusId(Number(e.target.value))}
+                onChange={(e) => {
+                  setStatusId(Number(e.target.value));
+                  fields.clear("note");
+                }}
               >
                 {selectable.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -119,17 +145,26 @@ export function StatusDialog({
 
             {noteRequired && (
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium">
+                <label htmlFor={noteFieldId} className="text-sm font-medium">
                   Note
                   <RequiredMark />
                 </label>
                 <textarea
+                  id={noteFieldId}
                   required
                   rows={3}
                   value={note}
-                  onChange={(e) => setNote(e.target.value)}
+                  onChange={(e) => {
+                    setNote(e.target.value);
+                    fields.clear("note");
+                  }}
                   placeholder="Explain the circumstances…"
-                  className="border-border bg-background focus-visible:ring-ring flex w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                  {...fields.invalid("note")}
+                  className="border-border bg-background focus-visible:ring-ring aria-invalid:border-destructive aria-invalid:focus-visible:ring-destructive flex w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                />
+                <FieldError
+                  id={fields.errorId("note")}
+                  message={fields.errors.note}
                 />
               </div>
             )}

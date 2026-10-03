@@ -18,6 +18,8 @@ interface TreePickerProps<T extends WithParent> {
   placeholder?: string;
   id?: string;
   disabled?: boolean;
+  "aria-invalid"?: boolean;
+  "aria-describedby"?: string;
 }
 
 export function TreePicker<T extends WithParent>({
@@ -28,6 +30,8 @@ export function TreePicker<T extends WithParent>({
   placeholder = "None (top level)",
   id,
   disabled,
+  "aria-invalid": ariaInvalid,
+  "aria-describedby": ariaDescribedBy,
 }: TreePickerProps<T>) {
   const excluded =
     excludeId != null
@@ -41,6 +45,8 @@ export function TreePicker<T extends WithParent>({
     <Select
       id={id}
       disabled={disabled}
+      aria-invalid={ariaInvalid}
+      aria-describedby={ariaDescribedBy}
       value={value ?? ""}
       onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
     >

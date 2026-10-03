@@ -1,3 +1,10 @@
+/** Today's *local* calendar date as "YYYY-MM-DD". Never `new Date().toISOString().slice(0, 10)`:
+ * that's the UTC date, which in Africa/Nairobi (UTC+3) is still yesterday until 03:00 (the same
+ * class of bug lib/db/dates.ts documents for DATE columns). */
+export function todayIso(now: Date = new Date()): string {
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
 /** KES, the company is Kenya-based (hotpoint.co.ke); every money value in the schema
  * (purchase_cost, salvage_value, disposal_value, maintenance cost, ...) is denominated in it. */
 export function formatCurrency(amount: number): string {

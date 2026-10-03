@@ -115,6 +115,18 @@ sense at this data size.
   request to any lookup GET endpoint 401s.
 - `tsc --noEmit` and `npm run lint` both clean.
 
+## Changed by Phase 8
+
+- Deactivating a user now ends their open session immediately (session revocation, see
+  `phase-2-auth`'s "Changed by Phase 8"); this phase's check only proved *new* logins fail. The
+  deactivate dialog's copy says so.
+- Every manager's create/edit dialog validates per field on the client (`useFieldErrors`,
+  `aria-invalid` + `aria-describedby`, `noValidate` forms); delete/deactivate consequences render
+  through `DialogDescription`.
+- `components/ui/Table.tsx`'s scroll wrapper is now `relative`: the action buttons' `sr-only`
+  labels are absolutely positioned and used to escape the `overflow-x-auto` clip, widening the
+  whole page at 390px on the users (+256px) and vendors (+136px) pages.
+
 ## Produces (for later phases to reference)
 
 - `lib/db/{categories,locations,departments,vendors,assetConditions,assetStatuses,users,roles}.ts`

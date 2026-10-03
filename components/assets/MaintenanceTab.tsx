@@ -91,6 +91,7 @@ export function MaintenanceTab({
   } | null>(null);
   const [promptSubmitting, setPromptSubmitting] = React.useState(false);
   const [restoreNote, setRestoreNote] = React.useState("");
+  const fieldId = React.useId();
 
   const inRepairStatus = statuses.find((s) => s.name === "in_repair");
   const restoreTargetStatus = restorePrompt
@@ -303,8 +304,14 @@ export function MaintenanceTab({
             <DialogBody>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium">Type</label>
+                  <label
+                    htmlFor={`${fieldId}-type`}
+                    className="text-sm font-medium"
+                  >
+                    Type
+                  </label>
                   <Select
+                    id={`${fieldId}-type`}
                     value={maintenanceType}
                     onChange={(e) =>
                       setMaintenanceType(e.target.value as MaintenanceType)
@@ -316,8 +323,14 @@ export function MaintenanceTab({
                   </Select>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium">Vendor</label>
+                  <label
+                    htmlFor={`${fieldId}-vendor`}
+                    className="text-sm font-medium"
+                  >
+                    Vendor
+                  </label>
                   <Select
+                    id={`${fieldId}-vendor`}
                     value={vendorId ?? ""}
                     onChange={(e) =>
                       setVendorId(
@@ -334,8 +347,14 @@ export function MaintenanceTab({
                   </Select>
                 </div>
                 <div className="flex flex-col gap-1.5 sm:col-span-2">
-                  <label className="text-sm font-medium">Scheduled date</label>
+                  <label
+                    htmlFor={`${fieldId}-scheduled`}
+                    className="text-sm font-medium"
+                  >
+                    Scheduled date
+                  </label>
                   <DatePicker
+                    id={`${fieldId}-scheduled`}
                     value={scheduledDate}
                     onChange={setScheduledDate}
                     placeholder="No date"
@@ -343,8 +362,14 @@ export function MaintenanceTab({
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium">Notes</label>
+                <label
+                  htmlFor={`${fieldId}-notes`}
+                  className="text-sm font-medium"
+                >
+                  Notes
+                </label>
                 <textarea
+                  id={`${fieldId}-notes`}
                   rows={3}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
@@ -401,6 +426,7 @@ export function MaintenanceTab({
             {restoreNoteRequired && (
               <textarea
                 required
+                aria-label="Note"
                 rows={2}
                 value={restoreNote}
                 onChange={(e) => setRestoreNote(e.target.value)}

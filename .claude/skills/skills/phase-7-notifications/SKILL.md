@@ -180,6 +180,30 @@ defects were found.
   shares the same sender/template code); the free-text-owner email (would have gone to an
   external address); an actual Task Scheduler registration (deferred to deploy, see Step 3).
 
+## Re-verified before Phase 8 (via `phase-completion-check`)
+
+Passed with no defects: `tsc` clean, lint at the recorded 2 warnings, every Produces file present,
+migration 001 + both indexes confirmed in the dev DB, `/notifications` and the bell checked in the
+user's Chrome session (no console errors, no horizontal scroll), cron route 401 with no/wrong
+secret (rejected before any check logic runs). The PowerShell script was reviewed statically only
+(not run), per the user's instruction: its logic and the route's response shape agree. One
+finding: email was **live** in the dev `.env.local` (`NOTIFICATION_EMAIL_ENABLED` unset), so
+Phase 8 set it to `false` for its own test runs and restored the file byte-identical afterwards.
+
+## Changed by Phase 8
+
+- `scripts/run-notifications-check.ps1` now retries by itself (`-MaxAttempts 3`,
+  `-RetryDelaySeconds 300`) on connection failures and 5xx other than 503, and never on
+  401/503 (config) or a **timeout** (the run may still be emailing; a second overlapping run could
+  double-send). The help's `-RestartCount` claim was wrong (Task Scheduler restarts on launch
+  failure, not on exit code 1) and is gone; the task example now uses `-ExecutionTimeLimit 30 min`
+  and `-MultipleInstances IgnoreNew`. Static review + a parse-only syntax check; still never run.
+- The task calls **`-AppUrl http://127.0.0.1:3000`** (the PM2 port) instead of the public URL;
+  nginx also returns 404 for `/api/cron/*` from outside. `ITAM_APP_URL` stays the public URL for
+  email links and QR labels.
+- The deploy-time items in the Exit criteria below moved into `docs/deployment.md`'s post-deploy
+  sign-off checklist (including the still-unverified real-inbox `asset_assigned` email).
+
 ## Exit criteria
 
 - Assigning/transferring an asset produces both an in-app notification and (if Graph is

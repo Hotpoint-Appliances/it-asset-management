@@ -3,7 +3,16 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Plus, Search, X, Boxes, Download } from "lucide-react";
+import {
+  Plus,
+  Search,
+  X,
+  Boxes,
+  Download,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -27,6 +36,7 @@ import {
   formatLookupName,
 } from "@/lib/badgeVariants";
 import type { AssetListItem } from "@/types/asset";
+import type { AssetSort, AssetSortKey } from "@/lib/assetSort";
 import type { Category } from "@/types/category";
 import type { Location } from "@/types/location";
 import type { Department } from "@/types/department";
@@ -37,6 +47,8 @@ interface AssetsListProps {
   assets: AssetListItem[];
   total: number;
   page: number;
+  /** The active column sort parsed from the URL, null = default order (newest first). */
+  sort: AssetSort | null;
   pageSize: number;
   canManage: boolean;
   categories: Category[];
@@ -58,6 +70,7 @@ export function AssetsList({
   assets,
   total,
   page,
+  sort,
   pageSize,
   canManage,
   categories,
@@ -98,7 +111,39 @@ export function AssetsList({
 
   function clearFilters() {
     setSearch("");
-    router.push(pathname);
+    // Clearing filters keeps the chosen sort; only filters/search/page are dropped.
+    const params = new URLSearchParams();
+    if (sort) {
+      params.set("sort", sort.key);
+      params.set("dir", sort.dir);
+    }
+    pushParams(params);
+  }
+
+  /** asc -> desc -> back to the default order, per column; a new column starts at asc. Sorting
+   * resets to page 1 (pushParams drops `page`). */
+  function toggleSort(key: AssetSortKey) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (sort?.key !== key) {
+      params.set("sort", key);
+      params.set("dir", "asc");
+    } else if (sort.dir === "asc") {
+      params.set("dir", "desc");
+    } else {
+      params.delete("sort");
+      params.delete("dir");
+    }
+    pushParams(params);
+  }
+
+  function sortableHead(key: AssetSortKey, label: string) {
+    return (
+      <SortableHead
+        label={label}
+        direction={sort?.key === key ? sort.dir : null}
+        onSort={() => toggleSort(key)}
+      />
+    );
   }
 
   const hasFilters =
@@ -250,14 +295,14 @@ export function AssetsList({
           >
             <TableHeader>
               <TableRow>
-                <TableHead>Tag</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Condition</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Owner</TableHead>
+                {sortableHead("tag", "Tag")}
+                {sortableHead("name", "Name")}
+                {sortableHead("category", "Category")}
+                {sortableHead("status", "Status")}
+                {sortableHead("condition", "Condition")}
+                {sortableHead("location", "Location")}
+                {sortableHead("department", "Department")}
+                {sortableHead("owner", "Owner")}
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -335,5 +380,57 @@ export function AssetsList({
         </>
       )}
     </div>
+  );
+}
+
+/** A column header that sorts the list. `aria-sort` sits on the header cell (where assistive tech
+ * reads it); the button's label says what a click will do next. */
+function SortableHead({
+  label,
+  direction,
+  onSort,
+}: {
+  label: string;
+  direction: "asc" | "desc" | null;
+  onSort: () => void;
+}) {
+  const Icon =
+    direction === "asc"
+      ? ArrowUp
+      : direction === "desc"
+        ? ArrowDown
+        : ArrowUpDown;
+  const next =
+    direction === null
+      ? "sort ascending"
+      : direction === "asc"
+        ? "sort descending"
+        : "clear sort";
+  return (
+    <TableHead
+      aria-sort={
+        direction === "asc"
+          ? "ascending"
+          : direction === "desc"
+            ? "descending"
+            : "none"
+      }
+    >
+      <button
+        type="button"
+        onClick={onSort}
+        aria-label={`${label}, ${next}`}
+        className={cn(
+          "hover:text-foreground focus-visible:ring-ring -mx-2 inline-flex min-h-11 items-center gap-1 rounded-md px-2 whitespace-nowrap focus-visible:ring-2 focus-visible:outline-none",
+          direction && "text-foreground",
+        )}
+      >
+        {label}
+        <Icon
+          aria-hidden="true"
+          className={cn("h-3.5 w-3.5", !direction && "opacity-40")}
+        />
+      </button>
+    </TableHead>
   );
 }

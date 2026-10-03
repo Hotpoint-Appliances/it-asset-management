@@ -1,3 +1,5 @@
+import type { AssetSort } from "@/lib/assetSort";
+
 export type DepreciationMethod = "straight_line";
 
 export interface Asset {
@@ -93,6 +95,8 @@ export interface AssetFilters {
   locationIds: number[];
   conditionIds: number[];
   search: string | null;
+  /** Column sort (lib/assetSort.ts); null/omitted keeps the caller's default order. */
+  sort?: AssetSort | null;
   limit: number;
   offset: number;
 }

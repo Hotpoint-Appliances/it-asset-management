@@ -22,6 +22,8 @@ import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import type { Location } from "@/types/location";
 import type { Department } from "@/types/department";
 import { RequiredMark } from "@/components/shared/RequiredMark";
+import { FieldError } from "@/components/shared/FieldError";
+import { useFieldErrors, looksLikeEmail } from "@/lib/hooks/useFieldErrors";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -78,6 +80,10 @@ export function TransferDialog({
   const [ownerEmail, setOwnerEmail] = React.useState(asset.ownerEmail ?? "");
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const fields = useFieldErrors<
+    "location" | "department" | "assignedUser" | "ownerName" | "ownerEmail"
+  >();
+  const fieldId = React.useId();
 
   useSyncOnOpen(open, () => {
     setLocationId(asset.locationId);
@@ -88,6 +94,7 @@ export function TransferDialog({
     setOwnerName(asset.ownerName ?? "");
     setOwnerEmail(asset.ownerEmail ?? "");
     setError(null);
+    fields.reset();
   });
 
   const locationItems = React.useMemo(
@@ -100,8 +107,27 @@ export function TransferDialog({
     [locations],
   );
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const external = ownerMode === "external";
+    const ok = fields.validate(
+      {
+        location: locationId == null && "Select a location.",
+        department: departmentId == null && "Select a department.",
+        assignedUser:
+          !external &&
+          !assignedUserId &&
+          "Select the user who owns this asset.",
+        ownerName: external && !ownerName.trim() && "Enter the owner's name.",
+        ownerEmail:
+          external &&
+          ownerEmail.trim() !== "" &&
+          !looksLikeEmail(ownerEmail) &&
+          "Enter a valid email address, or leave it blank.",
+      },
+      e.currentTarget,
+    );
+    if (!ok) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -128,26 +154,54 @@ export function TransferDialog({
         <DialogHeader>
           <DialogTitle>Transfer asset</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="flex min-h-0 flex-1 flex-col"
+        >
           <DialogBody>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium">Location</label>
+              <label
+                htmlFor={`${fieldId}-location`}
+                className="text-sm font-medium"
+              >
+                Location
+                <RequiredMark />
+              </label>
               <TreePicker
+                id={`${fieldId}-location`}
                 items={locationItems}
                 value={locationId}
-                onChange={setLocationId}
+                onChange={(v) => {
+                  setLocationId(v);
+                  fields.clear("location");
+                }}
                 placeholder="Select a location"
+                {...fields.invalid("location")}
+              />
+              <FieldError
+                id={fields.errorId("location")}
+                message={fields.errors.location}
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium">Department</label>
+              <label
+                htmlFor={`${fieldId}-department`}
+                className="text-sm font-medium"
+              >
+                Department
+                <RequiredMark />
+              </label>
               <Select
+                id={`${fieldId}-department`}
                 value={departmentId ?? ""}
-                onChange={(e) =>
+                onChange={(e) => {
                   setDepartmentId(
                     e.target.value ? Number(e.target.value) : null,
-                  )
-                }
+                  );
+                  fields.clear("department");
+                }}
+                {...fields.invalid("department")}
               >
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -155,6 +209,10 @@ export function TransferDialog({
                   </option>
                 ))}
               </Select>
+              <FieldError
+                id={fields.errorId("department")}
+                message={fields.errors.department}
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               <span className="text-sm font-medium">Owner</span>
@@ -178,33 +236,68 @@ export function TransferDialog({
               </div>
             </div>
             {ownerMode === "user" ? (
-              <UserTypeahead
-                value={assignedUserId}
-                displayName={assignedUserName}
-                onSelect={(u) => {
-                  setAssignedUserId(u?.id ?? null);
-                  setAssignedUserName(u?.fullName ?? null);
-                }}
-              />
+              <div className="flex flex-col gap-1.5">
+                <UserTypeahead
+                  value={assignedUserId}
+                  displayName={assignedUserName}
+                  onSelect={(u) => {
+                    setAssignedUserId(u?.id ?? null);
+                    setAssignedUserName(u?.fullName ?? null);
+                    fields.clear("assignedUser");
+                  }}
+                  aria-label="Owner (system user)"
+                  {...fields.invalid("assignedUser")}
+                />
+                <FieldError
+                  id={fields.errorId("assignedUser")}
+                  message={fields.errors.assignedUser}
+                />
+              </div>
             ) : (
               <>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium">
+                  <label
+                    htmlFor={`${fieldId}-owner-name`}
+                    className="text-sm font-medium"
+                  >
                     Owner name
                     <RequiredMark />
                   </label>
                   <Input
+                    id={`${fieldId}-owner-name`}
                     required={ownerMode === "external"}
                     value={ownerName}
-                    onChange={(e) => setOwnerName(e.target.value)}
+                    onChange={(e) => {
+                      setOwnerName(e.target.value);
+                      fields.clear("ownerName");
+                    }}
+                    {...fields.invalid("ownerName")}
+                  />
+                  <FieldError
+                    id={fields.errorId("ownerName")}
+                    message={fields.errors.ownerName}
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium">Owner email</label>
+                  <label
+                    htmlFor={`${fieldId}-owner-email`}
+                    className="text-sm font-medium"
+                  >
+                    Owner email
+                  </label>
                   <Input
+                    id={`${fieldId}-owner-email`}
                     type="email"
                     value={ownerEmail}
-                    onChange={(e) => setOwnerEmail(e.target.value)}
+                    onChange={(e) => {
+                      setOwnerEmail(e.target.value);
+                      fields.clear("ownerEmail");
+                    }}
+                    {...fields.invalid("ownerEmail")}
+                  />
+                  <FieldError
+                    id={fields.errorId("ownerEmail")}
+                    message={fields.errors.ownerEmail}
                   />
                 </div>
               </>

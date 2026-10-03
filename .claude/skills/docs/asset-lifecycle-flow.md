@@ -21,7 +21,7 @@ consistent, complete CRUD + workflow actions around it.
 ```
                     ┌─────────────┐
                     │   Created   │  (asset_tag assigned, initial status:
-                    └──────┬──────┘   in_storage or active if pre-assigned)
+                    └──────┬──────┘   in_storage, or active if an owner is set)
                            │
                            ▼
                  ┌───────────────────┐
@@ -64,7 +64,10 @@ consistent, complete CRUD + workflow actions around it.
 1. **Creation** — an asset is created with a unique `asset_tag`, required fields (name,
    category, location, department, condition, status). `image_path` and owner fields are
    optional at creation. A `created` row is written to `asset_audit_log`. Default status is
-   `in_storage` unless an owner/location is set at creation time, in which case `active`.
+   `in_storage` unless an **owner** (system user or free-text owner) is set at creation time, in
+   which case `active`. Location is always required, so it can't be the trigger; owner-only was
+   confirmed with the stakeholder in Phase 8. It's a form default only: the user can still pick
+   any status.
 
 2. **Assignment / transfer** — changing `location_id`, `department_id`, or
    `assigned_user_id`/`owner_name`/`owner_email` on an existing asset always writes a row to

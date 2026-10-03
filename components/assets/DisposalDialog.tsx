@@ -21,6 +21,9 @@ import { useUIStore } from "@/store";
 import { useSyncOnOpen } from "@/lib/hooks/useSyncOnOpen";
 import type { DisposalMethod } from "@/types/disposal";
 import { RequiredMark } from "@/components/shared/RequiredMark";
+import { FieldError } from "@/components/shared/FieldError";
+import { useFieldErrors } from "@/lib/hooks/useFieldErrors";
+import { todayIso } from "@/lib/format";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -62,18 +65,33 @@ export function DisposalDialog({
   const [attachment, setAttachment] = React.useState<File | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const fields = useFieldErrors<"disposalDate" | "disposalValue">();
+  const fieldId = React.useId();
 
   useSyncOnOpen(open, () => {
-    setDisposalDate(new Date().toISOString().slice(0, 10));
+    setDisposalDate(todayIso());
     setDisposalMethod("sold");
     setDisposalValue("");
     setNotes("");
     setAttachment(null);
     setError(null);
+    fields.reset();
   });
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const value = disposalValue.trim();
+    const ok = fields.validate(
+      {
+        disposalDate: !disposalDate && "Select the disposal date.",
+        disposalValue:
+          value !== "" &&
+          !(Number(value) >= 0) &&
+          "Enter an amount of 0 or more, or leave it blank.",
+      },
+      e.currentTarget,
+    );
+    if (!ok) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -105,23 +123,45 @@ export function DisposalDialog({
             cannot be undone from the app.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="flex min-h-0 flex-1 flex-col"
+        >
           <DialogBody>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium">
+                <label
+                  htmlFor={`${fieldId}-date`}
+                  className="text-sm font-medium"
+                >
                   Disposal date
                   <RequiredMark />
                 </label>
                 <DatePicker
+                  id={`${fieldId}-date`}
                   required
                   value={disposalDate}
-                  onChange={setDisposalDate}
+                  onChange={(v) => {
+                    setDisposalDate(v);
+                    fields.clear("disposalDate");
+                  }}
+                  {...fields.invalid("disposalDate")}
+                />
+                <FieldError
+                  id={fields.errorId("disposalDate")}
+                  message={fields.errors.disposalDate}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium">Method</label>
+                <label
+                  htmlFor={`${fieldId}-method`}
+                  className="text-sm font-medium"
+                >
+                  Method
+                </label>
                 <Select
+                  id={`${fieldId}-method`}
                   value={disposalMethod}
                   onChange={(e) =>
                     setDisposalMethod(e.target.value as DisposalMethod)
@@ -135,20 +175,38 @@ export function DisposalDialog({
                 </Select>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium">
+                <label
+                  htmlFor={`${fieldId}-value`}
+                  className="text-sm font-medium"
+                >
                   Disposal value (KES)
                 </label>
                 <Input
+                  id={`${fieldId}-value`}
                   type="number"
                   step="0.01"
                   min="0"
                   value={disposalValue}
-                  onChange={(e) => setDisposalValue(e.target.value)}
+                  onChange={(e) => {
+                    setDisposalValue(e.target.value);
+                    fields.clear("disposalValue");
+                  }}
+                  {...fields.invalid("disposalValue")}
+                />
+                <FieldError
+                  id={fields.errorId("disposalValue")}
+                  message={fields.errors.disposalValue}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium">Attachment</label>
+                <label
+                  htmlFor={`${fieldId}-attachment`}
+                  className="text-sm font-medium"
+                >
+                  Attachment
+                </label>
                 <Input
+                  id={`${fieldId}-attachment`}
                   type="file"
                   accept="image/jpeg,image/png,image/webp,application/pdf"
                   onChange={(e) => setAttachment(e.target.files?.[0] ?? null)}
@@ -156,8 +214,14 @@ export function DisposalDialog({
               </div>
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium">Notes</label>
+              <label
+                htmlFor={`${fieldId}-notes`}
+                className="text-sm font-medium"
+              >
+                Notes
+              </label>
               <textarea
+                id={`${fieldId}-notes`}
                 rows={3}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}

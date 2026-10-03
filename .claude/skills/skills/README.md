@@ -1,8 +1,10 @@
 # ITAM Skill Files — Index & Execution Order
 
 Not a skill itself — a map of how the skills in this directory fit together. Copy this whole
-`skills/` directory (plus `schema/` and `docs/`) into the target project's `.claude/skills/`
-when development starts.
+`skills/` directory (plus `docs/`) into the target project's `.claude/skills/` when development
+starts. The DB schema lives at the **repo root** in `schema/` (moved out of `.claude/skills/` in
+Phase 8 so deployment doesn't depend on the `.claude` folder); every `schema/...` path in these
+skills is relative to the repo root.
 
 ## Load order
 

@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
+  DialogDescription,
 } from "@/components/ui/Dialog";
 import {
   Table,
@@ -27,6 +28,8 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
 import type { Vendor } from "@/types/vendor";
 import { RequiredMark } from "@/components/shared/RequiredMark";
+import { FieldError } from "@/components/shared/FieldError";
+import { useFieldErrors, looksLikeEmail } from "@/lib/hooks/useFieldErrors";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -55,11 +58,13 @@ export function VendorsManager({
   const [form, setForm] = React.useState(emptyForm);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const fields = useFieldErrors<"name" | "contactEmail">();
 
   function openCreate() {
     setEditing(null);
     setForm(emptyForm);
     setError(null);
+    fields.reset();
     setDialogOpen(true);
   }
 
@@ -73,11 +78,23 @@ export function VendorsManager({
       address: vendor.address ?? "",
     });
     setError(null);
+    fields.reset();
     setDialogOpen(true);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const ok = fields.validate(
+      {
+        name: !form.name.trim() && "Enter a vendor name.",
+        contactEmail:
+          form.contactEmail.trim() !== "" &&
+          !looksLikeEmail(form.contactEmail) &&
+          "Enter a valid email address, or leave it blank.",
+      },
+      e.currentTarget,
+    );
+    if (!ok) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -189,6 +206,7 @@ export function VendorsManager({
           </DialogHeader>
           <form
             onSubmit={handleSubmit}
+            noValidate
             className="flex min-h-0 flex-1 flex-col"
           >
             <DialogBody>
@@ -199,9 +217,15 @@ export function VendorsManager({
                 </label>
                 <Input
                   id="vendor-name"
+                  {...fields.invalid("name")}
+                  onInput={() => fields.clear("name")}
                   required
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
+                />
+                <FieldError
+                  id={fields.errorId("name")}
+                  message={fields.errors.name}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -228,11 +252,17 @@ export function VendorsManager({
                 </label>
                 <Input
                   id="vendor-contact-email"
+                  {...fields.invalid("contactEmail")}
+                  onInput={() => fields.clear("contactEmail")}
                   type="email"
                   value={form.contactEmail}
                   onChange={(e) =>
                     setForm({ ...form, contactEmail: e.target.value })
                   }
+                />
+                <FieldError
+                  id={fields.errorId("contactEmail")}
+                  message={fields.errors.contactEmail}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -291,10 +321,10 @@ export function VendorsManager({
             <DialogTitle>Delete vendor</DialogTitle>
           </DialogHeader>
           <DialogBody>
-            <p className="text-muted-foreground text-sm">
+            <DialogDescription>
               This will permanently delete <strong>{deleting?.name}</strong>.
               This cannot be undone.
-            </p>
+            </DialogDescription>
           </DialogBody>
           <DialogFooter>
             <DialogClose asChild>

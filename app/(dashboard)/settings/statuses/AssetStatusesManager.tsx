@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
+  DialogDescription,
 } from "@/components/ui/Dialog";
 import {
   Table,
@@ -27,6 +28,8 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
 import type { AssetStatus } from "@/types/assetStatus";
 import { RequiredMark } from "@/components/shared/RequiredMark";
+import { FieldError } from "@/components/shared/FieldError";
+import { useFieldErrors } from "@/lib/hooks/useFieldErrors";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -48,12 +51,14 @@ export function AssetStatusesManager({
   const [sortOrder, setSortOrder] = React.useState(0);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const fields = useFieldErrors<"name">();
 
   function openCreate() {
     setEditing(null);
     setName("");
     setSortOrder(initialStatuses.length);
     setError(null);
+    fields.reset();
     setDialogOpen(true);
   }
 
@@ -62,11 +67,19 @@ export function AssetStatusesManager({
     setName(status.name);
     setSortOrder(status.sortOrder);
     setError(null);
+    fields.reset();
     setDialogOpen(true);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const ok = fields.validate(
+      {
+        name: !name.trim() && "Enter a status name.",
+      },
+      e.currentTarget,
+    );
+    if (!ok) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -168,6 +181,7 @@ export function AssetStatusesManager({
           </DialogHeader>
           <form
             onSubmit={handleSubmit}
+            noValidate
             className="flex min-h-0 flex-1 flex-col"
           >
             <DialogBody>
@@ -178,9 +192,15 @@ export function AssetStatusesManager({
                 </label>
                 <Input
                   id="status-name"
+                  {...fields.invalid("name")}
+                  onInput={() => fields.clear("name")}
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                />
+                <FieldError
+                  id={fields.errorId("name")}
+                  message={fields.errors.name}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -226,10 +246,10 @@ export function AssetStatusesManager({
             <DialogTitle>Delete status</DialogTitle>
           </DialogHeader>
           <DialogBody>
-            <p className="text-muted-foreground text-sm">
+            <DialogDescription>
               This will permanently delete <strong>{deleting?.name}</strong>.
               This cannot be undone.
-            </p>
+            </DialogDescription>
           </DialogBody>
           <DialogFooter>
             <DialogClose asChild>

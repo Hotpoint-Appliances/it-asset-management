@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 import { NextResponse } from "next/server";
 import { formatLookupName } from "@/lib/badgeVariants";
+import { todayIso } from "@/lib/format";
 
 export const KES_FORMAT = '"KES" #,##0.00';
 export const DATE_FORMAT = "yyyy-mm-dd";
@@ -99,7 +100,7 @@ export async function workbookResponse(
   fileBaseName: string,
 ): Promise<NextResponse> {
   const buffer = await workbook.xlsx.writeBuffer();
-  const stamp = new Date().toISOString().slice(0, 10);
+  const stamp = todayIso();
   return new NextResponse(new Uint8Array(buffer as ArrayBuffer), {
     headers: {
       "Content-Type":
@@ -110,7 +111,4 @@ export async function workbookResponse(
   });
 }
 
-export function todayIso(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
+export { todayIso };

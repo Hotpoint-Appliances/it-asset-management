@@ -25,7 +25,7 @@ import {
 
 /** Mirrors `--breakpoint-nav` in globals.css, where the persistent sidebar takes over from the
  * drawer. */
-const NAV_BREAKPOINT_QUERY = "(min-width: 62.5rem)";
+const NAV_BREAKPOINT_QUERY = "(min-width: 75rem)";
 
 export function Topbar({
   className,

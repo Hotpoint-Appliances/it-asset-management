@@ -78,6 +78,28 @@ is written against them:
 - **Schema moves to a top-level `schema/` folder** (`schema.sql` + `migrations/`), out of
   `.claude/skills/`, so deployment doesn't depend on the `.claude` folder (D2).
 - **Scheduled-task retry lives inside the script** (D3), not in Task Scheduler settings.
+- **Hosting (confirmed): nginx (Windows) terminates HTTPS with the company certificate in front of
+  PM2 in cluster mode**, both on the app server. The runbook must cover:
+  - PM2 `ecosystem.config.js`: `script: "node_modules/next/dist/bin/next"`,
+    `args: "start -p <port>"`, `exec_mode: "cluster"`, `instances` configurable, **default 2**
+    (zero-downtime `pm2 reload`). PM2 can't cluster `npm start` on Windows, because npm is a `.cmd` shim.
+  - New optional env var **`PG_POOL_MAX`** (default 10, the `pg` default) read in
+    `lib/db/pool.ts`, so ops can size `instances × PG_POOL_MAX` below Postgres's
+    `max_connections`.
+  - nginx: `client_max_body_size 12m` (uploads go up to 10 MB; nginx's 1 MB default would 413
+    them), `X-Forwarded-Proto`/`Host` headers, HTTP→HTTPS redirect, and a **`limit_req` zone on
+    `/api/auth/login` only** (login brute-force protection, confirmed; shared across all PM2
+    workers, unlike an in-memory app counter). Note that the official nginx Windows build is
+    documented as beta-quality, with about 1,024 connections, which is acceptable for this internal tool.
+  - Services: ops has their own method. The runbook **recommends NSSM** for both (what it does: runs any
+    executable as a real Windows service with auto-start on boot, restart on exit and log
+    capture, without a logged-in user; why: neither nginx nor PM2 installs as a service on Windows by
+    itself). Set `PM2_HOME` to a system path (e.g. `C:\ProgramData\pm2`) and use `pm2 save` +
+    `pm2 resurrect` at service start.
+- **The scheduled script calls `http://127.0.0.1:<port>` directly** (confirmed), not the public
+  HTTPS URL. It skips nginx, DNS and certificate trust, and the secret never leaves the host. The
+  Task Scheduler example passes `-AppUrl http://127.0.0.1:3000`. Email links still use the app's
+  own `ITAM_APP_URL`.
 
 ## Hardening items (agreed scope)
 
@@ -162,7 +184,8 @@ is written against them:
      `skills/README.md` ("copy `schema/`" note and Supporting documents), each phase doc's
      `schema/...` mentions (they already say `schema/`, so check that relative wording still reads
      right), `lib/notifications/triggers.ts` or any code comment naming the old path, and the
-     migration file's own header. Grep for `.claude/skills/schema` afterwards; it should match nothing.
+     migration file's own header. Grep for `.claude/skills/schema` afterwards; only historical
+     notes (`CHANGES.md`, this file's own instructions) should still mention it.
    - First admin: `npm run seed:admin` (env vars or prompts); never commit credentials.
    - Scheduled notifications: point to `scripts/run-notifications-check.ps1`'s help block (don't
      duplicate it), plus the `CRON_SECRET` equality requirement.
@@ -241,6 +264,102 @@ is written against them:
     and still appears (as disposed) in the register export. Then soft-delete a separate throwaway
     asset and confirm it 404s. Clean up: deactivate temp users, soft-delete test assets. Zero
     console errors throughout.
+
+## Preamble: Phase 7 completion check
+
+Passed, no defects (details in `phase-7-notifications`'s "Re-verified before Phase 8"). The
+PowerShell script was reviewed statically only. Finding: email was live in the dev `.env.local`;
+this phase set `NOTIFICATION_EMAIL_ENABLED=false` for its test runs and restored the file
+byte-identical (sha256 checked) afterwards.
+
+## Confirmed as built
+
+- **A. Session revocation**: `lib/auth/session.ts` `resolveSessionToken()` (verify JWT → 
+  `findActiveSessionUser()` → DB role/department/name) and `getSession = cache(...)`;
+  `getApiSession()` goes through it; `proxy.ts` uses the same resolver (option (a)) and deletes a
+  revoked user's cookie. Deactivate copy now says the user is signed out immediately.
+- **B. Sorting**: `lib/assetSort.ts` (keys, `parseAssetSort`), `buildAssetOrderBy()` whitelist in
+  `lib/db/assets.ts` (status/condition by `sort_order`, `NULLS LAST`, `a.id` tiebreaker); wired
+  into the page, `GET /api/assets` and the register export; `SortableHead` in `AssetsList`
+  (`aria-sort` on `th`, label says the next action, 44px target).
+- **C. Form errors**: `useFieldErrors` + `FieldError`; `aria-invalid` styling in `Input`/`Select`
+  (and `data-invalid` on `DatePicker`, whose `<button>` trigger can't take `aria-invalid`, which
+  lint caught); applied to login, asset create/edit (13 fields incl. 5 MB image check),
+  Transfer, Status (lost/stolen note), Disposal, and all seven settings dialogs. Unlinked labels in
+  Condition/Status/Transfer/Disposal/Maintenance dialogs and the restore-note textarea fixed too.
+- **D.** `README.md` rewritten; `docs/deployment.md`; `deploy/ecosystem.config.js` (cluster,
+  `ITAM_PM2_INSTANCES` default 2, `-H 127.0.0.1`); `deploy/nginx-itam.conf` (12 MB, login
+  `limit_req` 5 r/min burst 5 → 429, `/api/cron/` 404 from outside, HTTP→HTTPS); `PG_POOL_MAX`
+  in `lib/db/pool.ts`; `.env.example` tracked; script retry; `schema/` moved to the repo root.
+  `LoginForm` shows "Too many sign-in attempts" for nginx's 429 (an HTML body, no JSON error).
+- **Checklist fixes**: `app/(dashboard)/error.tsx`, `app/error.tsx`, `app/global-error.tsx` +
+  `ErrorFallback`; settings/attachment delete copy → `DialogDescription`; `/api/health` no longer
+  returns the pg error; `AssetQrCode` lint (directive was two lines above the `<img>`, so it
+  never applied); not-found copy ("…or you don't have access to it", replacing Phase 1's "hasn't been
+  built yet").
+- **Defects found by the sweep and fixed** (not in the pre-audit):
+  1. 390px horizontal page scroll on `/settings/users` (+256px) and `/settings/vendors` (+136px):
+     `sr-only` labels (absolute) escaped `Table`'s `overflow-x-auto`; wrapper is now `relative`.
+  2. Dark theme printed near-white text (browsers skip backgrounds): `.dark` tokens are now
+     `@media not print`, so print always uses the light palette.
+  3. UTC "today" in three places (Disposal default date, maintenance `completed_date` default,
+     report filename stamp): shows yesterday before 03:00 Nairobi time. All use
+     `todayIso()` (moved to `lib/format.ts`, local date).
+
+## Verified
+
+All live against the dev server, with temporary users (the three `itam-test-*@example.invalid`
+accounts, reactivated with a throwaway password and deactivated again afterwards) and email off:
+
+- **Static**: `tsc --noEmit` clean; `npm run lint` **0 errors, 0 warnings** (was 2); Prettier;
+  `npm run build` succeeds with no warnings (first production build); the built app booted
+  with `next start -H 127.0.0.1` (health OK, `/login` 200, cron 401), then stopped.
+- **A** (Playwright, 10 checks): deactivate → same cookie's API call 401, page load → `/login`
+  (no loop) with the cookie deleted; reactivate; downgrade manager→viewer → lifecycle POST 403
+  and no Actions menu, without re-login; role restored.
+- **B** (11): name asc/desc/clear cycle, `aria-sort`, status by `sort_order`, Clear filters keeps
+  the sort, API `sort=tag desc`, an injection-shaped `sort` value falls back (200), Export link and
+  the downloaded workbook's row order follow the sort.
+- **C** (13): empty login sends nothing, both fields `aria-invalid`, first focused, describedby →
+  message, typing clears it; empty asset form flags all 7 required fields with messages and
+  focuses Asset tag; negative cost; department/user dialogs; lost-without-note; transfer with no
+  external owner name. Field-error styling eyeballed in the user's Chrome session (dark theme).
+- **Error boundary**: a temporary throwing route rendered the fallback inside the shell (sidebar
+  usable, "Try again", no `error.message`), then the route was deleted. `global-error.tsx` was
+  **not** triggered live (it needs the root layout itself to fail); reviewed only.
+- **Sweep**: 16 pages × {390, 768, 1000, 1280}px × {light, dark}: no horizontal scroll after fix
+  1, theme applied; `/login` likewise; label print (dark theme) hides chrome and prints dark text
+  on white after fix 2; empty states (filtered assets, Unread notifications); viewer → `/settings/*`
+  → `/403`, viewer lifecycle API 403; `/api/health` returns only `{status, db}`. No Radix
+  "Missing Description" warnings; the only console errors were the deliberate 404 page's own
+  document request.
+- **Smoke pass** (checklist 10): created through the real form with a system-user owner (default
+  status flipped to `active`), assignee got `asset_assigned`, location+department transfer →
+  `asset_transferred`, actor not notified, condition → bad, maintenance start → `in_repair`,
+  complete → restore suggested `active` with today's **local** `completed_date`, disposed through
+  the real dialog (consequence copy shown), audit timeline shows every step with names and no
+  UUIDs, register export lists it as disposed, notifications created with `email_sent = false`.
+  A separate throwaway asset soft-deleted → API 404, page renders "Page not found". (The page's
+  HTTP status is 200 because `loading.tsx` streams first; this is long-standing Next behaviour, harmless for
+  an internal app.) Both test assets soft-deleted afterwards.
+- **PowerShell script**: static review + PowerShell AST parse (0 errors) + ASCII-only check. Not run.
+
+## MVP sign-off (phase-completion-check against this phase)
+
+Re-run at the end against the Exit criteria below: `tsc` clean, lint 0/0, build OK; every
+Produces file present; A–C and checklist 1–10 verified live (above); D's documents cross-checked
+against the code (env var names, ports, `-H 127.0.0.1`, upload limits, Node version, `.env.local`
+as the one env file the seed scripts also read); `.env.example` placeholders only and no longer
+ignored; skill docs swept for stale claims (none left outside historical notes). **Passed**,
+with one caveat: `global-error.tsx` was reviewed but not triggered live. (The nav-breakpoint
+question was answered afterwards: 1200px.) Server-side items are post-deploy by design.
+
+## Open items (need the user)
+
+- ~~Nav breakpoint mismatch~~ **resolved**: the user chose **1200px**; `Topbar`'s
+  `NAV_BREAKPOINT_QUERY` is now `75rem`, matching `--breakpoint-nav`, and the design system says so.
+- **Server-side sign-off** is deferred to `docs/deployment.md` §8 (agreed), including the
+  real-inbox `asset_assigned` email Phase 7 never verified.
 
 ## Exit criteria
 

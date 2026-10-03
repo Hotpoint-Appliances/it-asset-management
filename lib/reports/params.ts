@@ -1,4 +1,5 @@
 import type { ExportFilters, AuditExportFilters } from "@/lib/db/reports";
+import { parseAssetSort } from "@/lib/assetSort";
 
 type Result<T> = { success: true; data: T } | { success: false; error: string };
 
@@ -14,7 +15,8 @@ function ids(params: URLSearchParams, key: string): number[] {
 
 /** The asset register export accepts the *same* query string the assets list page uses
  * (statusId / categoryId / departmentId / locationId / conditionId, comma-separated or repeated,
- * plus `search`), so the list page's Export button just forwards its current URL params. */
+ * plus `search`, and `sort`/`dir`), so the list page's Export button just forwards its current URL
+ * params and the workbook rows come out in the order the list shows. */
 export function parseAssetRegisterParams(
   params: URLSearchParams,
 ): ExportFilters {
@@ -26,6 +28,7 @@ export function parseAssetRegisterParams(
     locationIds: ids(params, "locationId"),
     conditionIds: ids(params, "conditionId"),
     search: search ? search : null,
+    sort: parseAssetSort(params.get("sort"), params.get("dir")),
   };
 }
 
