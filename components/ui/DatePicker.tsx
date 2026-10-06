@@ -91,6 +91,11 @@ export interface DatePickerProps {
   placeholder?: string;
   className?: string;
   "aria-label"?: string;
+  /** Marks the field invalid (useFieldErrors). The trigger is a plain <button>, which doesn't
+   * support aria-invalid, so it becomes `data-invalid` (red border, first-error focus) while the
+   * error message itself is announced through aria-describedby. */
+  "aria-invalid"?: boolean;
+  "aria-describedby"?: string;
 }
 
 /** Reusable date picker replacing the browser's native `<input type="date">`, which renders
@@ -118,6 +123,8 @@ export function DatePicker({
   placeholder = "Select date",
   className,
   "aria-label": ariaLabel,
+  "aria-invalid": ariaInvalid,
+  "aria-describedby": ariaDescribedBy,
 }: DatePickerProps) {
   const selected = parse(value);
   const minYmd = parse(min);
@@ -308,6 +315,8 @@ export function DatePicker({
         type="button"
         disabled={disabled}
         aria-label={ariaLabel}
+        data-invalid={ariaInvalid || undefined}
+        aria-describedby={ariaDescribedBy}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? popoverId : undefined}
@@ -316,6 +325,7 @@ export function DatePicker({
           "border-border bg-background flex h-10 w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-sm shadow-xs transition-colors",
           "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
           "disabled:cursor-not-allowed disabled:opacity-50",
+          "data-invalid:border-destructive data-invalid:focus-visible:ring-destructive",
           !selected && "text-muted-foreground",
         )}
       >

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getSession } from "@/lib/auth/session";
+import { resolveSessionToken, SESSION_COOKIE } from "@/lib/auth/session";
 
 const PUBLIC_PATHS = ["/login"];
 
@@ -8,19 +8,27 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isPublicPath = PUBLIC_PATHS.includes(pathname);
 
-  const session = await getSession();
+  // The same DB-backed check getSession() uses (Proxy runs on Node.js in Next 16, so pg works
+  // here). A token-only check would loop for a deactivated user: the layout would send them to
+  // /login and this would bounce them straight back to /.
+  const token = request.cookies.get(SESSION_COOKIE)?.value;
+  const session = await resolveSessionToken(token);
+  // A cookie that no longer maps to an active user is dropped, so the browser stops sending it.
+  const staleCookie = Boolean(token) && !session;
 
+  let response: NextResponse;
   if (!isPublicPath && !session) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("from", pathname);
-    return NextResponse.redirect(loginUrl);
+    response = NextResponse.redirect(loginUrl);
+  } else if (isPublicPath && session) {
+    response = NextResponse.redirect(new URL("/", request.url));
+  } else {
+    response = NextResponse.next();
   }
 
-  if (isPublicPath && session) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
-
-  return NextResponse.next();
+  if (staleCookie) response.cookies.delete(SESSION_COOKIE);
+  return response;
 }
 
 export const config = {

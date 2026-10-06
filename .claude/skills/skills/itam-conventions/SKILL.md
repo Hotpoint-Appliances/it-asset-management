@@ -35,8 +35,12 @@ No ORM is introduced. All queries go through a thin `lib/db` query layer using `
 ## Folder structure
 
 ```
-proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â€” auth-presence
-                                 # redirect only (login gate), added in Phase 2
+proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â€” login gate
+                                 # (Phase 2); since Phase 8 it uses the same DB-backed session
+                                 # check as getSession() and clears a revoked user's cookie
+/deploy/ecosystem.config.js     # PM2 cluster (default 2 workers, next start -H 127.0.0.1) (Phase 8)
+/deploy/nginx-itam.conf         # nginx HTTPS proxy: 12 MB uploads, login limit_req, /api/cron/ closed (Phase 8)
+/docs/deployment.md             # production runbook + post-deploy sign-off checklist (Phase 8)
 /app
   /(dashboard)/(overview)/page.tsx     # root route `/` â€” the fleet dashboard (Phase 6). The
   /(dashboard)/(overview)/loading.tsx  # (overview) group scopes the dashboard skeleton to `/`
@@ -57,6 +61,9 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
                                 # inside the group; print chrome is suppressed via print:hidden
                                 # on AppShell's Sidebar/Topbar, not by opting the route out of it)
   /403/page.tsx                 # target of lib/auth/session.ts's requireRole() (Phase 2)
+  /(dashboard)/error.tsx, /error.tsx, /global-error.tsx   # error boundaries, all rendering
+                                # components/shared/ErrorFallback.tsx; Next 16.3 passes retry()
+                                # (Phase 8)
   /api/...                     # route handlers, one folder per resource (REST-ish, kebab-case
                                 # plural nouns even where the UI groups routes under /settings â€”
                                 # e.g. /api/asset-conditions, not /api/settings/asset-conditions)
@@ -115,6 +122,7 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
   /reports/                    # ReportCard, AuditTrailReportCard (date-range options) (Phase 6)
   /notifications/              # NotificationBell (Topbar), NotificationItem (shared row),
                                 # NotificationsList (/notifications page) (Phase 7)
+  /shared/FieldError.tsx, ErrorFallback.tsx   # field error message; error-boundary body (Phase 8)
   /auth/                        # LoginForm etc. (Phase 2)
   /layout/                     # AppShell, Sidebar, Topbar, SettingsNav, ThemeToggle, UserMenu, nav-items
                                 # (Sidebar/Topbar take a className prop so AppShell can pass
@@ -128,7 +136,8 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
                                 # (Phase 4)
   format.ts                    # formatCurrency() â€” KES via Intl.NumberFormat (en-KE); every
                                 # money value in the schema is KES, no currency column (Phase 4);
-                                # formatRelativeTime() (Phase 6)
+                                # formatRelativeTime() (Phase 6); todayIso() â€” today's LOCAL date,
+                                # never toISOString().slice(0, 10), which is UTC (Phase 8)
   /reports/                    # workbook builders, one per report (reports.ts), shared exceljs
                                 # helpers (workbook.ts â€” styled header, KES/date formats, download
                                 # response), the pure straight-line formula (depreciation.ts) and
@@ -142,6 +151,9 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
                                 # eslint config flags synchronous setState-in-effect) (Phase 5)
   /hooks/useNotifications.ts    # TanStack Query hooks for the bell + page; shared ["notifications"]
                                 # key prefix, 60 s poll + refetch on focus (Phase 7)
+  /hooks/useFieldErrors.ts      # per-field client validation + aria wiring for every form (Phase 8)
+  assetSort.ts                  # assets-list sort keys + parseAssetSort(); SQL whitelist lives in
+                                # lib/db/assets.ts's buildAssetOrderBy() (Phase 8)
   /notifications/triggers.ts    # every notification rule: scheduleAssetChangeNotifications() (runs
                                 # in next/server after(), post-commit) and runScheduledChecks()
                                 # (warranty_expiring, maintenance_due, email retry) (Phase 7)
@@ -193,7 +205,8 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
 /scripts/seed-demo.ts           # re-runnable demo data (14 DEMO-* assets + maintenance/disposal/
                                 # audit rows), npm run seed:demo; only ever deletes DEMO-* tags (Phase 6)
 /scripts/run-notifications-check.ps1  # thin Task Scheduler trigger for /api/cron/notifications-check;
-                                # its comment-based help holds the server setup steps (Phase 7)
+                                # its comment-based help holds the server setup steps (Phase 7);
+                                # retries connection failures/5xx itself, never timeouts (Phase 8)
 /store                         # zustand stores (index.ts holds useUIStore: mobileNavOpen + the
                                 # toasts slice backing components/ui/Toast.tsx; add slices, not
                                 # new stores)
@@ -202,7 +215,7 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
                                 # multiple components; narrow/local types (e.g. AuthUser) stay in
                                 # their lib/db file instead; asset.ts/assetAttachment.ts added
                                 # Phase 4
-/schema/schema.sql              # source of truth for DB structure (lives in .claude/skills/schema/)
+/schema/schema.sql              # source of truth for DB structure (repo root; moved out of .claude/skills/ in Phase 8)
 /schema/migrations/NNN_*.sql    # idempotent changes for existing DBs (from Phase 7), see
                                 # itam-schema-reference "Schema changes"
 /docs                          # flow docs, ERD notes
@@ -221,6 +234,8 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
 
 ```
 DATABASE_URL=postgres://...
+PG_POOL_MAX=10                               # optional pg pool size per process (Phase 8); PM2 cluster
+                                             # opens instances x this, keep it below max_connections
 JWT_SECRET=...
 ASSET_FILES_BASE_PATH=D:\itam-files          # Windows server disk path for images/attachments
 MSAL_CLIENT_ID=...
@@ -233,9 +248,15 @@ ITAM_APP_URL=https://itam.internal.example   # base URL for email links + what t
 ```
 
 The Task Scheduler host side doesn't read `.env`: `scripts/run-notifications-check.ps1` takes
-`-AppUrl` (or `$env:ITAM_APP_URL`) and reads the secret from an ACL-restricted file
+`-AppUrl` (in production `http://127.0.0.1:<PM2 port>`, not the public URL â€” see
+`docs/deployment.md`) and reads the secret from an ACL-restricted file
 (`C:\ProgramData\ITAM\cron-secret.txt`) or `$env:ITAM_CRON_SECRET`. Its value must equal the
 app's `CRON_SECRET`.
+
+Production hosting (Phase 8): nginx (HTTPS, company certificate) â†’ PM2 cluster â†’ PostgreSQL on
+one Windows Server; full runbook in `docs/deployment.md`. HTTPS is mandatory because the session
+cookie is `Secure` in production. Sessions are re-checked against `users` on every request (a
+deactivated user is out immediately); see `phase-2-auth`'s "Changed by Phase 8".
 
 `ASSET_FILES_BASE_PATH` is the root directory for all uploaded files. `assets.image_path` and
 `asset_attachments.file_path` store paths **relative** to this root â€” never store absolute

@@ -46,7 +46,8 @@ roleId, roleName, departmentId, fullName, email }` on login (the extra `fullName
    project's file is `proxy.ts` at the repo root, not `middleware.ts`. It does only the
    _optimistic authentication_ check Next's own auth guide recommends for this layer: redirect
    to `/login` when no session cookie is present, redirect away from `/login` when one is.
-   Its `matcher` excludes `/api/*` entirely — route handlers verify their own session/role and
+   (Superseded in Phase 8: the proxy now runs the same DB-backed session check as the pages, see
+   "Changed by Phase 8" below.) Its `matcher` excludes `/api/*` entirely — route handlers verify their own session/role and
    return JSON 401/403, per the Route Handlers guidance in that same doc, rather than being
    redirected to an HTML login page.
    Full role-tier enforcement (the `admin`/`asset_manager`/`viewer` route policy below) is
@@ -104,6 +105,21 @@ roleId, roleName, departmentId, fullName, email }` on login (the extra `fullName
   `phase-1-foundation`'s Root route decision) — `proxy.ts`'s matcher protects everything except
   `/login` and `/api/*`, so this holds for whatever routes Phase 3 onward adds under that same
   root, not just `/`.
+
+## Changed by Phase 8 (session revocation)
+
+The JWT is no longer the whole truth. `getSession()` still verifies the token, then re-reads the
+user (`findActiveSessionUser()` in `lib/db/users.ts`, one PK lookup memoized per request with
+React `cache()`): a deactivated user gets `null` on their very next request, and the payload's
+role/department/name come from the **DB**, so an admin's role change applies without re-login.
+The cookie isn't re-signed (it can't be set during a Server Component render).
+
+`proxy.ts` therefore isn't purely optimistic any more. It calls the same DB-backed
+`resolveSessionToken()` (the proxy runs on Node.js in Next 16), because a token-only proxy plus a
+DB-backed layout would bounce a deactivated user between `/` and `/login` forever. When a token
+is valid but the user is rejected, it deletes the `itam_session` cookie on the response.
+Verified live (Phase 8): deactivate → next API call 401, next page load lands on `/login` with the
+cookie cleared; a role downgrade → lifecycle POST 403 and the Actions menu gone, without re-login.
 
 ## Produces (for later phases to reference)
 

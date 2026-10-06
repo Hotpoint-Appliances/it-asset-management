@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { AppLogo } from "@/components/shared/AppLogo";
 import { RequiredMark } from "@/components/shared/RequiredMark";
+import { FieldError } from "@/components/shared/FieldError";
+import { useFieldErrors, looksLikeEmail } from "@/lib/hooks/useFieldErrors";
 
 /** Only a same-origin relative path is a safe redirect target, `from` is an attacker-controlled
  * query param (`/login?from=https://evil.com` or `//evil.com`), so anything else falls back to
@@ -29,9 +31,20 @@ export function LoginForm() {
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
+  const fields = useFieldErrors<"email" | "password">();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const ok = fields.validate(
+      {
+        email: !email.trim()
+          ? "Enter your email address."
+          : !looksLikeEmail(email) && "Enter a valid email address.",
+        password: !password && "Enter your password.",
+      },
+      event.currentTarget,
+    );
+    if (!ok) return;
     setSubmitting(true);
     setError(null);
 
@@ -41,7 +54,11 @@ export function LoginForm() {
       // every store, starts fresh under the new session, matching the logout flow.
       window.location.assign(safeRedirectTarget(searchParams.get("from")));
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.data?.error) {
+      if (axios.isAxiosError(err) && err.response?.status === 429) {
+        // nginx's limit_req on /api/auth/login (docs/deployment.md) answers with an HTML page,
+        // so there's no JSON error to show; say what happened instead of "Something went wrong".
+        setError("Too many sign-in attempts. Wait a minute and try again.");
+      } else if (axios.isAxiosError(err) && err.response?.data?.error) {
         setError(err.response.data.error as string);
       } else {
         setError("Something went wrong. Please try again.");
@@ -60,7 +77,11 @@ export function LoginForm() {
         </p>
       </div>
       <div>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="flex flex-col gap-4"
+        >
           <div className="flex flex-col gap-1.5">
             <label htmlFor="email" className="text-sm font-medium">
               Email
@@ -73,7 +94,15 @@ export function LoginForm() {
               autoComplete="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                fields.clear("email");
+              }}
+              {...fields.invalid("email")}
+            />
+            <FieldError
+              id={fields.errorId("email")}
+              message={fields.errors.email}
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -88,7 +117,15 @@ export function LoginForm() {
               autoComplete="current-password"
               required
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                fields.clear("password");
+              }}
+              {...fields.invalid("password")}
+            />
+            <FieldError
+              id={fields.errorId("password")}
+              message={fields.errors.password}
             />
           </div>
           {error && (

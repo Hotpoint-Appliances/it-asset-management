@@ -65,7 +65,8 @@ image upload and printable QR/barcode labels.
   set, then active) is a client-side default in `AssetForm` only — applied until the user picks
   a status themselves, and only in create mode. This resolves an ambiguity in that doc (it says
   "owner **or location**", but location is always required, which would make the in_storage
-  branch unreachable) by keying the default off owner only; flagged for confirmation.
+  branch unreachable) by keying the default off owner only. **Confirmed in Phase 8** (owner-only),
+  and the lifecycle doc's rule 1 now says so.
 - **Viewer department-scoping applies to both `listAssets` and `getAssetById`** — a viewer
   requesting an asset outside their department gets 404, the same as a nonexistent id, never a
   403 that would confirm the asset exists.

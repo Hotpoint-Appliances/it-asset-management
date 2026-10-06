@@ -13,7 +13,7 @@ export default async function NotFound() {
     <StatusPage
       icon={CompassIcon}
       title="Page not found"
-      description="The page you're looking for doesn't exist or hasn't been built yet."
+      description="The page you're looking for doesn't exist, or you don't have access to it."
       action={
         <Button asChild>
           <Link href="/">Back to dashboard</Link>

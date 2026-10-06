@@ -1,8 +1,10 @@
 # ITAM Skill Files — Index & Execution Order
 
 Not a skill itself — a map of how the skills in this directory fit together. Copy this whole
-`skills/` directory (plus `schema/` and `docs/`) into the target project's `.claude/skills/`
-when development starts.
+`skills/` directory (plus `docs/`) into the target project's `.claude/skills/` when development
+starts. The DB schema lives at the **repo root** in `schema/` (moved out of `.claude/skills/` in
+Phase 8 so deployment doesn't depend on the `.claude` folder); every `schema/...` path in these
+skills is relative to the repo root.
 
 ## Load order
 
@@ -28,7 +30,7 @@ when development starts.
    | 5     | `phase-5-asset-lifecycle`     | Transfers, condition/status changes, maintenance, disposal, audit timeline        |
    | 6     | `phase-6-dashboard-reporting` | Dashboard widgets, exceljs exports                                                |
    | 7     | `phase-7-notifications`       | MSAL/Graph email, bell + /notifications page, daily check via Task Scheduler     |
-   | 8     | `phase-8-polish`              | Theming/responsive/a11y sweep, QA smoke pass                                      |
+   | 8     | `phase-8-polish`              | Error boundaries, session revocation, assets sorting, form a11y, deploy runbook, theming/responsive sweep, QA smoke pass, MVP sign-off |
 
 ## Model routing
 

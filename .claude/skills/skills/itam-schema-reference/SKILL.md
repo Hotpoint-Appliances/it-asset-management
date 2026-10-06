@@ -5,7 +5,7 @@ description: Explains the ITAM database schema decisions and table relationships
 
 # ITAM — Schema Reference
 
-Companion to `schema/schema.sql`, which is the source of truth. This explains _why_ the schema
+Companion to `schema/schema.sql` (at the repo root since Phase 8), which is the source of truth. This explains _why_ the schema
 looks the way it does so implementation stays consistent with the design decisions below.
 
 ## Key design decisions

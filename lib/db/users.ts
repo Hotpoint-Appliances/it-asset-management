@@ -50,6 +50,31 @@ export async function findUserByEmail(email: string): Promise<AuthUser | null> {
   return row ? mapAuthUser(row) : null;
 }
 
+/** The session's per-request check (lib/auth/session.ts): the user's current role/department/
+ * name, or null once they've been deactivated or no longer exist. Never returns the hash. */
+export async function findActiveSessionUser(
+  id: string,
+): Promise<Omit<AuthUser, "passwordHash" | "isActive"> | null> {
+  const result = await query<Omit<AuthUserRow, "password_hash">>(
+    `SELECT u.id, u.full_name, u.email, u.role_id, r.name AS role_name,
+            u.department_id, u.is_active
+     FROM users u
+     JOIN roles r ON r.id = u.role_id
+     WHERE u.id = $1`,
+    [id],
+  );
+  const row = result.rows[0];
+  if (!row || !row.is_active) return null;
+  return {
+    id: row.id,
+    fullName: row.full_name,
+    email: row.email,
+    roleId: row.role_id,
+    roleName: row.role_name,
+    departmentId: row.department_id,
+  };
+}
+
 export async function touchLastLogin(userId: string): Promise<void> {
   await query(`UPDATE users SET last_login_at = now() WHERE id = $1`, [userId]);
 }

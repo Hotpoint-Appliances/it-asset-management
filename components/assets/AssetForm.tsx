@@ -19,6 +19,8 @@ import type { Vendor } from "@/types/vendor";
 import type { AssetCondition } from "@/types/assetCondition";
 import type { AssetStatus } from "@/types/assetStatus";
 import { RequiredMark } from "@/components/shared/RequiredMark";
+import { FieldError } from "@/components/shared/FieldError";
+import { useFieldErrors, looksLikeEmail } from "@/lib/hooks/useFieldErrors";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -30,11 +32,17 @@ function Field({
   label,
   htmlFor,
   required,
+  error,
+  errorId,
   children,
 }: {
   label: string;
   htmlFor: string;
   required?: boolean;
+  /** Client-side field error (useFieldErrors); the control itself carries the matching
+   * aria-invalid/aria-describedby. */
+  error?: string;
+  errorId?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -44,8 +52,34 @@ function Field({
         {required && <RequiredMark />}
       </label>
       {children}
+      {errorId && <FieldError id={errorId} message={error} />}
     </div>
   );
+}
+
+/** Mirrors lib/files/upload.ts's image limit, so an oversized file is caught before upload. */
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+type AssetField =
+  | "assetTag"
+  | "name"
+  | "categoryId"
+  | "locationId"
+  | "departmentId"
+  | "assignedUserId"
+  | "ownerName"
+  | "ownerEmail"
+  | "conditionId"
+  | "statusId"
+  | "purchaseCost"
+  | "usefulLifeMonths"
+  | "salvageValue"
+  | "image";
+
+const NON_NEGATIVE = "Enter an amount of 0 or more, or leave it blank.";
+
+function notNonNegative(value: string): boolean {
+  return value.trim() !== "" && !(Number(value) >= 0);
 }
 
 function Section({
@@ -165,6 +199,7 @@ export function AssetForm({
   );
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const fields = useFieldErrors<AssetField>();
 
   const categoryItems = React.useMemo(
     () =>
@@ -187,6 +222,7 @@ export function AssetForm({
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
+    fields.clear(key as AssetField);
   }
 
   // Per docs/asset-lifecycle-flow.md: default status is in_storage, unless an owner is set at
@@ -207,10 +243,13 @@ export function AssetForm({
 
   function updateOwner(patch: Partial<FormState>) {
     setForm((prev) => withDefaultStatus({ ...prev, ...patch }));
+    fields.clear("assignedUserId");
+    fields.clear("ownerName");
   }
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
+    fields.clear("image");
     setImageFile(file);
     if (file) setImagePreview(URL.createObjectURL(file));
   }
@@ -220,8 +259,44 @@ export function AssetForm({
     setImagePreview(null);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const external = form.ownerMode === "external";
+    const life = form.usefulLifeMonths.trim();
+    const ok = fields.validate(
+      {
+        assetTag: !form.assetTag.trim() && "Enter an asset tag.",
+        name: !form.name.trim() && "Enter a name.",
+        categoryId: form.categoryId == null && "Select a category.",
+        locationId: form.locationId == null && "Select a location.",
+        departmentId: form.departmentId == null && "Select a department.",
+        assignedUserId:
+          !external &&
+          !form.assignedUserId &&
+          "Select the user who owns this asset, or switch to External.",
+        ownerName:
+          external && !form.ownerName.trim() && "Enter the owner's name.",
+        ownerEmail:
+          external &&
+          form.ownerEmail.trim() !== "" &&
+          !looksLikeEmail(form.ownerEmail) &&
+          "Enter a valid email address, or leave it blank.",
+        conditionId: form.conditionId == null && "Select a condition.",
+        statusId: form.statusId == null && "Select a status.",
+        purchaseCost: notNonNegative(form.purchaseCost) && NON_NEGATIVE,
+        usefulLifeMonths:
+          life !== "" &&
+          !(Number.isInteger(Number(life)) && Number(life) > 0) &&
+          "Enter a whole number of months greater than 0, or leave it blank.",
+        salvageValue: notNonNegative(form.salvageValue) && NON_NEGATIVE,
+        image:
+          !!imageFile &&
+          imageFile.size > MAX_IMAGE_BYTES &&
+          "The image must be 5 MB or smaller.",
+      },
+      e.currentTarget,
+    );
+    if (!ok) return;
     setSubmitting(true);
     setError(null);
 
@@ -276,27 +351,48 @@ export function AssetForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
       <Section title="Basic information">
-        <Field label="Asset tag" htmlFor="asset-tag" required>
+        <Field
+          label="Asset tag"
+          htmlFor="asset-tag"
+          required
+          error={fields.errors.assetTag}
+          errorId={fields.errorId("assetTag")}
+        >
           <Input
             id="asset-tag"
             required
+            {...fields.invalid("assetTag")}
             value={form.assetTag}
             onChange={(e) => update("assetTag", e.target.value)}
           />
         </Field>
-        <Field label="Name" htmlFor="asset-name" required>
+        <Field
+          label="Name"
+          htmlFor="asset-name"
+          required
+          error={fields.errors.name}
+          errorId={fields.errorId("name")}
+        >
           <Input
             id="asset-name"
             required
+            {...fields.invalid("name")}
             value={form.name}
             onChange={(e) => update("name", e.target.value)}
           />
         </Field>
-        <Field label="Category" htmlFor="asset-category" required>
+        <Field
+          label="Category"
+          htmlFor="asset-category"
+          required
+          error={fields.errors.categoryId}
+          errorId={fields.errorId("categoryId")}
+        >
           <TreePicker
             id="asset-category"
+            {...fields.invalid("categoryId")}
             items={categoryItems}
             value={form.categoryId}
             onChange={(v) => update("categoryId", v)}
@@ -320,19 +416,33 @@ export function AssetForm({
       </Section>
 
       <Section title="Assignment">
-        <Field label="Location" htmlFor="asset-location" required>
+        <Field
+          label="Location"
+          htmlFor="asset-location"
+          required
+          error={fields.errors.locationId}
+          errorId={fields.errorId("locationId")}
+        >
           <TreePicker
             id="asset-location"
+            {...fields.invalid("locationId")}
             items={locationItems}
             value={form.locationId}
             onChange={(v) => update("locationId", v)}
             placeholder="Select a location"
           />
         </Field>
-        <Field label="Department" htmlFor="asset-department" required>
+        <Field
+          label="Department"
+          htmlFor="asset-department"
+          required
+          error={fields.errors.departmentId}
+          errorId={fields.errorId("departmentId")}
+        >
           <Select
             id="asset-department"
             required
+            {...fields.invalid("departmentId")}
             value={form.departmentId ?? ""}
             onChange={(e) =>
               update(
@@ -378,7 +488,7 @@ export function AssetForm({
         </div>
 
         {form.ownerMode === "user" ? (
-          <div className="sm:col-span-2">
+          <div className="flex flex-col gap-1.5 sm:col-span-2">
             <UserTypeahead
               value={form.assignedUserId}
               displayName={form.assignedUserName}
@@ -388,21 +498,40 @@ export function AssetForm({
                   assignedUserName: u?.fullName ?? null,
                 })
               }
+              aria-label="Owner (system user)"
+              {...fields.invalid("assignedUserId")}
+            />
+            <FieldError
+              id={fields.errorId("assignedUserId")}
+              message={fields.errors.assignedUserId}
             />
           </div>
         ) : (
           <>
-            <Field label="Owner name" htmlFor="asset-owner-name" required>
+            <Field
+              label="Owner name"
+              htmlFor="asset-owner-name"
+              required
+              error={fields.errors.ownerName}
+              errorId={fields.errorId("ownerName")}
+            >
               <Input
                 id="asset-owner-name"
+                {...fields.invalid("ownerName")}
                 required={form.ownerMode === "external"}
                 value={form.ownerName}
                 onChange={(e) => updateOwner({ ownerName: e.target.value })}
               />
             </Field>
-            <Field label="Owner email" htmlFor="asset-owner-email">
+            <Field
+              label="Owner email"
+              htmlFor="asset-owner-email"
+              error={fields.errors.ownerEmail}
+              errorId={fields.errorId("ownerEmail")}
+            >
               <Input
                 id="asset-owner-email"
+                {...fields.invalid("ownerEmail")}
                 type="email"
                 value={form.ownerEmail}
                 onChange={(e) => update("ownerEmail", e.target.value)}
@@ -413,10 +542,17 @@ export function AssetForm({
       </Section>
 
       <Section title="Condition & status">
-        <Field label="Condition" htmlFor="asset-condition" required>
+        <Field
+          label="Condition"
+          htmlFor="asset-condition"
+          required
+          error={fields.errors.conditionId}
+          errorId={fields.errorId("conditionId")}
+        >
           <Select
             id="asset-condition"
             required
+            {...fields.invalid("conditionId")}
             value={form.conditionId ?? ""}
             onChange={(e) =>
               update(
@@ -435,10 +571,17 @@ export function AssetForm({
             ))}
           </Select>
         </Field>
-        <Field label="Status" htmlFor="asset-status" required>
+        <Field
+          label="Status"
+          htmlFor="asset-status"
+          required
+          error={fields.errors.statusId}
+          errorId={fields.errorId("statusId")}
+        >
           <Select
             id="asset-status"
             required
+            {...fields.invalid("statusId")}
             value={form.statusId ?? ""}
             onChange={(e) => {
               update("statusTouched", true);
@@ -485,9 +628,15 @@ export function AssetForm({
             placeholder="No date"
           />
         </Field>
-        <Field label="Purchase cost (KES)" htmlFor="asset-purchase-cost">
+        <Field
+          label="Purchase cost (KES)"
+          htmlFor="asset-purchase-cost"
+          error={fields.errors.purchaseCost}
+          errorId={fields.errorId("purchaseCost")}
+        >
           <Input
             id="asset-purchase-cost"
+            {...fields.invalid("purchaseCost")}
             type="number"
             step="0.01"
             min="0"
@@ -521,18 +670,30 @@ export function AssetForm({
             <option value="straight_line">Straight line</option>
           </Select>
         </Field>
-        <Field label="Useful life (months)" htmlFor="asset-useful-life">
+        <Field
+          label="Useful life (months)"
+          htmlFor="asset-useful-life"
+          error={fields.errors.usefulLifeMonths}
+          errorId={fields.errorId("usefulLifeMonths")}
+        >
           <Input
             id="asset-useful-life"
+            {...fields.invalid("usefulLifeMonths")}
             type="number"
             min="0"
             value={form.usefulLifeMonths}
             onChange={(e) => update("usefulLifeMonths", e.target.value)}
           />
         </Field>
-        <Field label="Salvage value (KES)" htmlFor="asset-salvage-value">
+        <Field
+          label="Salvage value (KES)"
+          htmlFor="asset-salvage-value"
+          error={fields.errors.salvageValue}
+          errorId={fields.errorId("salvageValue")}
+        >
           <Input
             id="asset-salvage-value"
+            {...fields.invalid("salvageValue")}
             type="number"
             step="0.01"
             min="0"
@@ -564,6 +725,11 @@ export function AssetForm({
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 onChange={handleImageChange}
+                {...fields.invalid("image")}
+              />
+              <FieldError
+                id={fields.errorId("image")}
+                message={fields.errors.image}
               />
               {imagePreview && (
                 <Button

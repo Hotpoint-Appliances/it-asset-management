@@ -70,6 +70,8 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
       placeholder,
       onOpenChange,
       "aria-label": ariaLabel,
+      "aria-invalid": ariaInvalid,
+      "aria-describedby": ariaDescribedBy,
     },
     ref,
   ) => {
@@ -111,11 +113,14 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
           ref={ref}
           id={id}
           aria-label={ariaLabel}
+          aria-invalid={ariaInvalid}
+          aria-describedby={ariaDescribedBy}
           className={cn(
             "border-border bg-background text-foreground flex h-10 w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm shadow-xs transition-colors",
             "data-[placeholder]:text-muted-foreground",
             "focus-visible:ring-ring focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
             "disabled:cursor-not-allowed disabled:opacity-50",
+            "aria-invalid:border-destructive aria-invalid:focus-visible:ring-destructive",
             "[&>span]:line-clamp-1",
             className,
           )}

@@ -49,54 +49,60 @@
   --toast-destructive: #ef4444;
 }
 
-.dark {
-  --background: #09090b;
-  --foreground: #fafafa;
+/* Screen only: printed pages (asset labels, a browser print of any page) always use the light
+   tokens. Browsers drop background colours when printing by default, so dark-theme text
+   (near-white) would otherwise come out almost invisible on white paper. */
+@media not print {
+  .dark {
+    --background: #09090b;
+    --foreground: #fafafa;
 
-  --card: #18181b;
-  --card-foreground: #fafafa;
+    --card: #18181b;
+    --card-foreground: #fafafa;
 
-  --primary: #818cf8;
-  --primary-foreground: #1e1b4b;
+    --primary: #818cf8;
+    --primary-foreground: #1e1b4b;
 
-  --secondary: #27272a;
-  --secondary-foreground: #fafafa;
+    --secondary: #27272a;
+    --secondary-foreground: #fafafa;
 
-  --muted: #27272a;
-  --muted-foreground: #a1a1aa;
+    --muted: #27272a;
+    --muted-foreground: #a1a1aa;
 
-  --border: #27272a;
-  --ring: #52525b;
+    --border: #27272a;
+    --ring: #52525b;
 
-  --destructive: #ef4444;
-  --destructive-foreground: #fafafa;
+    --destructive: #ef4444;
+    --destructive-foreground: #fafafa;
 
-  --success: #22c55e;
-  --warning: #f59e0b;
+    --success: #22c55e;
+    --warning: #f59e0b;
 
-  --sidebar: #09090b;
-  --sidebar-foreground: #fafafa;
+    --sidebar: #09090b;
+    --sidebar-foreground: #fafafa;
 
-  --scrollbar-thumb: rgba(255, 255, 255, 0.32);
-  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.48);
+    --scrollbar-thumb: rgba(255, 255, 255, 0.32);
+    --scrollbar-thumb-hover: rgba(255, 255, 255, 0.48);
 
-  /* Inverted the other way in dark mode: light-on-dark, mirroring the light
-     theme's card/foreground tokens above. */
-  --toast: #ffffff;
-  --toast-foreground: #0f172a;
-  --toast-muted-foreground: #71717a;
-  --toast-border: #e4e4e7;
-  --toast-primary: #4f46e5;
-  --toast-success: #16a34a;
-  --toast-warning: #d97706;
-  --toast-destructive: #dc2626;
+    /* Inverted the other way in dark mode: light-on-dark, mirroring the light
+       theme's card/foreground tokens above. */
+    --toast: #ffffff;
+    --toast-foreground: #0f172a;
+    --toast-muted-foreground: #71717a;
+    --toast-border: #e4e4e7;
+    --toast-primary: #4f46e5;
+    --toast-success: #16a34a;
+    --toast-warning: #d97706;
+    --toast-destructive: #dc2626;
+  }
 }
 
 /* App-shell breakpoint: the persistent sidebar shows from 1200px up, below
    that the topbar hamburger opens the Sheet drawer instead. Sits between
-   `md` (768px) and `lg` (1024px) so the 16rem sidebar still leaves room for
-   the content column at small-laptop / landscape-tablet widths. Used as the
-   `nav:` variant; keep `NAV_BREAKPOINT_QUERY` in Topbar.tsx in sync. */
+   `lg` (1024px) and `xl` (1280px): below 1200px the 16rem sidebar would
+   squeeze the dense asset table, so small laptops / landscape tablets get the
+   drawer and the full content width. Used as the `nav:` variant; keep
+   `NAV_BREAKPOINT_QUERY` (75rem) in Topbar.tsx in sync. */
 @theme {
   --breakpoint-nav: 1200px;
 }

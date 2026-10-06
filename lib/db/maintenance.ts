@@ -1,5 +1,6 @@
 import { query } from "./query";
 import { toIsoString, toDateOnlyString } from "./dates";
+import { todayIso } from "@/lib/format";
 import type {
   AssetMaintenance,
   MaintenanceInput,
@@ -154,7 +155,7 @@ export async function updateMaintenance(
 ): Promise<AssetMaintenance | null> {
   const completedDate =
     input.status === "completed"
-      ? (input.completedDate ?? new Date().toISOString().slice(0, 10))
+      ? (input.completedDate ?? todayIso())
       : input.completedDate;
   const result = await query<MaintenanceRow>(
     `WITH updated AS (

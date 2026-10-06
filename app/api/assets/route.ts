@@ -13,6 +13,7 @@ import {
 } from "@/lib/files/upload";
 import { scheduleAssetChangeNotifications } from "@/lib/notifications/triggers";
 import type { AssetFilters } from "@/types/asset";
+import { parseAssetSort } from "@/lib/assetSort";
 
 function parseIds(searchParams: URLSearchParams, key: string): number[] {
   return searchParams
@@ -34,6 +35,7 @@ export async function GET(request: NextRequest) {
     locationIds: parseIds(searchParams, "locationId"),
     conditionIds: parseIds(searchParams, "conditionId"),
     search: searchParams.get("search") || null,
+    sort: parseAssetSort(searchParams.get("sort"), searchParams.get("dir")),
     limit: Math.min(Number(searchParams.get("limit") ?? 25) || 25, 200),
     offset: Number(searchParams.get("offset") ?? 0) || 0,
   };

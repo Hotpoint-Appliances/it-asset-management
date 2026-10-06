@@ -16,10 +16,18 @@ export function UserTypeahead({
   value,
   displayName,
   onSelect,
+  id,
+  "aria-label": ariaLabel,
+  "aria-invalid": ariaInvalid,
+  "aria-describedby": ariaDescribedBy,
 }: {
   value: string | null;
   displayName: string | null;
   onSelect: (user: { id: string; fullName: string } | null) => void;
+  id?: string;
+  "aria-label"?: string;
+  "aria-invalid"?: boolean;
+  "aria-describedby"?: string;
 }) {
   const [users, setUsers] = React.useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = React.useState(true);
@@ -107,6 +115,10 @@ export function UserTypeahead({
   return (
     <div ref={containerRef} className="relative">
       <Input
+        id={id}
+        aria-label={ariaLabel}
+        aria-invalid={ariaInvalid}
+        aria-describedby={ariaDescribedBy}
         value={query}
         placeholder="Search users by name or email…"
         onChange={(e) => setQuery(e.target.value)}

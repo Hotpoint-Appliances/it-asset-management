@@ -13,8 +13,9 @@ export async function AssetQrCode({
   const appUrl = (process.env.ITAM_APP_URL ?? "").replace(/\/$/, "");
   const url = `${appUrl}/assets/${assetId}`;
   const dataUrl = await QRCode.toDataURL(url, { width: size, margin: 1 });
-  // eslint-disable-next-line @next/next/no-img-element
   return (
+    // A generated data: URI: there's nothing for next/image to fetch or optimize.
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={dataUrl}
       alt={`QR code linking to ${url}`}

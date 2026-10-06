@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
+  DialogDescription,
 } from "@/components/ui/Dialog";
 import {
   Table,
@@ -27,6 +28,8 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
 import type { Department } from "@/types/department";
 import { RequiredMark } from "@/components/shared/RequiredMark";
+import { FieldError } from "@/components/shared/FieldError";
+import { useFieldErrors } from "@/lib/hooks/useFieldErrors";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -48,12 +51,14 @@ export function DepartmentsManager({
   const [code, setCode] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const fields = useFieldErrors<"name">();
 
   function openCreate() {
     setEditing(null);
     setName("");
     setCode("");
     setError(null);
+    fields.reset();
     setDialogOpen(true);
   }
 
@@ -62,11 +67,19 @@ export function DepartmentsManager({
     setName(department.name);
     setCode(department.code ?? "");
     setError(null);
+    fields.reset();
     setDialogOpen(true);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const ok = fields.validate(
+      {
+        name: !name.trim() && "Enter a department name.",
+      },
+      e.currentTarget,
+    );
+    if (!ok) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -170,6 +183,7 @@ export function DepartmentsManager({
           </DialogHeader>
           <form
             onSubmit={handleSubmit}
+            noValidate
             className="flex min-h-0 flex-1 flex-col"
           >
             <DialogBody>
@@ -180,9 +194,15 @@ export function DepartmentsManager({
                 </label>
                 <Input
                   id="dept-name"
+                  {...fields.invalid("name")}
+                  onInput={() => fields.clear("name")}
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                />
+                <FieldError
+                  id={fields.errorId("name")}
+                  message={fields.errors.name}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -224,10 +244,10 @@ export function DepartmentsManager({
             <DialogTitle>Delete department</DialogTitle>
           </DialogHeader>
           <DialogBody>
-            <p className="text-muted-foreground text-sm">
+            <DialogDescription>
               This will permanently delete <strong>{deleting?.name}</strong>.
               This cannot be undone.
-            </p>
+            </DialogDescription>
           </DialogBody>
           <DialogFooter>
             <DialogClose asChild>

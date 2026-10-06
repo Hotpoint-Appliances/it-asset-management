@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
+  DialogDescription,
 } from "@/components/ui/Dialog";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
@@ -165,10 +166,10 @@ export function AssetAttachments({
             <DialogTitle>Delete attachment</DialogTitle>
           </DialogHeader>
           <DialogBody>
-            <p className="text-muted-foreground text-sm">
+            <DialogDescription>
               This will permanently delete <strong>{deleting?.fileName}</strong>
               . This cannot be undone.
-            </p>
+            </DialogDescription>
           </DialogBody>
           <DialogFooter>
             <DialogClose asChild>

@@ -2,6 +2,7 @@ import { query } from "./query";
 import { toIsoString, toDateOnlyString } from "./dates";
 import {
   buildAssetFilterClause,
+  buildAssetOrderBy,
   RELATIONS_JOIN,
   type AssetRequester,
 } from "./assets";
@@ -87,7 +88,7 @@ export async function listAssetRegister(
             a.created_at
      ${RELATIONS_JOIN}
      WHERE ${where}
-     ORDER BY a.asset_tag`,
+     ORDER BY ${buildAssetOrderBy(filters.sort, "a.asset_tag")}`,
     params,
   );
   return result.rows.map((r) => ({

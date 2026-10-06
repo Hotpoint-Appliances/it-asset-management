@@ -13,7 +13,7 @@
 -- Event-driven types (asset_assigned / asset_transferred) leave it NULL: every event is new.
 --
 -- Already folded into schema.sql for fresh installs. Idempotent, safe to re-run.
--- Apply: psql "$DATABASE_URL" -f .claude/skills/schema/migrations/001_notifications_dedupe_key.sql
+-- Apply: psql "$DATABASE_URL" -f schema/migrations/001_notifications_dedupe_key.sql
 
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS dedupe_key VARCHAR(200);
 
