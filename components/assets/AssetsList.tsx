@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
+import { Select } from "@/components/ui/Select";
 import {
   Table,
   TableHeader,
@@ -37,6 +38,7 @@ import {
 } from "@/lib/badgeVariants";
 import type { AssetListItem } from "@/types/asset";
 import type { AssetSort, AssetSortKey } from "@/lib/assetSort";
+import { ASSET_PAGE_SIZES, DEFAULT_ASSET_PAGE_SIZE } from "@/lib/assetPageSize";
 import type { Category } from "@/types/category";
 import type { Location } from "@/types/location";
 import type { Department } from "@/types/department";
@@ -111,12 +113,14 @@ export function AssetsList({
 
   function clearFilters() {
     setSearch("");
-    // Clearing filters keeps the chosen sort; only filters/search/page are dropped.
+    // Clearing filters keeps the chosen sort and page size; only filters/search/page are dropped.
     const params = new URLSearchParams();
     if (sort) {
       params.set("sort", sort.key);
       params.set("dir", sort.dir);
     }
+    const pageSizeParam = searchParams.get("pageSize");
+    if (pageSizeParam) params.set("pageSize", pageSizeParam);
     pushParams(params);
   }
 
@@ -156,12 +160,26 @@ export function AssetsList({
     router.push(`${pathname}?${params.toString()}`);
   }
 
+  /** Lands on the page holding the current first row, so a resize keeps your place (rows 51-75
+   * at 25 -> page 2 at 50). The default size and page 1 are left out of the URL. */
+  function changePageSize(nextSize: number) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (nextSize === DEFAULT_ASSET_PAGE_SIZE) params.delete("pageSize");
+    else params.set("pageSize", String(nextSize));
+    const nextPage = Math.floor(((page - 1) * pageSize) / nextSize) + 1;
+    if (nextPage > 1) params.set("page", String(nextPage));
+    else params.delete("page");
+    const qs = params.toString();
+    router.push(qs ? `${pathname}?${qs}` : pathname);
+  }
+
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   // The register export takes the same filter params as this page (minus pagination), so what
   // downloads is exactly the filtered set on screen, all pages of it.
   const exportParams = new URLSearchParams(searchParams.toString());
   exportParams.delete("page");
+  exportParams.delete("pageSize");
   const exportHref = `/api/reports/asset-register${exportParams.size ? `?${exportParams.toString()}` : ""}`;
 
   return (
@@ -354,11 +372,38 @@ export function AssetsList({
             </TableBody>
           </Table>
 
-          <div className="flex items-center justify-between">
-            <p className="text-muted-foreground text-sm">
-              Page {page} of {totalPages}
-            </p>
-            <div className="flex gap-2">
+          {/* Wraps on narrow phones: row range + size on one line, Previous/Next pushed right on
+              the next (ml-auto keeps them right-aligned once they wrap). */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <div className="flex items-center gap-4">
+              <p className="text-muted-foreground text-sm whitespace-nowrap">
+                Showing {(page - 1) * pageSize + 1}–
+                {Math.min(page * pageSize, total)} of {total}
+              </p>
+              <div className="flex items-center gap-2">
+                <span
+                  aria-hidden="true"
+                  className="text-muted-foreground text-sm whitespace-nowrap"
+                >
+                  Rows per page
+                </span>
+                <Select
+                  aria-label="Rows per page"
+                  value={pageSize}
+                  onChange={(e) => changePageSize(Number(e.target.value))}
+                  side="top"
+                  disabled={router.isPending}
+                  className="h-9 w-20"
+                >
+                  {ASSET_PAGE_SIZES.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
+            <div className="ml-auto flex gap-2">
               <Button
                 variant="outline"
                 size="sm"

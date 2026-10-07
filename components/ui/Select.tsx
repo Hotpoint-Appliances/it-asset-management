@@ -48,6 +48,9 @@ export interface SelectProps extends Omit<
   onChange?: (e: { target: { value: string } }) => void;
   placeholder?: string;
   onOpenChange?: (open: boolean) => void;
+  /** Pins the menu to this side of the trigger, never flipping on collision (e.g. "top" for a
+   * control sitting at the bottom of the page). Omitted, it opens below and flips if cramped. */
+  side?: "top" | "bottom";
 }
 
 /** Drop-in replacement for a native `<select>`: same `value`/`onChange`/`<option>` children API
@@ -69,6 +72,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
       name,
       placeholder,
       onOpenChange,
+      side,
       "aria-label": ariaLabel,
       "aria-invalid": ariaInvalid,
       "aria-describedby": ariaDescribedBy,
@@ -135,6 +139,8 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
         <SelectPrimitive.Portal>
           <SelectPrimitive.Content
             position="popper"
+            side={side}
+            avoidCollisions={side === undefined}
             sideOffset={4}
             className={cn(
               "bg-card text-card-foreground border-border relative z-50 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-lg border shadow-md",
