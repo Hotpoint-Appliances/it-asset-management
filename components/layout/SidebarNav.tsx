@@ -42,7 +42,8 @@ export function SidebarNav({
               collapsed ? "justify-center px-0" : "px-3 py-2",
               active
                 ? "bg-primary/10 text-primary font-semibold"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                : // Foreground tint, not `bg-muted`: muted matches the light shell canvas.
+                  "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
             )}
           >
             <Icon className="h-4 w-4 shrink-0" />

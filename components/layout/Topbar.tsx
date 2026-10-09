@@ -55,7 +55,12 @@ export function Topbar({
   return (
     <header
       className={cn(
-        "border-border bg-background/95 z-40 flex h-16 shrink-0 items-center gap-2 border-b px-4 supports-backdrop-filter:backdrop-blur",
+        "border-border bg-background/95 nav:border-b relative z-40 flex h-16 shrink-0 items-center gap-2 px-4 supports-backdrop-filter:backdrop-blur",
+        // Below `nav` (full-bleed shell) the dividing line is a ╭──╮ hanging under the bar: a
+        // radius-tall, top-rounded outline whose sides end where the curve turns vertical, so the
+        // line bends down at both edges and stops. From `nav` up it's the plain `border-b` divider
+        // inside the inset panel.
+        "after:border-border nav:after:hidden after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-3.5 after:rounded-t-xl after:border-x after:border-t",
         className,
       )}
     >
