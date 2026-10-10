@@ -33,6 +33,10 @@
   --sidebar: #ffffff;
   --sidebar-foreground: #0f172a;
 
+  /* App-shell canvas behind the inset content panel (nav breakpoint and up):
+     the desktop sidebar sits directly on it, the panel is `--background`. */
+  --canvas: #f4f4f5;
+
   --scrollbar-thumb: rgba(0, 0, 0, 0.35);
   --scrollbar-thumb-hover: rgba(0, 0, 0, 0.5);
 
@@ -80,6 +84,8 @@
 
     --sidebar: #09090b;
     --sidebar-foreground: #fafafa;
+
+    --canvas: #000000;
 
     --scrollbar-thumb: rgba(255, 255, 255, 0.32);
     --scrollbar-thumb-hover: rgba(255, 255, 255, 0.48);
@@ -134,6 +140,8 @@
 
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
+
+  --color-canvas: var(--canvas);
 
   --color-toast: var(--toast);
   --color-toast-foreground: var(--toast-foreground);

@@ -34,6 +34,7 @@ yarn-error.log*
 .env*
 # ...except the placeholder template, which documents every variable
 !.env.example
+ecosystem.config.js*
 
 
 # vercel

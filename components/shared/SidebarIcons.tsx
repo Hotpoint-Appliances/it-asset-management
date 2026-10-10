@@ -14,7 +14,7 @@ export function SidebarCollapsedIcon({ className }: IconProps) {
     <svg
       viewBox="0 0 24 24"
       aria-hidden="true"
-      className={cn("h-5! w-5! shrink-0", className)}
+      className={cn("h-4.5! w-4.5! shrink-0", className)}
     >
       <path
         fill="currentColor"
@@ -32,7 +32,7 @@ export function SidebarExpandedIcon({ className }: IconProps) {
     <svg
       viewBox="0 0 24 24"
       aria-hidden="true"
-      className={cn("h-5! w-5! shrink-0", className)}
+      className={cn("h-4.5! w-4.5! shrink-0", className)}
     >
       <path
         fill="currentColor"

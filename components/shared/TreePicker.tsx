@@ -40,6 +40,14 @@ export function TreePicker<T extends WithParent>({
   if (excludeId != null) excluded.add(excludeId);
   const selectable = items.filter((item) => !excluded.has(item.id));
   const flat = flattenForSelect(buildTree(selectable));
+  /** Full "Ancestor › … › Item" path per option, matched and shown by Select's search so
+   * same-named nodes under different parents stay distinguishable once the tree is filtered. */
+  const ancestors: string[] = [];
+  const paths = flat.map(({ item, depth }) => {
+    ancestors.length = depth;
+    ancestors.push(item.name);
+    return ancestors.join(" › ");
+  });
 
   return (
     <Select
@@ -51,8 +59,8 @@ export function TreePicker<T extends WithParent>({
       onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
     >
       <option value="">{placeholder}</option>
-      {flat.map(({ item, depth }) => (
-        <option key={item.id} value={item.id}>
+      {flat.map(({ item, depth }, i) => (
+        <option key={item.id} value={item.id} data-search-label={paths[i]}>
           {depth > 0 ? "  ".repeat(depth) + "└ " : ""}
           {item.name}
         </option>

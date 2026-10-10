@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/auth/session";
 import { listAssets } from "@/lib/db/assets";
 import { listCategories } from "@/lib/db/categories";
@@ -8,8 +9,7 @@ import { listAssetStatuses } from "@/lib/db/assetStatuses";
 import { AssetsList } from "@/components/assets/AssetsList";
 import type { AssetFilters } from "@/types/asset";
 import { parseAssetSort } from "@/lib/assetSort";
-
-const PAGE_SIZE = 25;
+import { parseAssetPageSize } from "@/lib/assetPageSize";
 
 function toArray(value: string | string[] | undefined): string[] {
   if (value === undefined) return [];
@@ -31,6 +31,9 @@ export default async function AssetsPage({
   const session = await requireSession();
   const params = await searchParams;
   const page = Math.max(1, Number(params.page ?? 1) || 1);
+  const pageSize = parseAssetPageSize(
+    typeof params.pageSize === "string" ? params.pageSize : null,
+  );
   const sort = parseAssetSort(
     typeof params.sort === "string" ? params.sort : null,
     typeof params.dir === "string" ? params.dir : null,
@@ -45,8 +48,8 @@ export default async function AssetsPage({
     search:
       typeof params.search === "string" && params.search ? params.search : null,
     sort,
-    limit: PAGE_SIZE,
-    offset: (page - 1) * PAGE_SIZE,
+    limit: pageSize,
+    offset: (page - 1) * pageSize,
   };
 
   const [
@@ -65,13 +68,26 @@ export default async function AssetsPage({
     listAssetStatuses(),
   ]);
 
+  // A page past the end (a stale link, or a bookmark after assets were removed) would otherwise
+  // render "No assets found" despite matches existing; send it to the last page instead.
+  if (assetsResult.items.length === 0 && assetsResult.total > 0) {
+    const lastPage = Math.ceil(assetsResult.total / pageSize);
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (key !== "page") toArray(value).forEach((v) => query.append(key, v));
+    }
+    if (lastPage > 1) query.set("page", String(lastPage));
+    const qs = query.toString();
+    redirect(qs ? `/assets?${qs}` : "/assets");
+  }
+
   return (
     <AssetsList
       assets={assetsResult.items}
       total={assetsResult.total}
       page={page}
       sort={sort}
-      pageSize={PAGE_SIZE}
+      pageSize={pageSize}
       canManage={
         session.roleName === "admin" || session.roleName === "asset_manager"
       }

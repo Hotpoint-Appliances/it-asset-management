@@ -19,14 +19,16 @@ export function Sidebar({
     <aside
       className={cn(
         "nav:flex nav:h-full nav:shrink-0 nav:flex-col hidden",
-        "nav:border-border nav:bg-sidebar nav:text-sidebar-foreground nav:border-r",
+        // Sits on the shell canvas (no divider); `pt-2` lines the logo row up with the topbar
+        // inside the inset content panel.
+        "nav:text-sidebar-foreground nav:pt-2",
         collapsed ? "nav:w-19" : "nav:w-64",
         className,
       )}
     >
       <div
         className={cn(
-          "border-border flex h-16 shrink-0 items-center gap-2 border-b",
+          "flex h-16 shrink-0 items-center gap-2",
           collapsed ? "justify-center px-2" : "px-4",
         )}
       >

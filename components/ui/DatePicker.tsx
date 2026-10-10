@@ -381,6 +381,7 @@ export function DatePicker({
               value={cursor.month}
               onChange={(e) => jumpTo(cursor.year, Number(e.target.value))}
               onOpenChange={onMenuOpenChange}
+              searchable={false}
               className="h-8 min-w-0 flex-1 gap-1 pr-1.5 pl-2.5 font-medium shadow-none"
             >
               {MONTHS.map((name, m) => (
@@ -398,6 +399,7 @@ export function DatePicker({
               value={cursor.year}
               onChange={(e) => jumpTo(Number(e.target.value), cursor.month)}
               onOpenChange={onMenuOpenChange}
+              searchable={false}
               className="h-8 w-[4.75rem] shrink-0 gap-1 pr-1.5 pl-2.5 font-medium shadow-none"
             >
               {years.map((y) => (

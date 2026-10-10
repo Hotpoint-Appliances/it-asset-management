@@ -63,6 +63,7 @@ decorative borders, or texture beyond what's specified below.
     elevation level.
   - `rounded-full`: badges and avatars only.
   - `Sheet` and `Tabs` stay unrounded by design (edge-attached slide-over / underline tabs).
+  - The app-shell content panel (see App shell below) is also `rounded-xl` — it's a surface.
 - **Shadows**: Tailwind's stock scale is fine as-is — `shadow-xs` on buttons/inputs,
   `shadow-sm` on cards/table wrapper, `shadow-md` on dropdown/select content, `shadow-lg` on
   dialog/sheet/toast. Don't invent custom shadow values; heavier elevation = higher on this list,
@@ -155,6 +156,19 @@ sidebar/drawer switch below; don't reach for it elsewhere. (Confirmed in Phase 8
   the mobile `Sheet` drawer (triggered from `Topbar`) is the nav, unchanged by any of this.
   Non-dashboard document-scrolling pages (`/login`, `/403`, the 404 page) are unaffected and keep
   the browser's native scrollbar.
+  - **Inset panel** (from `nav` up only): the shell row is `bg-canvas` (`--canvas`: light
+    `#f4f4f5`, dark `#000`), the desktop sidebar sits directly on it with no border/divider and no
+    background of its own, and the right column (`Topbar` + scroll area + `Footer`) is a raised
+    panel — `my-2 mr-2 rounded-xl border shadow-sm bg-background overflow-hidden` — so the topbar's
+    `border-b` is the only line left, inside the panel. The sidebar has `pt-2` so its logo row lines
+    up with the topbar. Below `nav` the panel styles don't apply (full-bleed, maximum table width).
+    Sidebar nav hover is `bg-foreground/5`, not `bg-muted` (muted equals the light canvas); `--sidebar`
+    is unchanged and still backs the mobile `Sheet` drawer. Print resets the panel to plain flow.
+  - **Topbar below `nav`**: no `border-b`; instead an `::after` hangs under the bar
+    (`top-full h-3.5 rounded-t-xl border-x border-t`, `pointer-events-none`), drawing the divider
+    as a ╭──╮ whose ends bend down at the screen edges and stop (height = the `xl` radius, so no
+    straight side segment). From `nav` up the `::after` is hidden and `nav:border-b` is the plain
+    divider inside the inset panel.
   - **Collapse-to-icons**: `sidebarCollapsed` lives in the zustand `useUIStore`
     (`store/index.ts`), persisted to `localStorage` via zustand's `persist` middleware
     (partialized to just that one field — don't persist `mobileNavOpen` or `toasts`). Toggled by

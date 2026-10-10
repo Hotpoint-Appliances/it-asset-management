@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import {
@@ -303,11 +304,11 @@ export function UsersManager({
                     : "Password"}
                   {!editing && <RequiredMark />}
                 </label>
-                <Input
+                <PasswordInput
                   id="user-password"
                   {...fields.invalid("password")}
                   onInput={() => fields.clear("password")}
-                  type="password"
+                  autoComplete="new-password"
                   required={!editing}
                   value={form.password}
                   onChange={(e) =>
