@@ -27,11 +27,17 @@ function TooltipContent({
         {...props}
       >
         {children}
+        {/* Custom path so the tip is rounded; Radix's default polygon is sharp. */}
         <TooltipPrimitive.Arrow
-          width={10}
-          height={5}
+          width={12}
+          height={6}
+          asChild
           className="fill-foreground"
-        />
+        >
+          <svg viewBox="0 0 12 6" preserveAspectRatio="none">
+            <path d="M0 0H12L7.56 4.44Q6 6 4.44 4.44Z" />
+          </svg>
+        </TooltipPrimitive.Arrow>
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   );
