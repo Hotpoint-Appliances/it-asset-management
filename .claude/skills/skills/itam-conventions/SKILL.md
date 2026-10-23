@@ -53,13 +53,18 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts �
   /(dashboard)/layout.tsx       # requireSession() + <AppShell> — added Phase 3 so pages stop
                                  # each wrapping themselves in AppShell individually
   /(dashboard)/settings/layout.tsx   # + requireRole(["admin"]) + SettingsNav sub-nav (Phase 3)
+  /(dashboard)/settings/(index)/{page,loading}.tsx  # settings landing cards; the (index) group
+                                # keeps its skeleton off the sub-pages below
   /(dashboard)/settings/{categories,locations,departments,vendors,conditions,statuses,users}/
                                  # lookup-table CRUD (Phase 3) — page.tsx + a client *Manager.tsx
-  /(dashboard)/assets/           # Phase 4, renders inside the same (dashboard) group — page.tsx
-                                # (list), new/page.tsx (create), [id]/page.tsx (detail),
+  /(dashboard)/assets/           # Phase 4, renders inside the same (dashboard) group — (list)/page.tsx
+                                # (list), new/page.tsx (create), [id]/(detail)/page.tsx (detail),
                                 # [id]/edit/page.tsx, [id]/label/page.tsx (print view — stays
                                 # inside the group; print chrome is suppressed via print:hidden
-                                # on AppShell's Sidebar/Topbar, not by opting the route out of it)
+                                # on AppShell's Sidebar/Topbar, not by opting the route out of it).
+                                # (list) and (detail) scope their skeletons like (overview): a
+                                # dynamic route is prefetched down to its *first* loading.tsx, so
+                                # one at assets/ or [id]/ would flash on every child route
   /403/page.tsx                 # target of lib/auth/session.ts's requireRole() (Phase 2)
   /(dashboard)/error.tsx, /error.tsx, /global-error.tsx   # error boundaries, all rendering
                                 # components/shared/ErrorFallback.tsx; Next 16.3 passes retry()
@@ -273,6 +278,14 @@ paths in the DB, so the base path can move between environments without a data m
 - All list endpoints support pagination (`limit`/`offset` or cursor) — assets tables will grow.
 - Prefer server components for initial page data; use TanStack Query for client-side
   mutations/refetches (e.g. after a transfer action in a modal).
+- A route folder with child routes keeps its own `page.tsx` + `loading.tsx` inside a route group
+  (`(overview)`, `(list)`, `(detail)`, `(index)`), never directly in the folder. A dynamic route
+  is prefetched down to its *first* `loading.tsx`, so a parent's skeleton would flash on every
+  child route before that child's own skeleton.
+- Absolutely positioned content inside the app shell needs a positioned ancestor at or below
+  `ShellScrollArea` (which is `relative` for this reason). Anything that resolves against the
+  viewport instead overflows `<html>`, and Next's navigation scroll then scrolls `<html>`,
+  pushing the Topbar off-screen.
 
 ## Execution model
 
