@@ -56,7 +56,8 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
   /(dashboard)/settings/(index)/{page,loading}.tsx  # settings landing cards; the (index) group
                                 # keeps its skeleton off the sub-pages below
   /(dashboard)/settings/{categories,locations,departments,vendors,conditions,statuses,users}/
-                                 # lookup-table CRUD (Phase 3) â€” page.tsx + a client *Manager.tsx
+                                 # lookup-table CRUD (Phase 3) â€” page.tsx + a client *Manager.tsx;
+                                 # accessories/ (AccessoriesManager) added with migration 002
   /(dashboard)/assets/           # Phase 4, renders inside the same (dashboard) group â€” (list)/page.tsx
                                 # (list), new/page.tsx (create), [id]/(detail)/page.tsx (detail),
                                 # [id]/edit/page.tsx, [id]/label/page.tsx (print view â€” stays
@@ -89,6 +90,10 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
   /api/assets/[id]/maintenance/route.ts               # GET/POST (Phase 5)
   /api/assets/[id]/maintenance/[maintenanceId]/route.ts       # PATCH (Phase 5)
   /api/assets/[id]/dispose/attachment/route.ts        # GET, serves the disposal document (Phase 5 fix)
+  /api/accessories/route.ts, /api/accessories/[id]/route.ts   # catalog GET (?active=1) / POST,
+                                # PATCH/DELETE (admin; DELETE 409s once attached anywhere)
+  /api/assets/[id]/accessories/route.ts   # GET, PUT (replace the whole list; admin + asset_manager).
+                                # Asset POST/PATCH also accept an `accessories` JSON form field
   /api/reports/{asset-register,audit-trail,disposal-register,depreciation}/route.ts
                                 # GET, exceljs workbook as Content-Disposition: attachment.
                                 # asset-register/audit-trail: every role (viewer dept-scoped in the
@@ -120,7 +125,8 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
                                 # AssetQrCode (server component), UserTypeahead (Phase 4);
                                 # TransferDialog/ConditionDialog/StatusDialog/DisposalDialog,
                                 # AuditLogTimeline, MaintenanceTab, AssetRowActions (list row's
-                                # View/Edit/Transfer/Dispose DropdownMenu) (Phase 5)
+                                # View/Edit/Transfer/Dispose DropdownMenu) (Phase 5);
+                                # AccessoriesEditor (shared row editor), AccessoriesTab (detail tab)
   /dashboard/                  # StatTile, BarBreakdown (hand-rolled CSS bars, no chart library),
                                 # WarrantyExpiringCard (client, window toggle), RecentActivityCard,
                                 # InRepairCard (Phase 6)
@@ -157,6 +163,9 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
   /hooks/useNotifications.ts    # TanStack Query hooks for the bell + page; shared ["notifications"]
                                 # key prefix, 60 s poll + refetch on focus (Phase 7)
   /hooks/useFieldErrors.ts      # per-field client validation + aria wiring for every form (Phase 8)
+  assetAccessories.ts           # canEditAccessories() status lock + formatAccessory(), shared by
+                                # the API and UI; lib/db/assetAccessories.ts's
+                                # syncAssetAccessories() is the single write path (diff + audit)
   assetSort.ts                  # assets-list sort keys + parseAssetSort(); SQL whitelist lives in
                                 # lib/db/assets.ts's buildAssetOrderBy() (Phase 8)
   /notifications/triggers.ts    # every notification rule: scheduleAssetChangeNotifications() (runs

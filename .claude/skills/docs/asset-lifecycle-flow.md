@@ -102,6 +102,17 @@ consistent, complete CRUD + workflow actions around it.
    by accident). Requires admin role. Never used for disposal, loss, or theft — those are
    statuses, and history must be preserved.
 
+8. **Accessories** — an asset's accessories (`asset_accessories`, picked from the admin-managed
+   `accessories` catalog with a quantity and optional note) can be set at creation, in the full
+   edit form, or from the detail page's Accessories tab. Changes are **blocked** while the asset
+   is `disposed`, `lost` or `stolen` (`lib/assetAccessories.ts`), checked against the status the
+   save leaves the asset in, so recovering a lost asset and updating its kit in one edit works.
+   Existing accessories stay attached in every status (they're part of the record). Every
+   add/remove/change writes an `accessory_added` / `accessory_removed` / `accessory_updated` row
+   to `asset_audit_log` in the same transaction (`field_name = 'accessory'`, old/new values are
+   display snapshots such as `Charger × 2`). Transfers move accessories with the asset. A catalog
+   accessory that was ever attached can't be deleted, only retired (`is_active = false`).
+
 ## Out of scope for MVP (documented for future phases)
 
 - Periodic physical stock-take / reconciliation audits (would need an `asset_stocktakes` table

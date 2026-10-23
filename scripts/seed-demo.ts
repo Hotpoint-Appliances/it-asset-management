@@ -510,6 +510,54 @@ async function main() {
       );
     }
 
+    // Accessories (migration 002): attached at creation, so each gets an accessory_added row
+    // timestamped with its asset's created row. Catalog names missing from this DB are skipped.
+    const accessories = await list("accessories");
+    for (const [tag, kit] of [
+      [
+        "DEMO-001",
+        [
+          ["Charger", 1, "65W USB-C"],
+          ["Laptop bag", 1, null],
+        ],
+      ],
+      [
+        "DEMO-002",
+        [
+          ["Charger", 1, null],
+          ["Mouse", 1, null],
+        ],
+      ],
+      [
+        "DEMO-004",
+        [
+          ["Docking station", 1, null],
+          ["Charger", 2, null],
+        ],
+      ],
+      ["DEMO-012", [["Charger", 1, null]]],
+    ] as const) {
+      for (const [name, quantity, notes] of kit) {
+        const accessory = accessories.find((x) => x.name === name);
+        if (!accessory) continue;
+        await client.query(
+          `INSERT INTO asset_accessories (asset_id, accessory_id, quantity, notes, created_by)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [ids[tag], accessory.id, quantity, notes, admin.id],
+        );
+        await client.query(
+          `INSERT INTO asset_audit_log (asset_id, action_type, field_name, new_value, performed_by, performed_at)
+           SELECT $1, 'accessory_added', 'accessory', $2, $3, performed_at
+           FROM asset_audit_log WHERE asset_id = $1 AND action_type = 'created'`,
+          [
+            ids[tag],
+            `${name} × ${quantity}${notes ? ` (${notes})` : ""}`,
+            admin.id,
+          ],
+        );
+      }
+    }
+
     await client.query("COMMIT");
     console.log(
       `Seeded ${ASSETS.length} demo assets (DEMO-001 to DEMO-${String(ASSETS.length).padStart(3, "0")}).`,

@@ -77,6 +77,7 @@ export async function buildAssetRegisterWorkbook(
         width: 16,
         numFmt: KES_FORMAT,
       },
+      { header: "Accessories", key: "accessories", width: 32 },
       { header: "Notes", key: "notes", width: 36 },
       { header: "Created by", key: "createdByName", width: 20 },
       {

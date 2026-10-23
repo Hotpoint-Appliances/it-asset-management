@@ -66,6 +66,7 @@ ORM): apply with `psql "$DATABASE_URL" -f <file>`.
 | Migration                        | Phase | Change                                                          |
 | -------------------------------- | ----- | --------------------------------------------------------------- |
 | `001_notifications_dedupe_key`   | 7     | `notifications.dedupe_key` + partial unique index + `(user_id, created_at DESC)` index |
+| `002_asset_accessories`          | post-8 | `accessories` catalog (seeded) + `asset_accessories` (PK `(asset_id, accessory_id)`, quantity, notes) |
 
 ## Table reference
 
@@ -84,6 +85,8 @@ ORM): apply with `psql "$DATABASE_URL" -f <file>`.
 | `asset_attachments` | Multiple files per asset (invoices, warranty cards, extra photos) beyond `assets.image_path`     |
 | `asset_maintenance` | Repair/service/inspection events                                                                 |
 | `asset_disposals`   | One row per disposed asset — required before status can become `disposed`                        |
+| `accessories`       | Admin-managed accessory catalog (Settings > Accessories); retire via `is_active`, never delete once used |
+| `asset_accessories` | Accessories attached to an asset with quantity/notes; changes locked while disposed/lost/stolen   |
 | `notifications`     | In-app notifications + email-sent flag (Graph email); `dedupe_key` makes scheduled alerts idempotent (Phase 7) |
 | `system_settings`   | Admin-editable key/value config                                                                  |
 
