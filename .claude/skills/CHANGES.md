@@ -1,14 +1,18 @@
 <!-- This file is for documenting proposed changes to various logic and UI in the project -->
 
-# Changes to the login `Sign in` button
+# Bug Fixes And Improvements
 
-- Add a lucider loader icon before the `sign in` text when the user is being signed in. Let the loader be in sync with the login theming tokens.
+## Skeleton loaders irregularities during page navigation
 
-# Tooltip arrow change
+- For example in the assets page, when routing to a particular asset, the assets skeletons loader shows first after clicking on the asset, before the routing even happens - the loader shows for a moment before routing to the asset page begins. This also happens when you click on the edit button. You can inspect the behaviour of all skeleton loaders in the project to see if the same issue is in other places.
 
-- Explore the codebase to see which areas use the tool tip component. Give the tooltip.arrow a small rounded radius, currently the arrow is sharp-pointed and has no curve.
+## Sticky dashboard panel sometimes does not show on the asset edit page
 
-# Clarifications and recommendations
+- This happens sometimes when you click on the edit button from the assets page - The sticky desktop topbar disappears and space is left at the bottom. - You can explore this irregularity by running a couple tests to see the behaviour.
 
-- Seek clarifications you have regarding the above proposed changes.
-- Your critics and recommendations are highly encouraged.
+## Critiques, clarifications, and recommendations
+
+- You can explore the codebase and raise other related bugs and issues.
+- Your critiques and recommendations are strongly encouraged.
+- Seek any clarifications you might have.
+- You can test using a signed in admin session in chrome dev server at `localhost:3000`.
