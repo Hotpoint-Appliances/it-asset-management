@@ -10,6 +10,13 @@ import { Select } from "@/components/ui/Select";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { TreePicker } from "@/components/shared/TreePicker";
 import { UserTypeahead } from "./UserTypeahead";
+import {
+  AccessoriesEditor,
+  accessoriesPayload,
+  accessoryOptions,
+  rowsFromAccessories,
+  type AccessoryRow,
+} from "./AccessoriesEditor";
 import { useUIStore } from "@/store";
 import type { AssetWithRelations } from "@/types/asset";
 import type { Category } from "@/types/category";
@@ -18,6 +25,9 @@ import type { Department } from "@/types/department";
 import type { Vendor } from "@/types/vendor";
 import type { AssetCondition } from "@/types/assetCondition";
 import type { AssetStatus } from "@/types/assetStatus";
+import type { Accessory, AssetAccessory } from "@/types/accessory";
+import { canEditAccessories } from "@/lib/assetAccessories";
+import { formatLookupName } from "@/lib/badgeVariants";
 import { RequiredMark } from "@/components/shared/RequiredMark";
 import { FieldError } from "@/components/shared/FieldError";
 import { useFieldErrors, looksLikeEmail } from "@/lib/hooks/useFieldErrors";
@@ -99,6 +109,8 @@ function Section({
 
 type OwnerMode = "user" | "external";
 
+const NO_ACCESSORIES: AssetAccessory[] = [];
+
 interface FormState {
   assetTag: string;
   name: string;
@@ -166,6 +178,8 @@ export function AssetForm({
   vendors,
   conditions,
   statuses,
+  accessoryCatalog,
+  accessories = NO_ACCESSORIES,
 }: {
   mode: "create" | "edit";
   asset?: AssetWithRelations;
@@ -175,6 +189,10 @@ export function AssetForm({
   vendors: Vendor[];
   conditions: AssetCondition[];
   statuses: AssetStatus[];
+  /** Active catalog entries for the picker (Settings > Accessories). */
+  accessoryCatalog: Accessory[];
+  /** The asset's current accessories (edit mode). */
+  accessories?: AssetAccessory[];
 }) {
   const router = useRouteLoadingRouter();
   const addToast = useUIStore((s) => s.addToast);
@@ -191,6 +209,18 @@ export function AssetForm({
   const [form, setForm] = React.useState<FormState>(() =>
     initialState(asset, defaultStatusId),
   );
+  const [accessoryRows, setAccessoryRows] = React.useState<AccessoryRow[]>(() =>
+    rowsFromAccessories(accessories),
+  );
+  const accessoryChoices = React.useMemo(
+    () => accessoryOptions(accessoryCatalog, accessories),
+    [accessoryCatalog, accessories],
+  );
+  // Checked against the status being saved, same as the server (lib/db/assetAccessories.ts).
+  const selectedStatusName =
+    statuses.find((s) => s.id === form.statusId)?.name ?? null;
+  const accessoriesLocked =
+    selectedStatusName != null && !canEditAccessories(selectedStatusName);
   const [imageFile, setImageFile] = React.useState<File | null>(null);
   const [imagePreview, setImagePreview] = React.useState<string | null>(
     asset?.imagePath
@@ -297,6 +327,14 @@ export function AssetForm({
       e.currentTarget,
     );
     if (!ok) return;
+    // A locked status leaves the asset's accessories untouched (the field isn't sent at all).
+    const accessoryResult = accessoriesLocked
+      ? null
+      : accessoriesPayload(accessoryRows);
+    if (accessoryResult && "error" in accessoryResult) {
+      setError(accessoryResult.error);
+      return;
+    }
     setSubmitting(true);
     setError(null);
 
@@ -329,6 +367,9 @@ export function AssetForm({
     formData.set("usefulLifeMonths", form.usefulLifeMonths);
     formData.set("salvageValue", form.salvageValue);
     formData.set("notes", form.notes);
+    if (accessoryResult) {
+      formData.set("accessories", JSON.stringify(accessoryResult.items));
+    }
     if (imageFile) formData.set("image", imageFile);
 
     try {
@@ -601,6 +642,25 @@ export function AssetForm({
             ))}
           </Select>
         </Field>
+      </Section>
+
+      <Section title="Accessories">
+        <div className="flex flex-col gap-2 sm:col-span-2">
+          {accessoriesLocked && (
+            <p className="text-muted-foreground text-sm">
+              Accessories can&apos;t be changed while the asset is{" "}
+              {formatLookupName(selectedStatusName ?? "")}. Changes here
+              won&apos;t be saved.
+            </p>
+          )}
+          <AccessoriesEditor
+            idPrefix="asset-accessories"
+            rows={accessoryRows}
+            onChange={setAccessoryRows}
+            options={accessoryChoices}
+            disabled={accessoriesLocked}
+          />
+        </div>
       </Section>
 
       <Section title="Procurement">

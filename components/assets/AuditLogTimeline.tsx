@@ -17,6 +17,9 @@ export const ACTION_LABELS: Record<string, string> = {
   status_change: "Status changed",
   disposed: "Disposed",
   deleted: "Deleted",
+  accessory_added: "Accessory added",
+  accessory_removed: "Accessory removed",
+  accessory_updated: "Accessory updated",
 };
 
 /** Which lookup table (if any) a tracked field's old_value/new_value is an id into, resolved
@@ -60,6 +63,12 @@ function describe(entry: AssetAuditLogEntry, lookups: AuditLookups): string {
   const label =
     ACTION_LABELS[entry.actionType] ?? formatLookupName(entry.actionType);
   if (!entry.fieldName) return label;
+  // Accessory rows store display snapshots ("Charger × 2"), see lib/db/assetAccessories.ts.
+  if (entry.fieldName === "accessory") {
+    if (entry.oldValue && entry.newValue)
+      return `${label}: ${entry.oldValue} → ${entry.newValue}`;
+    return `${label}: ${entry.newValue ?? entry.oldValue}`;
+  }
   const field = entry.fieldName.replace(/_id$/, "").replace(/_/g, " ");
   const oldValue = formatValue(
     entry.fieldName,

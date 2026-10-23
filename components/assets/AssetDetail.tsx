@@ -39,6 +39,7 @@ import { StatusDialog } from "./StatusDialog";
 import { DisposalDialog } from "./DisposalDialog";
 import { AuditLogTimeline } from "./AuditLogTimeline";
 import { MaintenanceTab } from "./MaintenanceTab";
+import { AccessoriesTab } from "./AccessoriesTab";
 import { useUIStore } from "@/store";
 import {
   statusBadgeVariant,
@@ -56,6 +57,7 @@ import type { Department } from "@/types/department";
 import type { Vendor } from "@/types/vendor";
 import type { AssetCondition } from "@/types/assetCondition";
 import type { AssetStatus } from "@/types/assetStatus";
+import type { Accessory, AssetAccessory } from "@/types/accessory";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -69,6 +71,8 @@ type ActiveDialog =
 export function AssetDetail({
   asset,
   attachments,
+  accessories,
+  accessoryCatalog,
   auditLog,
   maintenance,
   disposal,
@@ -82,6 +86,9 @@ export function AssetDetail({
 }: {
   asset: AssetWithRelations;
   attachments: AssetAttachment[];
+  accessories: AssetAccessory[];
+  /** Active catalog entries for the Accessories tab's picker. */
+  accessoryCatalog: Accessory[];
   auditLog: AssetAuditLogEntry[];
   maintenance: AssetMaintenance[];
   /** Present only for a disposed asset. */
@@ -247,6 +254,7 @@ export function AssetDetail({
       <Tabs defaultValue="overview">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="accessories">Accessories</TabsTrigger>
           <TabsTrigger value="audit">Audit Log</TabsTrigger>
           <TabsTrigger value="attachments">Attachments</TabsTrigger>
           <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
@@ -259,6 +267,15 @@ export function AssetDetail({
             )}
             <OverviewGrid asset={asset} />
           </div>
+        </TabsContent>
+        <TabsContent value="accessories">
+          <AccessoriesTab
+            assetId={asset.id}
+            statusName={asset.statusName}
+            accessories={accessories}
+            catalog={accessoryCatalog}
+            canManage={canManage}
+          />
         </TabsContent>
         <TabsContent value="audit">
           <div className="flex flex-col gap-3">
