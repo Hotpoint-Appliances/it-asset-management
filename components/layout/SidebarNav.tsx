@@ -13,10 +13,12 @@ import {
 } from "@/components/ui/Tooltip";
 
 export function SidebarNav({
-  onNavigate,
+  onCurrentPageClick,
   collapsed = false,
 }: {
-  onNavigate?: () => void;
+  /** Fires when the link to the page already shown is clicked. Other links navigate, and the
+   * drawer closes on the resulting pathname change instead (see Topbar). */
+  onCurrentPageClick?: () => void;
   collapsed?: boolean;
 }) {
   const pathname = usePathname();
@@ -36,7 +38,9 @@ export function SidebarNav({
         const content = (
           <Link
             href={item.href}
-            onClick={onNavigate}
+            onClick={
+              pathname === item.href ? onCurrentPageClick : undefined
+            }
             className={cn(
               "flex min-h-11 min-w-0 items-center gap-3 rounded-lg text-sm font-medium transition-colors",
               collapsed ? "justify-center px-0" : "px-3 py-2",
