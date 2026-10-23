@@ -10,6 +10,8 @@ import type {
 } from "@/types/asset";
 import type { RoleName } from "@/lib/auth/session";
 import type { AssetSort } from "@/lib/assetSort";
+import type { AssetAccessoryInput } from "@/types/accessory";
+import { syncAssetAccessories } from "./assetAccessories";
 
 export interface AssetRow {
   id: string;
@@ -276,9 +278,12 @@ export async function getAssetById(
   return mapAssetWithRelations(row);
 }
 
+/** `accessories`, when given, is attached in the same transaction (with its own audit rows) so
+ * a rejected accessory list (e.g. a locked status) never leaves a half-created asset. */
 export async function createAsset(
   input: AssetInput,
   createdBy: string,
+  accessories?: AssetAccessoryInput[],
 ): Promise<Asset> {
   return withTransaction(async (client) => {
     const result = await client.query<AssetRow>(
@@ -318,6 +323,9 @@ export async function createAsset(
       `INSERT INTO asset_audit_log (asset_id, action_type, performed_by) VALUES ($1, 'created', $2)`,
       [asset.id, createdBy],
     );
+    if (accessories?.length) {
+      await syncAssetAccessories(client, asset.id, accessories, createdBy);
+    }
     return asset;
   });
 }
@@ -501,14 +509,21 @@ export interface AssetChange {
   after: Asset;
 }
 
+/** `accessories` undefined leaves the asset's accessory list untouched; otherwise it replaces
+ * it in the same transaction, checked against the status this edit writes. */
 export async function updateAsset(
   id: string,
   input: AssetInput,
   performedBy: string,
+  accessories?: AssetAccessoryInput[],
 ): Promise<AssetChange | null> {
-  return withTransaction((client) =>
-    updateAssetInternal(client, id, input, performedBy),
-  );
+  return withTransaction(async (client) => {
+    const change = await updateAssetInternal(client, id, input, performedBy);
+    if (change && accessories) {
+      await syncAssetAccessories(client, id, accessories, performedBy);
+    }
+    return change;
+  });
 }
 
 /** Shared by every dedicated lifecycle action (transfer/condition/status change): merges `patch`
