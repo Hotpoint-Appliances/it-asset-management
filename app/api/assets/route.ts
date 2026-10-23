@@ -5,7 +5,9 @@ import {
   validateAssetInput,
   assetInputFromFormData,
 } from "@/lib/validation/assets";
+import { assetAccessoriesFromFormData } from "@/lib/validation/accessories";
 import { isUniqueViolation, isForeignKeyViolation } from "@/lib/db/query";
+import { AssetAccessoryError } from "@/lib/db/assetAccessories";
 import {
   assertValidImage,
   saveAssetImage,
@@ -73,11 +75,22 @@ export async function POST(request: NextRequest) {
   if (!validated.success) {
     return NextResponse.json({ error: validated.error }, { status: 400 });
   }
+  const accessories = assetAccessoriesFromFormData(formData);
+  if (accessories && !accessories.success) {
+    return NextResponse.json({ error: accessories.error }, { status: 400 });
+  }
 
   let asset;
   try {
-    asset = await createAsset(validated.data, session.userId);
+    asset = await createAsset(
+      validated.data,
+      session.userId,
+      accessories?.data,
+    );
   } catch (err) {
+    if (err instanceof AssetAccessoryError) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    }
     if (isUniqueViolation(err)) {
       return NextResponse.json(
         { error: "Asset tag is already in use" },
