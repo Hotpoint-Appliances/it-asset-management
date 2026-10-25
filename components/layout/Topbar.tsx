@@ -94,7 +94,9 @@ export function Topbar({
       <Button
         variant="ghost"
         size="icon"
-        className="nav:inline-flex hidden"
+        // The sidebar resizes instantly, so the button jumps with it; without `transition-none`
+        // its hover background would fade in or out at the new spot.
+        className="nav:inline-flex hidden transition-none"
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         onClick={() => setSidebarCollapsed(!collapsed)}
       >
