@@ -29,6 +29,7 @@ import type { Accessory, AssetAccessory } from "@/types/accessory";
 import { canEditAccessories } from "@/lib/assetAccessories";
 import { formatLookupName } from "@/lib/badgeVariants";
 import { RequiredMark } from "@/components/shared/RequiredMark";
+import { ConfirmSummary, useConfirm } from "@/components/shared/ConfirmDialog";
 import { FieldError } from "@/components/shared/FieldError";
 import { useFieldErrors, looksLikeEmail } from "@/lib/hooks/useFieldErrors";
 
@@ -137,6 +138,31 @@ interface FormState {
   notes: string;
 }
 
+/** Labels for the edit confirm's "changed fields" list; owner fields collapse into one entry. */
+const FIELD_LABELS: Partial<Record<keyof FormState, string>> = {
+  assetTag: "Asset tag",
+  name: "Name",
+  categoryId: "Category",
+  modelNumber: "Model number",
+  serialNumber: "Serial number",
+  locationId: "Location",
+  departmentId: "Department",
+  ownerMode: "Owner",
+  assignedUserId: "Owner",
+  ownerName: "Owner",
+  ownerEmail: "Owner email",
+  conditionId: "Condition",
+  statusId: "Status",
+  vendorId: "Vendor",
+  purchaseDate: "Purchase date",
+  purchaseCost: "Purchase cost",
+  warrantyExpiry: "Warranty expiry",
+  depreciationMethod: "Depreciation method",
+  usefulLifeMonths: "Useful life",
+  salvageValue: "Salvage value",
+  notes: "Notes",
+};
+
 function initialState(
   asset: AssetWithRelations | undefined,
   defaultStatusId: number | null,
@@ -230,6 +256,7 @@ export function AssetForm({
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const fields = useFieldErrors<AssetField>();
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const categoryItems = React.useMemo(
     () =>
@@ -289,6 +316,74 @@ export function AssetForm({
     setImagePreview(null);
   }
 
+  function confirmOptions() {
+    if (mode === "create") {
+      const owner =
+        form.ownerMode === "user" ? form.assignedUserName : form.ownerName;
+      const status = statuses.find((s) => s.id === form.statusId);
+      return {
+        title: "Create asset?",
+        description: (
+          <ConfirmSummary
+            intro="This adds the asset to the register."
+            rows={[
+              ["Asset tag", form.assetTag.trim()],
+              ["Name", form.name.trim()],
+              [
+                "Category",
+                categories.find((c) => c.id === form.categoryId)?.name,
+              ],
+              ["Status", status && formatLookupName(status.name)],
+              [
+                "Location",
+                locations.find((l) => l.id === form.locationId)?.name,
+              ],
+              [
+                "Department",
+                departments.find((d) => d.id === form.departmentId)?.name,
+              ],
+              ["Owner", owner?.trim()],
+            ]}
+          />
+        ),
+        confirmLabel: "Create asset",
+      };
+    }
+    const initial = initialState(asset, defaultStatusId);
+    const changed = new Set(
+      (Object.keys(FIELD_LABELS) as (keyof FormState)[])
+        .filter((key) => form[key] !== initial[key])
+        .map((key) => FIELD_LABELS[key]!),
+    );
+    if (imageFile) changed.add("Image");
+    // Row keys are regenerated per call, so compare only what gets saved.
+    const rowValues = (rows: AccessoryRow[]) =>
+      JSON.stringify(rows.map((r) => [r.accessoryId, r.quantity, r.notes]));
+    if (
+      !accessoriesLocked &&
+      rowValues(accessoryRows) !== rowValues(rowsFromAccessories(accessories))
+    )
+      changed.add("Accessories");
+    return {
+      title: "Save changes?",
+      description: (
+        <ConfirmSummary
+          intro={
+            changed.size > 0 ? (
+              <>
+                Updating <strong>{form.assetTag.trim()}</strong>:
+              </>
+            ) : (
+              "You haven't changed anything on this asset."
+            )
+          }
+          rows={changed.size > 0 ? [["Changed", [...changed].join(", ")]] : []}
+        />
+      ),
+      confirmLabel: changed.size > 0 ? "Save changes" : "Save anyway",
+    };
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const external = form.ownerMode === "external";
@@ -335,6 +430,7 @@ export function AssetForm({
       setError(accessoryResult.error);
       return;
     }
+    if (!(await confirm(confirmOptions()))) return;
     setSubmitting(true);
     setError(null);
 
@@ -840,6 +936,7 @@ export function AssetForm({
               : "Save changes"}
         </Button>
       </div>
+      {confirmDialog}
     </form>
   );
 }
