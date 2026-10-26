@@ -28,7 +28,9 @@ import type { AssetStatus } from "@/types/assetStatus";
 import type { Accessory, AssetAccessory } from "@/types/accessory";
 import { canEditAccessories } from "@/lib/assetAccessories";
 import { formatLookupName } from "@/lib/badgeVariants";
+import { formatCurrency } from "@/lib/format";
 import { RequiredMark } from "@/components/shared/RequiredMark";
+import { PresetInput, type Preset } from "@/components/shared/PresetInput";
 import { ConfirmSummary, useConfirm } from "@/components/shared/ConfirmDialog";
 import { FieldError } from "@/components/shared/FieldError";
 import { useFieldErrors, looksLikeEmail } from "@/lib/hooks/useFieldErrors";
@@ -137,6 +139,16 @@ interface FormState {
   salvageValue: string;
   notes: string;
 }
+
+/** The company's standard depreciation terms; anything else goes through "Custom…". */
+const USEFUL_LIFE_PRESETS: Preset[] = [36, 60].map((months) => ({
+  value: String(months),
+  label: `${months} months (${months / 12} years)`,
+}));
+const SALVAGE_VALUE_PRESETS: Preset[] = [7000, 12000, 20000].map((amount) => ({
+  value: String(amount),
+  label: formatCurrency(amount),
+}));
 
 /** Labels for the edit confirm's "changed fields" list; owner fields collapse into one entry. */
 const FIELD_LABELS: Partial<Record<keyof FormState, string>> = {
@@ -834,13 +846,13 @@ export function AssetForm({
           error={fields.errors.usefulLifeMonths}
           errorId={fields.errorId("usefulLifeMonths")}
         >
-          <Input
+          <PresetInput
             id="asset-useful-life"
-            {...fields.invalid("usefulLifeMonths")}
-            type="number"
-            min="0"
+            controlProps={fields.invalid("usefulLifeMonths")}
+            presets={USEFUL_LIFE_PRESETS}
+            inputProps={{ min: "1", step: "1", placeholder: "Months" }}
             value={form.usefulLifeMonths}
-            onChange={(e) => update("usefulLifeMonths", e.target.value)}
+            onChange={(value) => update("usefulLifeMonths", value)}
           />
         </Field>
         <Field
@@ -849,14 +861,13 @@ export function AssetForm({
           error={fields.errors.salvageValue}
           errorId={fields.errorId("salvageValue")}
         >
-          <Input
+          <PresetInput
             id="asset-salvage-value"
-            {...fields.invalid("salvageValue")}
-            type="number"
-            step="0.01"
-            min="0"
+            controlProps={fields.invalid("salvageValue")}
+            presets={SALVAGE_VALUE_PRESETS}
+            inputProps={{ min: "0", step: "0.01", placeholder: "Amount" }}
             value={form.salvageValue}
-            onChange={(e) => update("salvageValue", e.target.value)}
+            onChange={(value) => update("salvageValue", value)}
           />
         </Field>
       </Section>
