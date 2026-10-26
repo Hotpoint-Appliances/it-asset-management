@@ -6,16 +6,7 @@ import axios from "axios";
 import { Paperclip, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogBody,
-  DialogTitle,
-  DialogFooter,
-  DialogClose,
-  DialogDescription,
-} from "@/components/ui/Dialog";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
 import type { AssetAttachment } from "@/types/assetAttachment";
@@ -159,36 +150,22 @@ export function AssetAttachments({
         </ul>
       )}
 
-      <Dialog
+      <ConfirmDialog
         open={!!deleting}
         onOpenChange={(open) => !open && setDeleting(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete attachment</DialogTitle>
-          </DialogHeader>
-          <DialogBody>
-            <DialogDescription>
-              This will permanently delete <strong>{deleting?.fileName}</strong>
-              . This cannot be undone.
-            </DialogDescription>
-          </DialogBody>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button
-              variant="destructive"
-              disabled={submitting}
-              onClick={handleDelete}
-            >
-              {submitting ? "Deleting…" : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title="Delete attachment"
+        description={
+          <>
+            This will permanently delete <strong>{deleting?.fileName}</strong>.
+            This cannot be undone.
+          </>
+        }
+        confirmLabel="Delete"
+        submittingLabel="Deleting…"
+        onConfirm={handleDelete}
+        submitting={submitting}
+        destructive
+      />
     </div>
   );
 }

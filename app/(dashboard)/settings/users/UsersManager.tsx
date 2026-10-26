@@ -23,8 +23,8 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
-  DialogDescription,
 } from "@/components/ui/Dialog";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import {
   Table,
   TableHeader,
@@ -389,52 +389,32 @@ export function UsersManager({
         </DialogContent>
       </Dialog>
 
-      <Dialog
+      <ConfirmDialog
         open={!!deactivating}
         onOpenChange={(open) => !open && setDeactivating(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {deactivating?.isActive ? "Deactivate user" : "Reactivate user"}
-            </DialogTitle>
-          </DialogHeader>
-          <DialogBody>
-            <DialogDescription>
-              {deactivating?.isActive ? (
-                <>
-                  This will sign <strong>{deactivating?.fullName}</strong> out
-                  immediately and prevent them from logging in again. Their
-                  history is kept.
-                </>
-              ) : (
-                <>
-                  This will restore login access for{" "}
-                  <strong>{deactivating?.fullName}</strong>.
-                </>
-              )}
-            </DialogDescription>
-          </DialogBody>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button
-              variant={deactivating?.isActive ? "destructive" : "default"}
-              disabled={submitting}
-              onClick={handleToggleActive}
-            >
-              {submitting
-                ? "Saving…"
-                : deactivating?.isActive
-                  ? "Deactivate"
-                  : "Reactivate"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title={deactivating?.isActive ? "Deactivate user" : "Reactivate user"}
+        description={
+          <>
+            {deactivating?.isActive ? (
+              <>
+                This will sign <strong>{deactivating?.fullName}</strong> out
+                immediately and prevent them from logging in again. Their
+                history is kept.
+              </>
+            ) : (
+              <>
+                This will restore login access for{" "}
+                <strong>{deactivating?.fullName}</strong>.
+              </>
+            )}
+          </>
+        }
+        confirmLabel={deactivating?.isActive ? "Deactivate" : "Reactivate"}
+        submittingLabel="Saving…"
+        onConfirm={handleToggleActive}
+        submitting={submitting}
+        destructive={deactivating?.isActive}
+      />
     </div>
   );
 }
