@@ -1,4 +1,8 @@
-import { History } from "lucide-react";
+import * as React from "react";
+import { History, SearchX } from "lucide-react";
+import { ListSearchInput, matchesQuery } from "@/components/ui/ListSearch";
+import { Pagination } from "@/components/shared/Pagination";
+import { usePagination } from "@/lib/hooks/usePagination";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { formatLookupName } from "@/lib/badgeVariants";
 import type { AssetAuditLogEntry } from "@/types/auditLog";
@@ -6,6 +10,8 @@ import type { Location } from "@/types/location";
 import type { Department } from "@/types/department";
 import type { AssetCondition } from "@/types/assetCondition";
 import type { AssetStatus } from "@/types/assetStatus";
+
+const PAGE_SIZE = 10;
 
 export const ACTION_LABELS: Record<string, string> = {
   created: "Created",
@@ -103,6 +109,34 @@ export function AuditLogTimeline({
   conditions: AssetCondition[];
   statuses: AssetStatus[];
 }) {
+  const [query, setQuery] = React.useState("");
+  const rows = React.useMemo(() => {
+    const lookups: AuditLookups = {
+      locations: toMap(locations),
+      departments: toMap(departments),
+      conditions: toMap(conditions),
+      statuses: toMap(statuses),
+    };
+    return entries.map((entry) => ({
+      entry,
+      description: describe(entry, lookups),
+      performedAt: new Date(entry.performedAt).toLocaleString(),
+    }));
+  }, [entries, locations, departments, conditions, statuses]);
+  // Matches what's on screen: the description, who did it, the note and the timestamp.
+  const filtered = rows.filter((row) =>
+    matchesQuery(
+      [
+        row.description,
+        row.entry.performedByName,
+        row.entry.note ?? "",
+        row.performedAt,
+      ].join(" "),
+      query,
+    ),
+  );
+  const pagination = usePagination(filtered, PAGE_SIZE);
+
   if (entries.length === 0) {
     return (
       <EmptyState
@@ -113,32 +147,47 @@ export function AuditLogTimeline({
     );
   }
 
-  const lookups: AuditLookups = {
-    locations: toMap(locations),
-    departments: toMap(departments),
-    conditions: toMap(conditions),
-    statuses: toMap(statuses),
-  };
-
   return (
-    <ol className="flex flex-col gap-3">
-      {entries.map((entry) => (
-        <li
-          key={entry.id}
-          className="border-border flex flex-col gap-1 rounded-lg border p-3 text-sm"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="font-medium">{describe(entry, lookups)}</span>
-            <span className="text-muted-foreground text-xs">
-              {new Date(entry.performedAt).toLocaleString()}
-            </span>
-          </div>
-          <span className="text-muted-foreground text-xs">
-            by {entry.performedByName}
-          </span>
-          {entry.note && <p className="text-sm">{entry.note}</p>}
-        </li>
-      ))}
-    </ol>
+    <div className="flex flex-col gap-3">
+      <div className="sm:max-w-xs">
+        <ListSearchInput
+          value={query}
+          onValueChange={(value) => {
+            setQuery(value);
+            pagination.setPage(1);
+          }}
+          placeholder="Search history…"
+          aria-label="Search audit log"
+        />
+      </div>
+      {filtered.length === 0 ? (
+        <EmptyState
+          icon={SearchX}
+          title="No matching entries"
+          description="Try a different search term."
+        />
+      ) : (
+        <ol className="flex flex-col gap-3">
+          {pagination.pageItems.map(({ entry, description, performedAt }) => (
+            <li
+              key={entry.id}
+              className="border-border flex flex-col gap-1 rounded-lg border p-3 text-sm"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-medium">{description}</span>
+                <span className="text-muted-foreground text-xs">
+                  {performedAt}
+                </span>
+              </div>
+              <span className="text-muted-foreground text-xs">
+                by {entry.performedByName}
+              </span>
+              {entry.note && <p className="text-sm">{entry.note}</p>}
+            </li>
+          ))}
+        </ol>
+      )}
+      <Pagination {...pagination} noun="entries" />
+    </div>
   );
 }
