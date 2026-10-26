@@ -130,6 +130,24 @@ export function TransferDialog({
       e.currentTarget,
     );
     if (!ok) return;
+    const ownerUnchanged = external
+      ? !asset.assignedUserId &&
+        ownerName.trim() === (asset.ownerName ?? "") &&
+        ownerEmail.trim() === (asset.ownerEmail ?? "")
+      : assignedUserId === asset.assignedUserId;
+    if (
+      locationId === asset.locationId &&
+      departmentId === asset.departmentId &&
+      ownerUnchanged
+    ) {
+      onOpenChange(false);
+      addToast({
+        title: "Nothing to transfer",
+        description: "The location, department and owner are unchanged.",
+        variant: "info",
+      });
+      return;
+    }
     const confirmed = await confirm({
       title: "Transfer asset?",
       description: (

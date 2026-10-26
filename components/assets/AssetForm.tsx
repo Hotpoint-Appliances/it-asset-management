@@ -450,6 +450,12 @@ export function AssetForm({
       setError(accessoryResult.error);
       return;
     }
+    if (mode === "edit" && asset && changedFields().size === 0) {
+      router.push(`/assets/${asset.id}`, undefined, () =>
+        addToast({ title: "No changes to save", variant: "info" }),
+      );
+      return;
+    }
     if (!(await confirm(confirmOptions()))) return;
     setSubmitting(true);
     setError(null);

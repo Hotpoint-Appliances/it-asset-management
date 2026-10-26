@@ -60,6 +60,9 @@ function ToastCard({
 }) {
   const variant = toast.variant ?? "info";
   const Icon = VARIANT_ICON[variant];
+  const description =
+    toast.description ??
+    (variant === "error" ? "Error" : variant === "success" ? "Success" : null);
   const [closing, setClosing] = React.useState(false);
 
   React.useEffect(() => {
@@ -90,10 +93,9 @@ function ToastCard({
       />
       <div className="flex-1 space-y-0.5">
         <p className="text-sm font-medium">{toast.title}</p>
-
-        <p className="text-toast-muted-foreground text-sm">
-          {toast.description ?? (variant === "error" ? "Error" : "Success")}
-        </p>
+        {description && (
+          <p className="text-toast-muted-foreground text-sm">{description}</p>
+        )}
       </div>
       <button
         onClick={() => setClosing(true)}
