@@ -14,6 +14,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/Dialog";
+import { ConfirmSummary, useConfirm } from "@/components/shared/ConfirmDialog";
 import { useUIStore } from "@/store";
 import { useSyncOnOpen } from "@/lib/hooks/useSyncOnOpen";
 import type { AssetCondition } from "@/types/assetCondition";
@@ -44,6 +45,7 @@ export function ConditionDialog({
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const conditionFieldId = React.useId();
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   useSyncOnOpen(open, () => {
     setConditionId(currentConditionId);
@@ -52,6 +54,20 @@ export function ConditionDialog({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const name = (id: number) => conditions.find((c) => c.id === id)?.name;
+    const confirmed = await confirm({
+      title: "Change condition?",
+      description: (
+        <ConfirmSummary
+          rows={[
+            ["From", name(currentConditionId)],
+            ["To", name(conditionId)],
+          ]}
+        />
+      ),
+      confirmLabel: "Change condition",
+    });
+    if (!confirmed) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -111,6 +127,7 @@ export function ConditionDialog({
           </DialogFooter>
         </form>
       </DialogContent>
+      {confirmDialog}
     </Dialog>
   );
 }
