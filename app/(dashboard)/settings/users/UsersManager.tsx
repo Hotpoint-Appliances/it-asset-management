@@ -130,14 +130,17 @@ export function UsersManager({
       if (editing) {
         if (form.password) payload.password = form.password;
         await axios.patch(`/api/users/${editing.id}`, payload);
-        addToast({ title: "User updated", variant: "success" });
       } else {
         payload.password = form.password;
         await axios.post("/api/users", payload);
-        addToast({ title: "User created", variant: "success" });
       }
       setDialogOpen(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({
+          title: editing ? "User updated" : "User created",
+          variant: "success",
+        }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -152,12 +155,15 @@ export function UsersManager({
       await axios.patch(`/api/users/${deactivating.id}`, {
         isActive: !deactivating.isActive,
       });
-      addToast({
-        title: deactivating.isActive ? "User deactivated" : "User reactivated",
-        variant: "success",
-      });
       setDeactivating(null);
-      router.refresh();
+      router.refresh(() =>
+        addToast({
+          title: deactivating.isActive
+            ? "User deactivated"
+            : "User reactivated",
+          variant: "success",
+        }),
+      );
     } catch (err) {
       addToast({
         title: "Could not update user",

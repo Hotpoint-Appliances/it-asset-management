@@ -138,9 +138,10 @@ export function TransferDialog({
         ownerName: ownerMode === "external" ? ownerName : null,
         ownerEmail: ownerMode === "external" ? ownerEmail : null,
       });
-      addToast({ title: "Asset transferred", variant: "success" });
       onOpenChange(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Asset transferred", variant: "success" }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {

@@ -113,8 +113,9 @@ export function AssetDetail({
     setDeleting(true);
     try {
       await axios.delete(`/api/assets/${asset.id}`);
-      addToast({ title: "Asset deleted", variant: "success" });
-      router.push("/assets");
+      router.push("/assets", undefined, () =>
+        addToast({ title: "Asset deleted", variant: "success" }),
+      );
     } catch (err) {
       addToast({
         title: "Could not delete asset",

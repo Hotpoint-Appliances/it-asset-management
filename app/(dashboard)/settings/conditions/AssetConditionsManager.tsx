@@ -86,13 +86,16 @@ export function AssetConditionsManager({
       const payload = { name, sortOrder };
       if (editing) {
         await axios.patch(`/api/asset-conditions/${editing.id}`, payload);
-        addToast({ title: "Condition updated", variant: "success" });
       } else {
         await axios.post("/api/asset-conditions", payload);
-        addToast({ title: "Condition created", variant: "success" });
       }
       setDialogOpen(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({
+          title: editing ? "Condition updated" : "Condition created",
+          variant: "success",
+        }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -105,9 +108,10 @@ export function AssetConditionsManager({
     setSubmitting(true);
     try {
       await axios.delete(`/api/asset-conditions/${deleting.id}`);
-      addToast({ title: "Condition deleted", variant: "success" });
       setDeleting(null);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Condition deleted", variant: "success" }),
+      );
     } catch (err) {
       addToast({
         title: "Could not delete condition",

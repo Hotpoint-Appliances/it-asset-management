@@ -95,15 +95,16 @@ export function StatusDialog({
         statusId,
         note: note || null,
       });
-      addToast({ title: "Status updated", variant: "success" });
-      if (targetStatus?.name === "in_repair") {
-        addToast({
-          title: "Consider logging a maintenance record",
-          description: "Open the Maintenance tab to track the repair.",
-        });
-      }
       onOpenChange(false);
-      router.refresh();
+      router.refresh(() => {
+        addToast({ title: "Status updated", variant: "success" });
+        if (targetStatus?.name === "in_repair") {
+          addToast({
+            title: "Consider logging a maintenance record",
+            description: "Open the Maintenance tab to track the repair.",
+          });
+        }
+      });
     } catch (err) {
       setError(errorMessage(err));
     } finally {

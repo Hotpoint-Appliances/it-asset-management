@@ -92,9 +92,10 @@ export function AccessoriesTab({
       await axios.put(`/api/assets/${assetId}/accessories`, {
         accessories: result.items,
       });
-      addToast({ title: "Accessories updated", variant: "success" });
       setOpen(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Accessories updated", variant: "success" }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {

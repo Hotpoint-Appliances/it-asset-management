@@ -56,9 +56,10 @@ export function ConditionDialog({
     setError(null);
     try {
       await axios.post(`/api/assets/${assetId}/condition`, { conditionId });
-      addToast({ title: "Condition updated", variant: "success" });
       onOpenChange(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Condition updated", variant: "success" }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {

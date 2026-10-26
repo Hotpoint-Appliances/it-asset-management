@@ -107,13 +107,16 @@ export function VendorsManager({
       };
       if (editing) {
         await axios.patch(`/api/vendors/${editing.id}`, payload);
-        addToast({ title: "Vendor updated", variant: "success" });
       } else {
         await axios.post("/api/vendors", payload);
-        addToast({ title: "Vendor created", variant: "success" });
       }
       setDialogOpen(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({
+          title: editing ? "Vendor updated" : "Vendor created",
+          variant: "success",
+        }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -126,9 +129,10 @@ export function VendorsManager({
     setSubmitting(true);
     try {
       await axios.delete(`/api/vendors/${deleting.id}`);
-      addToast({ title: "Vendor deleted", variant: "success" });
       setDeleting(null);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Vendor deleted", variant: "success" }),
+      );
     } catch (err) {
       addToast({
         title: "Could not delete vendor",

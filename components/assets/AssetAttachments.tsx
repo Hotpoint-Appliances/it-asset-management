@@ -50,8 +50,9 @@ export function AssetAttachments({
       const formData = new FormData();
       formData.set("file", file);
       await axios.post(`/api/assets/${assetId}/attachments`, formData);
-      addToast({ title: "Attachment uploaded", variant: "success" });
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Attachment uploaded", variant: "success" }),
+      );
     } catch (err) {
       addToast({
         title: "Upload failed",
@@ -69,9 +70,10 @@ export function AssetAttachments({
     setSubmitting(true);
     try {
       await axios.delete(`/api/assets/${assetId}/attachments/${deleting.id}`);
-      addToast({ title: "Attachment deleted", variant: "success" });
       setDeleting(null);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Attachment deleted", variant: "success" }),
+      );
     } catch (err) {
       addToast({
         title: "Could not delete attachment",

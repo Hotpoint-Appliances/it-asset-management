@@ -122,9 +122,10 @@ export function MaintenanceTab({
         scheduledDate: scheduledDate || null,
         notes: notes || null,
       });
-      addToast({ title: "Maintenance record created", variant: "success" });
       setCreateOpen(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Maintenance record created", variant: "success" }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -146,8 +147,9 @@ export function MaintenanceTab({
         cost: record.cost,
         notes: record.notes,
       });
-      addToast({ title: "Maintenance record updated", variant: "success" });
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Maintenance record updated", variant: "success" }),
+      );
 
       if (
         status === "in_progress" &&
@@ -184,8 +186,9 @@ export function MaintenanceTab({
         statusId,
         note,
       });
-      addToast({ title: "Asset status updated", variant: "success" });
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Asset status updated", variant: "success" }),
+      );
     } catch (err) {
       addToast({
         title: "Could not update asset status",

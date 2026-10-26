@@ -112,13 +112,16 @@ export function CategoriesManager({
       };
       if (editing) {
         await axios.patch(`/api/categories/${editing.id}`, payload);
-        addToast({ title: "Category updated", variant: "success" });
       } else {
         await axios.post("/api/categories", payload);
-        addToast({ title: "Category created", variant: "success" });
       }
       setDialogOpen(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({
+          title: editing ? "Category updated" : "Category created",
+          variant: "success",
+        }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -131,9 +134,10 @@ export function CategoriesManager({
     setSubmitting(true);
     try {
       await axios.delete(`/api/categories/${deleting.id}`);
-      addToast({ title: "Category deleted", variant: "success" });
       setDeleting(null);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Category deleted", variant: "success" }),
+      );
     } catch (err) {
       addToast({
         title: "Could not delete category",

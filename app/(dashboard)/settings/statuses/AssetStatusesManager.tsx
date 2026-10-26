@@ -86,13 +86,16 @@ export function AssetStatusesManager({
       const payload = { name, sortOrder };
       if (editing) {
         await axios.patch(`/api/asset-statuses/${editing.id}`, payload);
-        addToast({ title: "Status updated", variant: "success" });
       } else {
         await axios.post("/api/asset-statuses", payload);
-        addToast({ title: "Status created", variant: "success" });
       }
       setDialogOpen(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({
+          title: editing ? "Status updated" : "Status created",
+          variant: "success",
+        }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -105,9 +108,10 @@ export function AssetStatusesManager({
     setSubmitting(true);
     try {
       await axios.delete(`/api/asset-statuses/${deleting.id}`);
-      addToast({ title: "Status deleted", variant: "success" });
       setDeleting(null);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Status deleted", variant: "success" }),
+      );
     } catch (err) {
       addToast({
         title: "Could not delete status",

@@ -94,13 +94,16 @@ export function AccessoriesManager({
       const payload = { name, description, isActive, sortOrder };
       if (editing) {
         await axios.patch(`/api/accessories/${editing.id}`, payload);
-        addToast({ title: "Accessory updated", variant: "success" });
       } else {
         await axios.post("/api/accessories", payload);
-        addToast({ title: "Accessory created", variant: "success" });
       }
       setDialogOpen(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({
+          title: editing ? "Accessory updated" : "Accessory created",
+          variant: "success",
+        }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -113,9 +116,10 @@ export function AccessoriesManager({
     setSubmitting(true);
     try {
       await axios.delete(`/api/accessories/${deleting.id}`);
-      addToast({ title: "Accessory deleted", variant: "success" });
       setDeleting(null);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Accessory deleted", variant: "success" }),
+      );
     } catch (err) {
       addToast({
         title: "Could not delete accessory",

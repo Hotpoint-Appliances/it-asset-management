@@ -378,12 +378,14 @@ export function AssetForm({
           "/api/assets",
           formData,
         );
-        addToast({ title: "Asset created", variant: "success" });
-        router.push(`/assets/${res.data.asset.id}`);
+        router.push(`/assets/${res.data.asset.id}`, undefined, () =>
+          addToast({ title: "Asset created", variant: "success" }),
+        );
       } else if (asset) {
         await axios.patch(`/api/assets/${asset.id}`, formData);
-        addToast({ title: "Asset updated", variant: "success" });
-        router.push(`/assets/${asset.id}`);
+        router.push(`/assets/${asset.id}`, undefined, () =>
+          addToast({ title: "Asset updated", variant: "success" }),
+        );
       }
     } catch (err) {
       setError(errorMessage(err));

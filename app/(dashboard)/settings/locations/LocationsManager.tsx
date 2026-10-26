@@ -108,13 +108,16 @@ export function LocationsManager({
       const payload = { name, parentLocationId, address: address || null };
       if (editing) {
         await axios.patch(`/api/locations/${editing.id}`, payload);
-        addToast({ title: "Location updated", variant: "success" });
       } else {
         await axios.post("/api/locations", payload);
-        addToast({ title: "Location created", variant: "success" });
       }
       setDialogOpen(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({
+          title: editing ? "Location updated" : "Location created",
+          variant: "success",
+        }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -127,9 +130,10 @@ export function LocationsManager({
     setSubmitting(true);
     try {
       await axios.delete(`/api/locations/${deleting.id}`);
-      addToast({ title: "Location deleted", variant: "success" });
       setDeleting(null);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Location deleted", variant: "success" }),
+      );
     } catch (err) {
       addToast({
         title: "Could not delete location",
