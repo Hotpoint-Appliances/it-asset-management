@@ -85,6 +85,41 @@ export function ConfirmSummary({
   );
 }
 
+/** Create/edit confirm for a named settings record (vendor, category, location, ...). Renames are
+ * called out since the name shows up everywhere the record is referenced. */
+export function recordSaveConfirm(
+  noun: string,
+  name: string,
+  previousName?: string | null,
+): ConfirmOptions {
+  const next = name.trim();
+  if (previousName == null) {
+    return {
+      title: `Create ${noun}?`,
+      description: <ConfirmSummary rows={[["Name", next]]} />,
+      confirmLabel: `Create ${noun}`,
+    };
+  }
+  return {
+    title: "Save changes?",
+    description:
+      previousName !== next ? (
+        <ConfirmSummary
+          intro={`Renaming this ${noun} updates it everywhere it's shown.`}
+          rows={[
+            ["From", previousName],
+            ["To", next],
+          ]}
+        />
+      ) : (
+        <>
+          Save changes to <strong>{next}</strong>?
+        </>
+      ),
+    confirmLabel: "Save changes",
+  };
+}
+
 /** Promise-based pre-save confirm for form submits, so a handler reads top to bottom:
  * validate, `if (!(await confirm({...}))) return;`, then submit. Render `dialog` anywhere in the
  * component; it stacks above an already-open form Dialog, and cancelling leaves the form (and

@@ -22,7 +22,11 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/Dialog";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import {
+  ConfirmDialog,
+  recordSaveConfirm,
+  useConfirm,
+} from "@/components/shared/ConfirmDialog";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { TreePicker } from "@/components/shared/TreePicker";
 import { buildTree, type TreeNode } from "@/lib/tree";
@@ -62,6 +66,7 @@ export function CategoriesManager({
   const [description, setDescription] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const fields = useFieldErrors<"name">();
   const [collapsed, setCollapsed] = React.useState<Set<number>>(new Set());
 
@@ -102,6 +107,8 @@ export function CategoriesManager({
       e.currentTarget,
     );
     if (!ok) return;
+    if (!(await confirm(recordSaveConfirm("category", name, editing?.name))))
+      return;
     setSubmitting(true);
     setError(null);
     try {
@@ -347,6 +354,7 @@ export function CategoriesManager({
         submitting={submitting}
         destructive
       />
+      {confirmDialog}
     </div>
   );
 }

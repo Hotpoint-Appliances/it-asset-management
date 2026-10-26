@@ -24,7 +24,12 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/Dialog";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import {
+  ConfirmDialog,
+  ConfirmSummary,
+  useConfirm,
+  type ConfirmOptions,
+} from "@/components/shared/ConfirmDialog";
 import {
   Table,
   TableHeader,
@@ -72,6 +77,7 @@ export function UsersManager({
   const [form, setForm] = React.useState(emptyForm);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const fields = useFieldErrors<"fullName" | "email" | "password">();
 
   function openCreate() {
@@ -100,6 +106,61 @@ export function UsersManager({
     setDialogOpen(true);
   }
 
+  function saveConfirm(): ConfirmOptions {
+    const roleLabel = (name: string | undefined) => name?.replace("_", " ");
+    const role = roles.find((r) => r.id === Number(form.roleId))?.name;
+    const department = form.departmentId
+      ? departmentName(Number(form.departmentId))
+      : "N/A";
+    if (!editing) {
+      return {
+        title: "Create user?",
+        description: (
+          <ConfirmSummary
+            intro="They'll be able to sign in with this email and password."
+            rows={[
+              ["Name", form.fullName.trim()],
+              ["Email", form.email.trim()],
+              ["Role", roleLabel(role)],
+              ["Department", department],
+            ]}
+          />
+        ),
+        confirmLabel: "Create user",
+      };
+    }
+    // Only the access-affecting changes are spelled out; the rest is "Save changes to X?".
+    const rows: [string, string | undefined][] = [
+      [
+        "Role",
+        role !== editing.roleName
+          ? `${roleLabel(editing.roleName)} → ${roleLabel(role)}`
+          : undefined,
+      ],
+      [
+        "Email",
+        form.email.trim() !== editing.email
+          ? `${editing.email} → ${form.email.trim()}`
+          : undefined,
+      ],
+      ["Password", form.password ? "Will be reset" : undefined],
+    ];
+    return {
+      title: "Save changes?",
+      description: (
+        <ConfirmSummary
+          intro={
+            <>
+              Save changes to <strong>{form.fullName.trim()}</strong>?
+            </>
+          }
+          rows={rows}
+        />
+      ),
+      confirmLabel: "Save changes",
+    };
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const ok = fields.validate(
@@ -118,6 +179,7 @@ export function UsersManager({
       e.currentTarget,
     );
     if (!ok) return;
+    if (!(await confirm(saveConfirm()))) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -415,6 +477,7 @@ export function UsersManager({
         submitting={submitting}
         destructive={deactivating?.isActive}
       />
+      {confirmDialog}
     </div>
   );
 }

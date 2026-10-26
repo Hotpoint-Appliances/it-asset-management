@@ -15,7 +15,11 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/Dialog";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import {
+  ConfirmDialog,
+  recordSaveConfirm,
+  useConfirm,
+} from "@/components/shared/ConfirmDialog";
 import {
   Table,
   TableHeader,
@@ -58,6 +62,7 @@ export function VendorsManager({
   const [form, setForm] = React.useState(emptyForm);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const fields = useFieldErrors<"name" | "contactEmail">();
 
   function openCreate() {
@@ -95,6 +100,8 @@ export function VendorsManager({
       e.currentTarget,
     );
     if (!ok) return;
+    if (!(await confirm(recordSaveConfirm("vendor", form.name, editing?.name))))
+      return;
     setSubmitting(true);
     setError(null);
     try {
@@ -332,6 +339,7 @@ export function VendorsManager({
         submitting={submitting}
         destructive
       />
+      {confirmDialog}
     </div>
   );
 }

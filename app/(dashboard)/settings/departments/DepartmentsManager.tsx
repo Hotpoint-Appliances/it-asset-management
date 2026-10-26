@@ -15,7 +15,11 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/Dialog";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import {
+  ConfirmDialog,
+  recordSaveConfirm,
+  useConfirm,
+} from "@/components/shared/ConfirmDialog";
 import {
   Table,
   TableHeader,
@@ -51,6 +55,7 @@ export function DepartmentsManager({
   const [code, setCode] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const fields = useFieldErrors<"name">();
 
   function openCreate() {
@@ -80,6 +85,8 @@ export function DepartmentsManager({
       e.currentTarget,
     );
     if (!ok) return;
+    if (!(await confirm(recordSaveConfirm("department", name, editing?.name))))
+      return;
     setSubmitting(true);
     setError(null);
     try {
@@ -255,6 +262,7 @@ export function DepartmentsManager({
         submitting={submitting}
         destructive
       />
+      {confirmDialog}
     </div>
   );
 }
