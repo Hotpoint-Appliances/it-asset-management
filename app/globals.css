@@ -327,3 +327,44 @@ html::-webkit-scrollbar-thumb:hover {
 @utility slide-out-to-left {
   animation-name: slide-out-to-left;
 }
+
+/* Toasts get their own, slower motion than the 150ms Radix defaults above:
+   they appear unprompted at the edge of the screen, so a short rise-and-settle
+   on enter makes them noticeable, and the exit slides off the way the stack
+   is anchored (down past the bottom edge on mobile, where the stack spans the
+   width; off to the right from `sm` up, where it's pinned bottom-right). */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(1rem) scale(0.97);
+  }
+}
+@keyframes toast-out-down {
+  to {
+    opacity: 0;
+    transform: translateY(calc(100% + 1rem));
+  }
+}
+@keyframes toast-out-right {
+  to {
+    opacity: 0;
+    transform: translateX(calc(100% + 1rem));
+  }
+}
+@utility toast-enter {
+  animation: toast-in 350ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@utility toast-exit {
+  animation: toast-out-down 220ms cubic-bezier(0.4, 0, 1, 1) both;
+  @variant sm {
+    animation-name: toast-out-right;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .toast-enter {
+    animation-name: fade-in;
+  }
+  .toast-exit {
+    animation-name: fade-out;
+  }
+}

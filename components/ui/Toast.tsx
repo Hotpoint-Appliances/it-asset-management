@@ -78,7 +78,7 @@ function ToastCard({
       aria-live={variant === "error" ? "assertive" : "polite"}
       className={cn(
         "bg-toast text-toast-foreground border-toast-border flex items-start gap-3 rounded-xl border p-4 shadow-lg",
-        closing ? "animate-out fade-out-0" : "animate-in fade-in-0",
+        closing ? "toast-exit" : "toast-enter",
       )}
       data-state={closing ? "closed" : "open"}
       onAnimationEnd={() => {
