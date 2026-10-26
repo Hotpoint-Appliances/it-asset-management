@@ -630,7 +630,7 @@ export async function softDeleteAsset(
 
 export async function setAssetImagePath(
   id: string,
-  imagePath: string,
+  imagePath: string | null,
 ): Promise<Asset | null> {
   const result = await query<AssetRow>(
     `UPDATE assets SET image_path = $2 WHERE id = $1 AND deleted_at IS NULL RETURNING ${SELECT_COLUMNS}`,

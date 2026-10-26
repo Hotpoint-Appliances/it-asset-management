@@ -269,6 +269,9 @@ export function AssetForm({
   const [error, setError] = React.useState<string | null>(null);
   const fields = useFieldErrors<AssetField>();
   const { confirm, dialog: confirmDialog } = useConfirm();
+  const imageInputRef = React.useRef<HTMLInputElement>(null);
+  // An existing image whose preview the user cleared with "Remove" (and didn't replace).
+  const removingImage = !!asset?.imagePath && !imagePreview && !imageFile;
 
   const categoryItems = React.useMemo(
     () =>
@@ -326,6 +329,9 @@ export function AssetForm({
   function clearImage() {
     setImageFile(null);
     setImagePreview(null);
+    fields.clear("image");
+    // Reset the picker too, or choosing the same file again wouldn't fire onChange.
+    if (imageInputRef.current) imageInputRef.current.value = "";
   }
 
   function confirmOptions() {
@@ -361,13 +367,32 @@ export function AssetForm({
         confirmLabel: "Create asset",
       };
     }
+    const changed = changedFields();
+    return {
+      title: "Save changes?",
+      description: (
+        <ConfirmSummary
+          intro={
+            <>
+              Updating <strong>{form.assetTag.trim()}</strong>:
+            </>
+          }
+          rows={[["Changed", [...changed].join(", ")]]}
+        />
+      ),
+      confirmLabel: "Save changes",
+    };
+  }
+
+  /** Labels of the fields an edit would change, empty when saving would be a no-op. */
+  function changedFields(): Set<string> {
     const initial = initialState(asset, defaultStatusId);
     const changed = new Set(
       (Object.keys(FIELD_LABELS) as (keyof FormState)[])
         .filter((key) => form[key] !== initial[key])
         .map((key) => FIELD_LABELS[key]!),
     );
-    if (imageFile) changed.add("Image");
+    if (imageFile || removingImage) changed.add("Image");
     // Row keys are regenerated per call, so compare only what gets saved.
     const rowValues = (rows: AccessoryRow[]) =>
       JSON.stringify(rows.map((r) => [r.accessoryId, r.quantity, r.notes]));
@@ -376,24 +401,7 @@ export function AssetForm({
       rowValues(accessoryRows) !== rowValues(rowsFromAccessories(accessories))
     )
       changed.add("Accessories");
-    return {
-      title: "Save changes?",
-      description: (
-        <ConfirmSummary
-          intro={
-            changed.size > 0 ? (
-              <>
-                Updating <strong>{form.assetTag.trim()}</strong>:
-              </>
-            ) : (
-              "You haven't changed anything on this asset."
-            )
-          }
-          rows={changed.size > 0 ? [["Changed", [...changed].join(", ")]] : []}
-        />
-      ),
-      confirmLabel: changed.size > 0 ? "Save changes" : "Save anyway",
-    };
+    return changed;
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -479,6 +487,7 @@ export function AssetForm({
       formData.set("accessories", JSON.stringify(accessoryResult.items));
     }
     if (imageFile) formData.set("image", imageFile);
+    else if (removingImage) formData.set("removeImage", "1");
 
     try {
       if (mode === "create") {
@@ -890,6 +899,7 @@ export function AssetForm({
             )}
             <div className="flex flex-col gap-1">
               <Input
+                ref={imageInputRef}
                 id="asset-image"
                 type="file"
                 accept="image/jpeg,image/png,image/webp"

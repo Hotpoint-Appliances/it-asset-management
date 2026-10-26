@@ -125,6 +125,10 @@ export async function PATCH(
     const { relativePath } = await saveAssetImage(id, imageFile);
     asset = (await setAssetImagePath(id, relativePath)) ?? asset;
     if (previousImagePath) await deleteUploadedFile(previousImagePath);
+  } else if (formData.get("removeImage") === "1" && existing.imagePath) {
+    // The form's "Remove" on an existing image; a new upload above takes precedence.
+    asset = (await setAssetImagePath(id, null)) ?? asset;
+    await deleteUploadedFile(existing.imagePath);
   }
 
   return NextResponse.json({ asset });
