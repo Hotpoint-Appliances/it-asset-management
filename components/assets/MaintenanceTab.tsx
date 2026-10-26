@@ -54,22 +54,6 @@ const STATUS_VARIANT: Record<
   cancelled: "outline",
 };
 
-const STATUS_CONFIRM: Record<
-  Exclude<MaintenanceStatus, "scheduled">,
-  { title: string; confirmLabel: string; destructive?: boolean }
-> = {
-  in_progress: { title: "Start maintenance?", confirmLabel: "Start" },
-  completed: {
-    title: "Mark maintenance completed?",
-    confirmLabel: "Mark completed",
-  },
-  cancelled: {
-    title: "Cancel maintenance record?",
-    confirmLabel: "Cancel record",
-    destructive: true,
-  },
-};
-
 /** Maintenance module (phase-5-asset-lifecycle Step 4): create/list `asset_maintenance` records
  * and drive the two non-forced prompts docs/asset-lifecycle-flow.md rule 5 calls for, marking
  * `in_progress` offers to also set the asset's status to `in_repair` (reusing Step 3's action),
@@ -181,18 +165,23 @@ export function MaintenanceTab({
     record: AssetMaintenance,
     status: Exclude<MaintenanceStatus, "scheduled">,
   ) {
-    const confirmed = await confirm({
-      ...STATUS_CONFIRM[status],
-      description: (
-        <ConfirmSummary
-          rows={[
-            ["Type", formatLookupName(record.maintenanceType)],
-            ["Vendor", record.vendorName],
-          ]}
-        />
-      ),
-    });
-    if (!confirmed) return;
+    // Start/complete are routine one-click steps; only cancelling a record asks first.
+    if (status === "cancelled") {
+      const confirmed = await confirm({
+        title: "Cancel maintenance record?",
+        description: (
+          <ConfirmSummary
+            rows={[
+              ["Type", formatLookupName(record.maintenanceType)],
+              ["Vendor", record.vendorName],
+            ]}
+          />
+        ),
+        confirmLabel: "Cancel record",
+        destructive: true,
+      });
+      if (!confirmed) return;
+    }
     try {
       const res = await axios.patch<{
         maintenance: AssetMaintenance;
