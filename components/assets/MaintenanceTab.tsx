@@ -17,12 +17,17 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/Dialog";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import {
+  ConfirmDialog,
+  ConfirmSummary,
+  useConfirm,
+} from "@/components/shared/ConfirmDialog";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { NOTE_REQUIRED_STATUSES } from "./StatusDialog";
 import { useUIStore } from "@/store";
 import { useSyncOnOpen } from "@/lib/hooks/useSyncOnOpen";
 import { formatCurrency } from "@/lib/format";
+import { formatLookupName } from "@/lib/badgeVariants";
 import type {
   AssetMaintenance,
   MaintenanceType,
@@ -45,6 +50,22 @@ const STATUS_VARIANT: Record<
   in_progress: "warning",
   completed: "success",
   cancelled: "outline",
+};
+
+const STATUS_CONFIRM: Record<
+  Exclude<MaintenanceStatus, "scheduled">,
+  { title: string; confirmLabel: string; destructive?: boolean }
+> = {
+  in_progress: { title: "Start maintenance?", confirmLabel: "Start" },
+  completed: {
+    title: "Mark maintenance completed?",
+    confirmLabel: "Mark completed",
+  },
+  cancelled: {
+    title: "Cancel maintenance record?",
+    confirmLabel: "Cancel record",
+    destructive: true,
+  },
 };
 
 /** Maintenance module (phase-5-asset-lifecycle Step 4): create/list `asset_maintenance` records
@@ -92,6 +113,7 @@ export function MaintenanceTab({
   const [promptSubmitting, setPromptSubmitting] = React.useState(false);
   const [restoreNote, setRestoreNote] = React.useState("");
   const fieldId = React.useId();
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const inRepairStatus = statuses.find((s) => s.name === "in_repair");
   const restoreTargetStatus = restorePrompt
@@ -113,6 +135,25 @@ export function MaintenanceTab({
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
+    const confirmed = await confirm({
+      title: "Log maintenance?",
+      description: (
+        <ConfirmSummary
+          rows={[
+            ["Type", formatLookupName(maintenanceType)],
+            ["Vendor", vendors.find((v) => v.id === vendorId)?.name],
+            [
+              "Scheduled",
+              // A bare YYYY-MM-DD parses as UTC midnight; pin it to local midnight.
+              scheduledDate &&
+                new Date(`${scheduledDate}T00:00`).toLocaleDateString(),
+            ],
+          ]}
+        />
+      ),
+      confirmLabel: "Log maintenance",
+    });
+    if (!confirmed) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -135,8 +176,20 @@ export function MaintenanceTab({
 
   async function updateStatus(
     record: AssetMaintenance,
-    status: MaintenanceStatus,
+    status: Exclude<MaintenanceStatus, "scheduled">,
   ) {
+    const confirmed = await confirm({
+      ...STATUS_CONFIRM[status],
+      description: (
+        <ConfirmSummary
+          rows={[
+            ["Type", formatLookupName(record.maintenanceType)],
+            ["Vendor", record.vendorName],
+          ]}
+        />
+      ),
+    });
+    if (!confirmed) return;
     try {
       const res = await axios.patch<{
         maintenance: AssetMaintenance;
@@ -447,6 +500,7 @@ export function MaintenanceTab({
           confirmStatusChange(restorePrompt.statusId, restoreNote || null)
         }
       />
+      {confirmDialog}
     </div>
   );
 }

@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/Table";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
+import { ConfirmSummary, useConfirm } from "@/components/shared/ConfirmDialog";
 import { useSyncOnOpen } from "@/lib/hooks/useSyncOnOpen";
 import { canEditAccessories } from "@/lib/assetAccessories";
 import { formatLookupName } from "@/lib/badgeVariants";
@@ -68,6 +69,7 @@ export function AccessoriesTab({
   const [rows, setRows] = React.useState<AccessoryRow[]>([]);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const editable = canEditAccessories(statusName);
   const options = React.useMemo(
     () => accessoryOptions(catalog, accessories),
@@ -86,6 +88,30 @@ export function AccessoriesTab({
       setError(result.error);
       return;
     }
+    const nameOf = (id: number) =>
+      accessories.find((a) => a.accessoryId === id)?.name ??
+      catalog.find((a) => a.id === id)?.name ??
+      "Accessory";
+    const confirmed = await confirm({
+      title: "Save accessories?",
+      description: (
+        <ConfirmSummary
+          intro={
+            result.items.length > 0
+              ? "The asset's accessories will be set to:"
+              : accessories.length > 0
+                ? "All accessories will be removed from this asset."
+                : "No accessories will be attached to this asset."
+          }
+          rows={result.items.map((item) => [
+            nameOf(item.accessoryId),
+            `× ${item.quantity}`,
+          ])}
+        />
+      ),
+      confirmLabel: "Save accessories",
+    });
+    if (!confirmed) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -201,6 +227,7 @@ export function AccessoriesTab({
           </DialogContent>
         </Dialog>
       )}
+      {confirmDialog}
     </div>
   );
 }

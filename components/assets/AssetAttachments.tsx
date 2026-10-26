@@ -6,9 +6,14 @@ import axios from "axios";
 import { Paperclip, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import {
+  ConfirmDialog,
+  ConfirmSummary,
+  useConfirm,
+} from "@/components/shared/ConfirmDialog";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
+import { formatFileSize } from "@/lib/format";
 import type { AssetAttachment } from "@/types/assetAttachment";
 
 function errorMessage(err: unknown): string {
@@ -28,6 +33,7 @@ export function AssetAttachments({
 }) {
   const router = useRouteLoadingRouter();
   const addToast = useUIStore((s) => s.addToast);
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const [uploading, setUploading] = React.useState(false);
   const [deleting, setDeleting] = React.useState<AssetAttachment | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
@@ -36,6 +42,22 @@ export function AssetAttachments({
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    const confirmed = await confirm({
+      title: "Upload attachment?",
+      description: (
+        <ConfirmSummary
+          rows={[
+            ["File", file.name],
+            ["Size", formatFileSize(file.size)],
+          ]}
+        />
+      ),
+      confirmLabel: "Upload",
+    });
+    if (!confirmed) {
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
     setUploading(true);
     try {
       const formData = new FormData();
@@ -166,6 +188,7 @@ export function AssetAttachments({
         submitting={submitting}
         destructive
       />
+      {confirmDialog}
     </div>
   );
 }
