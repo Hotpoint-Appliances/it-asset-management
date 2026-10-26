@@ -30,6 +30,8 @@ import {
 } from "@/components/ui/Table";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { Pagination } from "@/components/shared/Pagination";
 import type { AssetCondition } from "@/types/assetCondition";
 import { RequiredMark } from "@/components/shared/RequiredMark";
 import { FieldError } from "@/components/shared/FieldError";
@@ -40,6 +42,8 @@ function errorMessage(err: unknown): string {
     return err.response.data.error;
   return "Something went wrong. Please try again.";
 }
+
+const PAGE_SIZE = 10;
 
 export function AssetConditionsManager({
   initialConditions,
@@ -55,6 +59,7 @@ export function AssetConditionsManager({
   const [sortOrder, setSortOrder] = React.useState(0);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const pagination = usePagination(initialConditions, PAGE_SIZE);
   const { confirm, dialog: confirmDialog } = useConfirm();
   const fields = useFieldErrors<"name">();
 
@@ -157,7 +162,7 @@ export function AssetConditionsManager({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {initialConditions.map((condition) => (
+            {pagination.pageItems.map((condition) => (
               <TableRow key={condition.id}>
                 <TableCell className="font-medium">{condition.name}</TableCell>
                 <TableCell>{condition.sortOrder}</TableCell>
@@ -184,6 +189,7 @@ export function AssetConditionsManager({
           </TableBody>
         </Table>
       )}
+      <Pagination {...pagination} noun="conditions" />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>

@@ -32,6 +32,8 @@ import {
 } from "@/components/ui/Table";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { Pagination } from "@/components/shared/Pagination";
 import type { Accessory } from "@/types/accessory";
 import { RequiredMark } from "@/components/shared/RequiredMark";
 import { FieldError } from "@/components/shared/FieldError";
@@ -42,6 +44,8 @@ function errorMessage(err: unknown): string {
     return err.response.data.error;
   return "Something went wrong. Please try again.";
 }
+
+const PAGE_SIZE = 10;
 
 export function AccessoriesManager({
   initialAccessories,
@@ -59,6 +63,7 @@ export function AccessoriesManager({
   const [sortOrder, setSortOrder] = React.useState(0);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const pagination = usePagination(initialAccessories, PAGE_SIZE);
   const { confirm, dialog: confirmDialog } = useConfirm();
   const fields = useFieldErrors<"name">();
 
@@ -167,7 +172,7 @@ export function AccessoriesManager({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {initialAccessories.map((accessory) => (
+            {pagination.pageItems.map((accessory) => (
               <TableRow key={accessory.id}>
                 <TableCell className="font-medium">{accessory.name}</TableCell>
                 <TableCell className="text-muted-foreground">
@@ -205,6 +210,7 @@ export function AccessoriesManager({
           </TableBody>
         </Table>
       )}
+      <Pagination {...pagination} noun="accessories" />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>

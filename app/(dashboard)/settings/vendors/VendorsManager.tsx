@@ -30,6 +30,8 @@ import {
 } from "@/components/ui/Table";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { Pagination } from "@/components/shared/Pagination";
 import type { Vendor } from "@/types/vendor";
 import { RequiredMark } from "@/components/shared/RequiredMark";
 import { FieldError } from "@/components/shared/FieldError";
@@ -49,6 +51,8 @@ const emptyForm = {
   address: "",
 };
 
+const PAGE_SIZE = 10;
+
 export function VendorsManager({
   initialVendors,
 }: {
@@ -62,6 +66,7 @@ export function VendorsManager({
   const [form, setForm] = React.useState(emptyForm);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const pagination = usePagination(initialVendors, PAGE_SIZE);
   const { confirm, dialog: confirmDialog } = useConfirm();
   const fields = useFieldErrors<"name" | "contactEmail">();
 
@@ -180,7 +185,7 @@ export function VendorsManager({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {initialVendors.map((vendor) => (
+            {pagination.pageItems.map((vendor) => (
               <TableRow key={vendor.id}>
                 <TableCell className="font-medium">{vendor.name}</TableCell>
                 <TableCell>{vendor.contactName ?? "N/A"}</TableCell>
@@ -209,6 +214,7 @@ export function VendorsManager({
           </TableBody>
         </Table>
       )}
+      <Pagination {...pagination} noun="vendors" />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>

@@ -27,6 +27,8 @@ import { NOTE_REQUIRED_STATUSES } from "./StatusDialog";
 import { useUIStore } from "@/store";
 import { useSyncOnOpen } from "@/lib/hooks/useSyncOnOpen";
 import { formatCurrency } from "@/lib/format";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { Pagination } from "@/components/shared/Pagination";
 import { formatLookupName } from "@/lib/badgeVariants";
 import type {
   AssetMaintenance,
@@ -113,6 +115,7 @@ export function MaintenanceTab({
   const [promptSubmitting, setPromptSubmitting] = React.useState(false);
   const [restoreNote, setRestoreNote] = React.useState("");
   const fieldId = React.useId();
+  const pagination = usePagination(initialMaintenance, 5);
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   const inRepairStatus = statuses.find((s) => s.name === "in_repair");
@@ -278,7 +281,7 @@ export function MaintenanceTab({
         />
       ) : (
         <ul className="flex flex-col gap-2">
-          {initialMaintenance.map((record) => (
+          {pagination.pageItems.map((record) => (
             <li
               key={record.id}
               className="border-border flex flex-col gap-2 rounded-lg border p-3 text-sm"
@@ -347,6 +350,7 @@ export function MaintenanceTab({
           ))}
         </ul>
       )}
+      <Pagination {...pagination} noun="records" />
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>

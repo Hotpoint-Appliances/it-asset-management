@@ -21,6 +21,8 @@ export function Pagination({
   noun?: string;
 }) {
   if (total <= pageSize) return null;
+  const first = (page - 1) * pageSize + 1;
+  const last = Math.min(page * pageSize, total);
   return (
     <nav
       aria-label="Pagination"
@@ -30,8 +32,7 @@ export function Pagination({
         className="text-muted-foreground text-sm whitespace-nowrap"
         aria-live="polite"
       >
-        Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)}{" "}
-        of {total}
+        Showing {first === last ? first : `${first}–${last}`} of {total}
         {noun && ` ${noun}`}
       </p>
       <div className="ml-auto flex gap-2">

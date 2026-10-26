@@ -30,6 +30,8 @@ import {
 } from "@/components/ui/Table";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { Pagination } from "@/components/shared/Pagination";
 import type { AssetStatus } from "@/types/assetStatus";
 import { RequiredMark } from "@/components/shared/RequiredMark";
 import { FieldError } from "@/components/shared/FieldError";
@@ -40,6 +42,8 @@ function errorMessage(err: unknown): string {
     return err.response.data.error;
   return "Something went wrong. Please try again.";
 }
+
+const PAGE_SIZE = 10;
 
 export function AssetStatusesManager({
   initialStatuses,
@@ -55,6 +59,7 @@ export function AssetStatusesManager({
   const [sortOrder, setSortOrder] = React.useState(0);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const pagination = usePagination(initialStatuses, PAGE_SIZE);
   const { confirm, dialog: confirmDialog } = useConfirm();
   const fields = useFieldErrors<"name">();
 
@@ -157,7 +162,7 @@ export function AssetStatusesManager({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {initialStatuses.map((status) => (
+            {pagination.pageItems.map((status) => (
               <TableRow key={status.id}>
                 <TableCell className="font-medium">{status.name}</TableCell>
                 <TableCell>{status.sortOrder}</TableCell>
@@ -184,6 +189,7 @@ export function AssetStatusesManager({
           </TableBody>
         </Table>
       )}
+      <Pagination {...pagination} noun="statuses" />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>

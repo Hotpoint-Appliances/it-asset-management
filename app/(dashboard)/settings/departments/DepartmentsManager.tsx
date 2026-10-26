@@ -30,6 +30,8 @@ import {
 } from "@/components/ui/Table";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { Pagination } from "@/components/shared/Pagination";
 import type { Department } from "@/types/department";
 import { RequiredMark } from "@/components/shared/RequiredMark";
 import { FieldError } from "@/components/shared/FieldError";
@@ -40,6 +42,8 @@ function errorMessage(err: unknown): string {
     return err.response.data.error;
   return "Something went wrong. Please try again.";
 }
+
+const PAGE_SIZE = 10;
 
 export function DepartmentsManager({
   initialDepartments,
@@ -55,6 +59,7 @@ export function DepartmentsManager({
   const [code, setCode] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const pagination = usePagination(initialDepartments, PAGE_SIZE);
   const { confirm, dialog: confirmDialog } = useConfirm();
   const fields = useFieldErrors<"name">();
 
@@ -157,7 +162,7 @@ export function DepartmentsManager({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {initialDepartments.map((department) => (
+            {pagination.pageItems.map((department) => (
               <TableRow key={department.id}>
                 <TableCell className="font-medium">{department.name}</TableCell>
                 <TableCell>{department.code ?? "N/A"}</TableCell>
@@ -184,6 +189,7 @@ export function DepartmentsManager({
           </TableBody>
         </Table>
       )}
+      <Pagination {...pagination} noun="departments" />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>

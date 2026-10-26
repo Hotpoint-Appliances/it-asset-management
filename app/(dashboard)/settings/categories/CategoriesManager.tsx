@@ -31,6 +31,8 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { TreePicker } from "@/components/shared/TreePicker";
 import { buildTree, type TreeNode } from "@/lib/tree";
 import { useUIStore } from "@/store";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { Pagination } from "@/components/shared/Pagination";
 import type { Category } from "@/types/category";
 import { RequiredMark } from "@/components/shared/RequiredMark";
 import { FieldError } from "@/components/shared/FieldError";
@@ -48,6 +50,8 @@ interface CategoryNode {
   name: string;
   description: string | null;
 }
+
+const PAGE_SIZE = 10;
 
 export function CategoriesManager({
   initialCategories,
@@ -77,6 +81,8 @@ export function CategoriesManager({
     description: c.description,
   }));
   const tree = buildTree(treeItems);
+  // Paged by top-level node, so a branch never splits across pages.
+  const pagination = usePagination(tree, PAGE_SIZE);
 
   function openCreate(parentId: number | null = null) {
     setEditing(null);
@@ -254,9 +260,10 @@ export function CategoriesManager({
         />
       ) : (
         <div className="border-border rounded-xl border shadow-sm">
-          {renderNodes(tree)}
+          {renderNodes(pagination.pageItems)}
         </div>
       )}
+      <Pagination {...pagination} noun="top-level categories" />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>

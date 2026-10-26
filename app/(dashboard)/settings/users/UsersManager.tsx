@@ -40,6 +40,8 @@ import {
 } from "@/components/ui/Table";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { Pagination } from "@/components/shared/Pagination";
 import type { User, Role } from "@/types/user";
 import type { Department } from "@/types/department";
 import { RequiredMark } from "@/components/shared/RequiredMark";
@@ -60,6 +62,8 @@ const emptyForm = {
   departmentId: "",
 };
 
+const PAGE_SIZE = 10;
+
 export function UsersManager({
   initialUsers,
   roles,
@@ -77,6 +81,7 @@ export function UsersManager({
   const [form, setForm] = React.useState(emptyForm);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const pagination = usePagination(initialUsers, PAGE_SIZE);
   const { confirm, dialog: confirmDialog } = useConfirm();
   const fields = useFieldErrors<"fullName" | "email" | "password">();
 
@@ -272,7 +277,7 @@ export function UsersManager({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {initialUsers.map((user) => (
+            {pagination.pageItems.map((user) => (
               <TableRow key={user.id}>
                 <TableCell className="font-medium">{user.fullName}</TableCell>
                 <TableCell>{user.email}</TableCell>
@@ -314,6 +319,7 @@ export function UsersManager({
           </TableBody>
         </Table>
       )}
+      <Pagination {...pagination} noun="users" />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
