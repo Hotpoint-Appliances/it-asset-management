@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getApiSession, requireApiRole } from "@/lib/auth/api";
 import { updateUser, setUserActive } from "@/lib/db/users";
 import { isUniqueViolation } from "@/lib/db/query";
+import { setSessionCookie } from "@/lib/auth/session";
 import { validateUpdateUserInput } from "@/lib/validation/users";
 
 export async function PATCH(
@@ -41,10 +42,28 @@ export async function PATCH(
     return NextResponse.json({ error: validated.error }, { status: 400 });
   }
 
+  // A reset signs the user out everywhere, like a self-service change (app/api/auth/password).
+  // Whole seconds, matching the JWT `iat` it's compared against.
+  const passwordChangedAt = validated.data.password
+    ? new Date(Math.floor(Date.now() / 1000) * 1000)
+    : null;
+
   try {
-    const user = await updateUser(id, validated.data);
+    const user = await updateUser(id, validated.data, passwordChangedAt);
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+    // An admin resetting their own password keeps this session; the DB supplies the current
+    // role/name on every request, so the old payload is fine to re-sign.
+    if (passwordChangedAt && id === session.userId) {
+      await setSessionCookie({
+        userId: session.userId,
+        roleId: session.roleId,
+        roleName: session.roleName,
+        departmentId: session.departmentId,
+        fullName: session.fullName,
+        email: session.email,
+      });
     }
     return NextResponse.json({ user });
   } catch (err) {

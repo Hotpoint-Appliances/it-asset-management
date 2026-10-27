@@ -203,9 +203,12 @@ export interface UpdateUserInput {
   password?: string;
 }
 
+/** A password reset stamps password_changed_at with `passwordChangedAt`, revoking the user's
+ * sessions issued before it, as changePassword does. */
 export async function updateUser(
   id: string,
   input: UpdateUserInput,
+  passwordChangedAt: Date | null = null,
 ): Promise<UserSummary | null> {
   const passwordHash = input.password
     ? await hashPassword(input.password)
@@ -214,7 +217,8 @@ export async function updateUser(
     `WITH updated AS (
        UPDATE users
        SET full_name = $2, email = $3, role_id = $4, department_id = $5,
-           password_hash = COALESCE($6, password_hash)
+           password_hash = COALESCE($6, password_hash),
+           password_changed_at = CASE WHEN $6::text IS NULL THEN password_changed_at ELSE $7::timestamptz END
        WHERE id = $1
        RETURNING id, full_name, email, role_id, department_id, is_active
      )
@@ -226,6 +230,7 @@ export async function updateUser(
       input.roleId,
       input.departmentId,
       passwordHash,
+      passwordChangedAt,
     ],
   );
   return result.rows[0] ? mapUserSummary(result.rows[0]) : null;

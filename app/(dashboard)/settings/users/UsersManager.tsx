@@ -148,7 +148,12 @@ export function UsersManager({
           ? `${editing.email} → ${form.email.trim()}`
           : undefined,
       ],
-      ["Password", form.password ? "Will be reset" : undefined],
+      [
+        "Password",
+        form.password
+          ? "Will be reset, signing them out of open sessions"
+          : undefined,
+      ],
     ];
     return {
       title: "Save changes?",
