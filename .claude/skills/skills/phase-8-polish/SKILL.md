@@ -171,7 +171,7 @@ is written against them:
    - Env vars: the full list from [[itam-conventions]], with production values
      (`NOTIFICATION_EMAIL_ENABLED` unset or `true`; `ITAM_APP_URL` = the public HTTPS URL, which
      also feeds QR labels and email links).
-   - **HTTPS is required**: the session cookie is `secure` when `NODE_ENV=production`, so login
+   - **HTTPS is required**: the session cookie is `secure` when `NODE_ENV=production` (unless `SESSION_COOKIE_SECURE=false`, a testing-only override), so login
      silently fails over plain HTTP. Document the reverse proxy (e.g. IIS + URL Rewrite/ARR, or
      whatever ops uses) terminating TLS in front of `next start`. State that this is a choice for ops
      and the runbook only says what the app requires.

@@ -28,7 +28,7 @@ table (admin, asset_manager, viewer).
 2. **JWT session**: `lib/auth/session.ts` using `jose` — sign a JWT containing `{ userId,
 roleId, roleName, departmentId, fullName, email }` on login (the extra `fullName`/`email`
    avoid a DB round-trip for the user-context step below), store it in an `itam_session`
-   cookie: `httpOnly`, `secure` in production only (dev runs plain HTTP), `sameSite: strict`,
+   cookie: `httpOnly`, `secure` in production only (dev runs plain HTTP; `SESSION_COOKIE_SECURE` overrides, see `isSecureCookie`), `sameSite: strict`,
    8h expiry. Provide `getSession()` (reads/verifies the cookie, returns `null` — never
    redirects, so `proxy.ts` and defense-in-depth checks can both call it safely),
    `requireSession()` (redirects to `/login` if absent/invalid), and `requireRole(roles)`

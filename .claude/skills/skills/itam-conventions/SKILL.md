@@ -269,7 +269,7 @@ app's `CRON_SECRET`.
 
 Production hosting (Phase 8): nginx (HTTPS, company certificate) → PM2 cluster → PostgreSQL on
 one Windows Server; full runbook in `docs/deployment.md`. HTTPS is mandatory because the session
-cookie is `Secure` in production. Sessions are re-checked against `users` on every request (a
+cookie is `Secure` in production (`isSecureCookie` in `lib/auth/session.ts`; `SESSION_COOKIE_SECURE=true|false` overrides `NODE_ENV`, `false` for testing a production build over HTTP only). Sessions are re-checked against `users` on every request (a
 deactivated user is out immediately); see `phase-2-auth`'s "Changed by Phase 8".
 
 `ASSET_FILES_BASE_PATH` is the root directory for all uploaded files. `assets.image_path` and

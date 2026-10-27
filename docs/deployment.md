@@ -44,6 +44,7 @@ Every variable is listed in `.env.example`:
 | `NOTIFICATION_FROM_EMAIL` | The sender mailbox. |
 | `NOTIFICATION_EMAIL_ENABLED` | Unset or `true` in production. `false` only on dev/staging copies whose users are real people. |
 | `CRON_SECRET` | Long random value; must equal the content of `C:\ProgramData\ITAM\cron-secret.txt` (see the script's help). |
+| `SESSION_COOKIE_SECURE` | **Leave unset** (the cookie is then `Secure` because `NODE_ENV=production`). `false` only to test a production build over plain HTTP, never on a real deployment; see section 3. |
 | `ITAM_APP_URL` | The **public HTTPS URL**, e.g. `https://itam.hotpoint.example`. QR labels and email links are built from it. |
 
 Generate secrets with a CSPRNG, e.g.
@@ -65,6 +66,11 @@ The session cookie is set with `Secure` whenever `NODE_ENV=production` (which `n
 implies). Browsers drop `Secure` cookies on plain HTTP, so **login silently fails over HTTP**: the
 sign-in request succeeds but the next page bounces back to `/login`. Always browse through nginx's
 HTTPS URL. nginx redirects port 80 to 443.
+
+`SESSION_COOKIE_SECURE` overrides this in one place (`isSecureCookie` in `lib/auth/session.ts`):
+`false` lets a production build sign in over plain HTTP, for testing on a machine without
+nginx; `true` forces `Secure` even under `next dev`. On a real deployment leave it unset: with
+`false`, the session cookie can travel unencrypted.
 
 ## 4. Database
 
@@ -147,6 +153,7 @@ Run after the first deployment and after each upgrade. Record the result in the 
 - [ ] `https://<host>/` loads with the company certificate (no browser warning); `http://` redirects to `https://`.
 - [ ] Log in over HTTPS; the dashboard loads. A redirect's `Location` uses `https://`.
 - [ ] Upload an asset image of ~4 MB (proves `client_max_body_size`); an attachment of ~9 MB.
+- [ ] `SESSION_COOKIE_SECURE` is unset (or `true`) in the server's `.env.local`; after signing in, the browser's dev tools show the `itam_session` cookie as **Secure**.
 - [ ] Six wrong passwords in a row → the sixth or later shows "Too many sign-in attempts" (nginx `limit_req`).
 - [ ] Sign in on two browsers, change the password from the user menu in one: it stays signed in, the other is sent to the login page on its next click (migration 003).
 - [ ] Sign-in → "Forgot password?" with a test user's real mailbox: the reset email arrives, its link opens `/reset-password` over HTTPS (needs `ITAM_APP_URL`), the new password works, and a "password was changed" email follows (migration 004).
