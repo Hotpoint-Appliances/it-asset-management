@@ -67,7 +67,10 @@ consistent, complete CRUD + workflow actions around it.
    `in_storage` unless an **owner** (system user or free-text owner) is set at creation time, in
    which case `active`. Location is always required, so it can't be the trigger; owner-only was
    confirmed with the stakeholder in Phase 8. It's a form default only: the user can still pick
-   any status.
+   any status except `disposed`, which create/edit reject (disposal needs its own record, rule 6).
+   **Bulk creation** (Assets > Import, `lib/import/assetImport.ts`) applies the same rules per
+   row from an Excel file: all rows or none in one transaction, each `created` audit row noted
+   "Imported from <file>", and no assignment notifications.
 
 2. **Assignment / transfer** — changing `location_id`, `department_id`, or
    `assigned_user_id`/`owner_name`/`owner_email` on an existing asset always writes a row to

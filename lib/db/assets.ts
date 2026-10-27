@@ -1,4 +1,5 @@
 import { query, withTransaction } from "./query";
+import type { PoolClient } from "pg";
 import { toIsoString, toDateOnlyString } from "./dates";
 import type { PageResult } from "./departments";
 import type {
@@ -278,6 +279,53 @@ export async function getAssetById(
   return mapAssetWithRelations(row);
 }
 
+/** Inserts the asset and its `created` audit row on `client` (the caller owns the transaction). */
+async function insertAsset(
+  client: PoolClient,
+  input: AssetInput,
+  createdBy: string,
+  auditNote: string | null = null,
+): Promise<Asset> {
+  const result = await client.query<AssetRow>(
+    `INSERT INTO assets (
+         asset_tag, name, category_id, model_number, serial_number, location_id, department_id,
+         assigned_user_id, owner_name, owner_email, condition_id, status_id, vendor_id,
+         purchase_date, purchase_cost, warranty_expiry, depreciation_method, useful_life_months,
+         salvage_value, notes, created_by
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+       RETURNING ${SELECT_COLUMNS}`,
+    [
+      input.assetTag,
+      input.name,
+      input.categoryId,
+      input.modelNumber,
+      input.serialNumber,
+      input.locationId,
+      input.departmentId,
+      input.assignedUserId,
+      input.ownerName,
+      input.ownerEmail,
+      input.conditionId,
+      input.statusId,
+      input.vendorId,
+      input.purchaseDate,
+      input.purchaseCost,
+      input.warrantyExpiry,
+      input.depreciationMethod,
+      input.usefulLifeMonths,
+      input.salvageValue,
+      input.notes,
+      createdBy,
+    ],
+  );
+  const asset = mapAsset(result.rows[0]);
+  await client.query(
+    `INSERT INTO asset_audit_log (asset_id, action_type, note, performed_by) VALUES ($1, 'created', $2, $3)`,
+    [asset.id, auditNote, createdBy],
+  );
+  return asset;
+}
+
 /** `accessories`, when given, is attached in the same transaction (with its own audit rows) so
  * a rejected accessory list (e.g. a locked status) never leaves a half-created asset. */
 export async function createAsset(
@@ -286,47 +334,27 @@ export async function createAsset(
   accessories?: AssetAccessoryInput[],
 ): Promise<Asset> {
   return withTransaction(async (client) => {
-    const result = await client.query<AssetRow>(
-      `INSERT INTO assets (
-         asset_tag, name, category_id, model_number, serial_number, location_id, department_id,
-         assigned_user_id, owner_name, owner_email, condition_id, status_id, vendor_id,
-         purchase_date, purchase_cost, warranty_expiry, depreciation_method, useful_life_months,
-         salvage_value, notes, created_by
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
-       RETURNING ${SELECT_COLUMNS}`,
-      [
-        input.assetTag,
-        input.name,
-        input.categoryId,
-        input.modelNumber,
-        input.serialNumber,
-        input.locationId,
-        input.departmentId,
-        input.assignedUserId,
-        input.ownerName,
-        input.ownerEmail,
-        input.conditionId,
-        input.statusId,
-        input.vendorId,
-        input.purchaseDate,
-        input.purchaseCost,
-        input.warrantyExpiry,
-        input.depreciationMethod,
-        input.usefulLifeMonths,
-        input.salvageValue,
-        input.notes,
-        createdBy,
-      ],
-    );
-    const asset = mapAsset(result.rows[0]);
-    await client.query(
-      `INSERT INTO asset_audit_log (asset_id, action_type, performed_by) VALUES ($1, 'created', $2)`,
-      [asset.id, createdBy],
-    );
+    const asset = await insertAsset(client, input, createdBy);
     if (accessories?.length) {
       await syncAssetAccessories(client, asset.id, accessories, createdBy);
     }
     return asset;
+  });
+}
+
+/** Bulk create for the Excel import: all rows or none, in one transaction. Each asset gets the
+ * usual `created` audit row, with `auditNote` (e.g. the source file) as its note. */
+export async function createAssets(
+  inputs: AssetInput[],
+  createdBy: string,
+  auditNote: string,
+): Promise<Asset[]> {
+  return withTransaction(async (client) => {
+    const assets: Asset[] = [];
+    for (const input of inputs) {
+      assets.push(await insertAsset(client, input, createdBy, auditNote));
+    }
+    return assets;
   });
 }
 
