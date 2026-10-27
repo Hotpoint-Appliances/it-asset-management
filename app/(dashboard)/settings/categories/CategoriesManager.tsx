@@ -21,12 +21,18 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
-  DialogDescription,
 } from "@/components/ui/Dialog";
+import {
+  ConfirmDialog,
+  recordSaveConfirm,
+  useConfirm,
+} from "@/components/shared/ConfirmDialog";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { TreePicker } from "@/components/shared/TreePicker";
 import { buildTree, type TreeNode } from "@/lib/tree";
 import { useUIStore } from "@/store";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { Pagination } from "@/components/shared/Pagination";
 import type { Category } from "@/types/category";
 import { RequiredMark } from "@/components/shared/RequiredMark";
 import { FieldError } from "@/components/shared/FieldError";
@@ -45,6 +51,8 @@ interface CategoryNode {
   description: string | null;
 }
 
+const PAGE_SIZE = 10;
+
 export function CategoriesManager({
   initialCategories,
 }: {
@@ -62,6 +70,7 @@ export function CategoriesManager({
   const [description, setDescription] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const fields = useFieldErrors<"name">();
   const [collapsed, setCollapsed] = React.useState<Set<number>>(new Set());
 
@@ -72,6 +81,8 @@ export function CategoriesManager({
     description: c.description,
   }));
   const tree = buildTree(treeItems);
+  // Paged by top-level node, so a branch never splits across pages.
+  const pagination = usePagination(tree, PAGE_SIZE);
 
   function openCreate(parentId: number | null = null) {
     setEditing(null);
@@ -102,6 +113,8 @@ export function CategoriesManager({
       e.currentTarget,
     );
     if (!ok) return;
+    if (!(await confirm(recordSaveConfirm("category", name, editing?.name))))
+      return;
     setSubmitting(true);
     setError(null);
     try {
@@ -112,13 +125,16 @@ export function CategoriesManager({
       };
       if (editing) {
         await axios.patch(`/api/categories/${editing.id}`, payload);
-        addToast({ title: "Category updated", variant: "success" });
       } else {
         await axios.post("/api/categories", payload);
-        addToast({ title: "Category created", variant: "success" });
       }
       setDialogOpen(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({
+          title: editing ? "Category updated" : "Category created",
+          variant: "success",
+        }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -131,9 +147,10 @@ export function CategoriesManager({
     setSubmitting(true);
     try {
       await axios.delete(`/api/categories/${deleting.id}`);
-      addToast({ title: "Category deleted", variant: "success" });
       setDeleting(null);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Category deleted", variant: "success" }),
+      );
     } catch (err) {
       addToast({
         title: "Could not delete category",
@@ -243,9 +260,10 @@ export function CategoriesManager({
         />
       ) : (
         <div className="border-border rounded-xl border shadow-sm">
-          {renderNodes(tree)}
+          {renderNodes(pagination.pageItems)}
         </div>
       )}
+      <Pagination {...pagination} noun="top-level categories" />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
@@ -326,37 +344,24 @@ export function CategoriesManager({
         </DialogContent>
       </Dialog>
 
-      <Dialog
+      <ConfirmDialog
         open={!!deleting}
         onOpenChange={(open) => !open && setDeleting(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete category</DialogTitle>
-          </DialogHeader>
-          <DialogBody>
-            <DialogDescription>
-              This will permanently delete <strong>{deleting?.name}</strong>.
-              Any child categories will become top-level categories. This cannot
-              be undone.
-            </DialogDescription>
-          </DialogBody>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button
-              variant="destructive"
-              disabled={submitting}
-              onClick={handleDelete}
-            >
-              {submitting ? "Deleting…" : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title="Delete category"
+        description={
+          <>
+            This will permanently delete <strong>{deleting?.name}</strong>. Any
+            child categories will become top-level categories. This cannot be
+            undone.
+          </>
+        }
+        confirmLabel="Delete"
+        submittingLabel="Deleting…"
+        onConfirm={handleDelete}
+        submitting={submitting}
+        destructive
+      />
+      {confirmDialog}
     </div>
   );
 }

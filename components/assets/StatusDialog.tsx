@@ -14,6 +14,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/Dialog";
+import { ConfirmSummary, useConfirm } from "@/components/shared/ConfirmDialog";
 import { useUIStore } from "@/store";
 import { useSyncOnOpen } from "@/lib/hooks/useSyncOnOpen";
 import { formatLookupName } from "@/lib/badgeVariants";
@@ -64,6 +65,7 @@ export function StatusDialog({
   const fields = useFieldErrors<"note">();
   const statusFieldId = React.useId();
   const noteFieldId = React.useId();
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   useSyncOnOpen(open, () => {
     setStatusId(currentStatusId);
@@ -88,6 +90,21 @@ export function StatusDialog({
       e.currentTarget,
     );
     if (!ok) return;
+    const currentStatus = statuses.find((s) => s.id === currentStatusId);
+    const confirmed = await confirm({
+      title: "Change status?",
+      description: (
+        <ConfirmSummary
+          rows={[
+            ["From", currentStatus && formatLookupName(currentStatus.name)],
+            ["To", targetStatus && formatLookupName(targetStatus.name)],
+            ["Note", note.trim()],
+          ]}
+        />
+      ),
+      confirmLabel: "Change status",
+    });
+    if (!confirmed) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -95,15 +112,16 @@ export function StatusDialog({
         statusId,
         note: note || null,
       });
-      addToast({ title: "Status updated", variant: "success" });
-      if (targetStatus?.name === "in_repair") {
-        addToast({
-          title: "Consider logging a maintenance record",
-          description: "Open the Maintenance tab to track the repair.",
-        });
-      }
       onOpenChange(false);
-      router.refresh();
+      router.refresh(() => {
+        addToast({ title: "Status updated", variant: "success" });
+        if (targetStatus?.name === "in_repair") {
+          addToast({
+            title: "Consider logging a maintenance record",
+            description: "Open the Maintenance tab to track the repair.",
+          });
+        }
+      });
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -188,6 +206,7 @@ export function StatusDialog({
           </DialogFooter>
         </form>
       </DialogContent>
+      {confirmDialog}
     </Dialog>
   );
 }

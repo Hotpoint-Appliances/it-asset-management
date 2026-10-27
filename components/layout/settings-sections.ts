@@ -7,6 +7,7 @@ import {
   Gauge,
   Flag,
   UsersRound,
+  Cable,
 } from "lucide-react";
 
 export interface SettingsSection {
@@ -54,6 +55,12 @@ export const settingsSections: SettingsSection[] = [
     label: "Statuses",
     description: "Asset lifecycle statuses",
     icon: Flag,
+  },
+  {
+    href: "/settings/accessories",
+    label: "Accessories",
+    description: "Accessories attachable to assets",
+    icon: Cable,
   },
   {
     href: "/settings/users",

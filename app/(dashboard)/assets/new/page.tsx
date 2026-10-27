@@ -5,20 +5,29 @@ import { listDepartments } from "@/lib/db/departments";
 import { listVendors } from "@/lib/db/vendors";
 import { listAssetConditions } from "@/lib/db/assetConditions";
 import { listAssetStatuses } from "@/lib/db/assetStatuses";
+import { listAccessories } from "@/lib/db/accessories";
 import { AssetForm } from "@/components/assets/AssetForm";
 
 export default async function NewAssetPage() {
   await requireRole(["admin", "asset_manager"]);
 
-  const [categories, locations, departments, vendors, conditions, statuses] =
-    await Promise.all([
-      listCategories(),
-      listLocations(),
-      listDepartments(500, 0),
-      listVendors(500, 0),
-      listAssetConditions(),
-      listAssetStatuses(),
-    ]);
+  const [
+    categories,
+    locations,
+    departments,
+    vendors,
+    conditions,
+    statuses,
+    accessoryCatalog,
+  ] = await Promise.all([
+    listCategories(),
+    listLocations(),
+    listDepartments(500, 0),
+    listVendors(500, 0),
+    listAssetConditions(),
+    listAssetStatuses(),
+    listAccessories({ activeOnly: true }),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -36,6 +45,7 @@ export default async function NewAssetPage() {
         vendors={vendors.items}
         conditions={conditions}
         statuses={statuses}
+        accessoryCatalog={accessoryCatalog}
       />
     </div>
   );

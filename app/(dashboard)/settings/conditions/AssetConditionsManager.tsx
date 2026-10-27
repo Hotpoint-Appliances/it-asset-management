@@ -14,8 +14,12 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
-  DialogDescription,
 } from "@/components/ui/Dialog";
+import {
+  ConfirmDialog,
+  recordSaveConfirm,
+  useConfirm,
+} from "@/components/shared/ConfirmDialog";
 import {
   Table,
   TableHeader,
@@ -26,6 +30,8 @@ import {
 } from "@/components/ui/Table";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { Pagination } from "@/components/shared/Pagination";
 import type { AssetCondition } from "@/types/assetCondition";
 import { RequiredMark } from "@/components/shared/RequiredMark";
 import { FieldError } from "@/components/shared/FieldError";
@@ -36,6 +42,8 @@ function errorMessage(err: unknown): string {
     return err.response.data.error;
   return "Something went wrong. Please try again.";
 }
+
+const PAGE_SIZE = 10;
 
 export function AssetConditionsManager({
   initialConditions,
@@ -51,6 +59,8 @@ export function AssetConditionsManager({
   const [sortOrder, setSortOrder] = React.useState(0);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const pagination = usePagination(initialConditions, PAGE_SIZE);
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const fields = useFieldErrors<"name">();
 
   function openCreate() {
@@ -80,19 +90,24 @@ export function AssetConditionsManager({
       e.currentTarget,
     );
     if (!ok) return;
+    if (!(await confirm(recordSaveConfirm("condition", name, editing?.name))))
+      return;
     setSubmitting(true);
     setError(null);
     try {
       const payload = { name, sortOrder };
       if (editing) {
         await axios.patch(`/api/asset-conditions/${editing.id}`, payload);
-        addToast({ title: "Condition updated", variant: "success" });
       } else {
         await axios.post("/api/asset-conditions", payload);
-        addToast({ title: "Condition created", variant: "success" });
       }
       setDialogOpen(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({
+          title: editing ? "Condition updated" : "Condition created",
+          variant: "success",
+        }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -105,9 +120,10 @@ export function AssetConditionsManager({
     setSubmitting(true);
     try {
       await axios.delete(`/api/asset-conditions/${deleting.id}`);
-      addToast({ title: "Condition deleted", variant: "success" });
       setDeleting(null);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Condition deleted", variant: "success" }),
+      );
     } catch (err) {
       addToast({
         title: "Could not delete condition",
@@ -146,7 +162,7 @@ export function AssetConditionsManager({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {initialConditions.map((condition) => (
+            {pagination.pageItems.map((condition) => (
               <TableRow key={condition.id}>
                 <TableCell className="font-medium">{condition.name}</TableCell>
                 <TableCell>{condition.sortOrder}</TableCell>
@@ -173,6 +189,7 @@ export function AssetConditionsManager({
           </TableBody>
         </Table>
       )}
+      <Pagination {...pagination} noun="conditions" />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
@@ -239,36 +256,23 @@ export function AssetConditionsManager({
         </DialogContent>
       </Dialog>
 
-      <Dialog
+      <ConfirmDialog
         open={!!deleting}
         onOpenChange={(open) => !open && setDeleting(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete condition</DialogTitle>
-          </DialogHeader>
-          <DialogBody>
-            <DialogDescription>
-              This will permanently delete <strong>{deleting?.name}</strong>.
-              This cannot be undone.
-            </DialogDescription>
-          </DialogBody>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button
-              variant="destructive"
-              disabled={submitting}
-              onClick={handleDelete}
-            >
-              {submitting ? "Deleting…" : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title="Delete condition"
+        description={
+          <>
+            This will permanently delete <strong>{deleting?.name}</strong>. This
+            cannot be undone.
+          </>
+        }
+        confirmLabel="Delete"
+        submittingLabel="Deleting…"
+        onConfirm={handleDelete}
+        submitting={submitting}
+        destructive
+      />
+      {confirmDialog}
     </div>
   );
 }

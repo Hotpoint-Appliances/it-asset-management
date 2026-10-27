@@ -23,8 +23,13 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
-  DialogDescription,
 } from "@/components/ui/Dialog";
+import {
+  ConfirmDialog,
+  ConfirmSummary,
+  useConfirm,
+  type ConfirmOptions,
+} from "@/components/shared/ConfirmDialog";
 import {
   Table,
   TableHeader,
@@ -35,6 +40,8 @@ import {
 } from "@/components/ui/Table";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { Pagination } from "@/components/shared/Pagination";
 import type { User, Role } from "@/types/user";
 import type { Department } from "@/types/department";
 import { RequiredMark } from "@/components/shared/RequiredMark";
@@ -55,6 +62,8 @@ const emptyForm = {
   departmentId: "",
 };
 
+const PAGE_SIZE = 10;
+
 export function UsersManager({
   initialUsers,
   roles,
@@ -72,6 +81,8 @@ export function UsersManager({
   const [form, setForm] = React.useState(emptyForm);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const pagination = usePagination(initialUsers, PAGE_SIZE);
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const fields = useFieldErrors<"fullName" | "email" | "password">();
 
   function openCreate() {
@@ -100,6 +111,66 @@ export function UsersManager({
     setDialogOpen(true);
   }
 
+  function saveConfirm(): ConfirmOptions {
+    const roleLabel = (name: string | undefined) => name?.replace("_", " ");
+    const role = roles.find((r) => r.id === Number(form.roleId))?.name;
+    const department = form.departmentId
+      ? departmentName(Number(form.departmentId))
+      : "N/A";
+    if (!editing) {
+      return {
+        title: "Create user?",
+        description: (
+          <ConfirmSummary
+            intro="They'll be able to sign in with this email and password."
+            rows={[
+              ["Name", form.fullName.trim()],
+              ["Email", form.email.trim()],
+              ["Role", roleLabel(role)],
+              ["Department", department],
+            ]}
+          />
+        ),
+        confirmLabel: "Create user",
+      };
+    }
+    // Only the access-affecting changes are spelled out; the rest is "Save changes to X?".
+    const rows: [string, string | undefined][] = [
+      [
+        "Role",
+        role !== editing.roleName
+          ? `${roleLabel(editing.roleName)} → ${roleLabel(role)}`
+          : undefined,
+      ],
+      [
+        "Email",
+        form.email.trim() !== editing.email
+          ? `${editing.email} → ${form.email.trim()}`
+          : undefined,
+      ],
+      [
+        "Password",
+        form.password
+          ? "Will be reset, signing them out of open sessions"
+          : undefined,
+      ],
+    ];
+    return {
+      title: "Save changes?",
+      description: (
+        <ConfirmSummary
+          intro={
+            <>
+              Save changes to <strong>{form.fullName.trim()}</strong>?
+            </>
+          }
+          rows={rows}
+        />
+      ),
+      confirmLabel: "Save changes",
+    };
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const ok = fields.validate(
@@ -118,6 +189,7 @@ export function UsersManager({
       e.currentTarget,
     );
     if (!ok) return;
+    if (!(await confirm(saveConfirm()))) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -130,14 +202,17 @@ export function UsersManager({
       if (editing) {
         if (form.password) payload.password = form.password;
         await axios.patch(`/api/users/${editing.id}`, payload);
-        addToast({ title: "User updated", variant: "success" });
       } else {
         payload.password = form.password;
         await axios.post("/api/users", payload);
-        addToast({ title: "User created", variant: "success" });
       }
       setDialogOpen(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({
+          title: editing ? "User updated" : "User created",
+          variant: "success",
+        }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -152,12 +227,15 @@ export function UsersManager({
       await axios.patch(`/api/users/${deactivating.id}`, {
         isActive: !deactivating.isActive,
       });
-      addToast({
-        title: deactivating.isActive ? "User deactivated" : "User reactivated",
-        variant: "success",
-      });
       setDeactivating(null);
-      router.refresh();
+      router.refresh(() =>
+        addToast({
+          title: deactivating.isActive
+            ? "User deactivated"
+            : "User reactivated",
+          variant: "success",
+        }),
+      );
     } catch (err) {
       addToast({
         title: "Could not update user",
@@ -204,7 +282,7 @@ export function UsersManager({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {initialUsers.map((user) => (
+            {pagination.pageItems.map((user) => (
               <TableRow key={user.id}>
                 <TableCell className="font-medium">{user.fullName}</TableCell>
                 <TableCell>{user.email}</TableCell>
@@ -246,6 +324,7 @@ export function UsersManager({
           </TableBody>
         </Table>
       )}
+      <Pagination {...pagination} noun="users" />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
@@ -383,52 +462,33 @@ export function UsersManager({
         </DialogContent>
       </Dialog>
 
-      <Dialog
+      <ConfirmDialog
         open={!!deactivating}
         onOpenChange={(open) => !open && setDeactivating(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {deactivating?.isActive ? "Deactivate user" : "Reactivate user"}
-            </DialogTitle>
-          </DialogHeader>
-          <DialogBody>
-            <DialogDescription>
-              {deactivating?.isActive ? (
-                <>
-                  This will sign <strong>{deactivating?.fullName}</strong> out
-                  immediately and prevent them from logging in again. Their
-                  history is kept.
-                </>
-              ) : (
-                <>
-                  This will restore login access for{" "}
-                  <strong>{deactivating?.fullName}</strong>.
-                </>
-              )}
-            </DialogDescription>
-          </DialogBody>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button
-              variant={deactivating?.isActive ? "destructive" : "default"}
-              disabled={submitting}
-              onClick={handleToggleActive}
-            >
-              {submitting
-                ? "Saving…"
-                : deactivating?.isActive
-                  ? "Deactivate"
-                  : "Reactivate"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title={deactivating?.isActive ? "Deactivate user" : "Reactivate user"}
+        description={
+          <>
+            {deactivating?.isActive ? (
+              <>
+                This will sign <strong>{deactivating?.fullName}</strong> out
+                immediately and prevent them from logging in again. Their
+                history is kept.
+              </>
+            ) : (
+              <>
+                This will restore login access for{" "}
+                <strong>{deactivating?.fullName}</strong>.
+              </>
+            )}
+          </>
+        }
+        confirmLabel={deactivating?.isActive ? "Deactivate" : "Reactivate"}
+        submittingLabel="Saving…"
+        onConfirm={handleToggleActive}
+        submitting={submitting}
+        destructive={deactivating?.isActive}
+      />
+      {confirmDialog}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import {
@@ -35,6 +35,7 @@ export function Topbar({
   defaultCollapsed?: boolean;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const mobileNavOpen = useUIStore((s) => s.mobileNavOpen);
   const setMobileNavOpen = useUIStore((s) => s.setMobileNavOpen);
   const stored = useUIStore((s) => s.sidebarCollapsed);
@@ -51,6 +52,12 @@ export function Topbar({
     mql.addEventListener("change", onChange);
     return () => mql.removeEventListener("change", onChange);
   }, [setMobileNavOpen]);
+
+  // The drawer stays open while a nav link's navigation is pending, so that link's LinkProgress
+  // stays mounted and keeps RouteProgress running. It closes once the new page has rendered.
+  React.useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname, setMobileNavOpen]);
 
   return (
     <header
@@ -80,14 +87,16 @@ export function Topbar({
             <AppLogo />
             IT Asset Manager
           </SheetTitle>
-          <SidebarNav onNavigate={() => setMobileNavOpen(false)} />
+          <SidebarNav onCurrentPageClick={() => setMobileNavOpen(false)} />
         </SheetContent>
       </Sheet>
 
       <Button
         variant="ghost"
         size="icon"
-        className="nav:inline-flex hidden"
+        // The sidebar resizes instantly, so the button jumps with it; without `transition-none`
+        // its hover background would fade in or out at the new spot.
+        className="nav:inline-flex hidden transition-none"
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         onClick={() => setSidebarCollapsed(!collapsed)}
       >

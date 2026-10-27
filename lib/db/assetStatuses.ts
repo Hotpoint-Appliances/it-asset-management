@@ -27,6 +27,16 @@ export async function listAssetStatuses(): Promise<AssetStatus[]> {
   return result.rows.map(mapAssetStatus);
 }
 
+/** True when `id` is the `disposed` status. Disposal is only reachable through the disposal flow
+ * (it needs an `asset_disposals` row), so create/edit/import reject it as a plain status. */
+export async function isDisposedStatusId(id: number): Promise<boolean> {
+  const result = await query<{ name: string }>(
+    `SELECT name FROM asset_statuses WHERE id = $1`,
+    [id],
+  );
+  return result.rows[0]?.name === "disposed";
+}
+
 export async function createAssetStatus(
   input: AssetStatusInput,
 ): Promise<AssetStatus> {

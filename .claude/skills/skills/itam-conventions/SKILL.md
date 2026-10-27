@@ -53,13 +53,19 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
   /(dashboard)/layout.tsx       # requireSession() + <AppShell> â€” added Phase 3 so pages stop
                                  # each wrapping themselves in AppShell individually
   /(dashboard)/settings/layout.tsx   # + requireRole(["admin"]) + SettingsNav sub-nav (Phase 3)
+  /(dashboard)/settings/(index)/{page,loading}.tsx  # settings landing cards; the (index) group
+                                # keeps its skeleton off the sub-pages below
   /(dashboard)/settings/{categories,locations,departments,vendors,conditions,statuses,users}/
-                                 # lookup-table CRUD (Phase 3) â€” page.tsx + a client *Manager.tsx
-  /(dashboard)/assets/           # Phase 4, renders inside the same (dashboard) group â€” page.tsx
-                                # (list), new/page.tsx (create), [id]/page.tsx (detail),
+                                 # lookup-table CRUD (Phase 3) â€” page.tsx + a client *Manager.tsx;
+                                 # accessories/ (AccessoriesManager) added with migration 002
+  /(dashboard)/assets/           # Phase 4, renders inside the same (dashboard) group â€” (list)/page.tsx
+                                # (list), new/page.tsx (create), [id]/(detail)/page.tsx (detail),
                                 # [id]/edit/page.tsx, [id]/label/page.tsx (print view â€” stays
                                 # inside the group; print chrome is suppressed via print:hidden
-                                # on AppShell's Sidebar/Topbar, not by opting the route out of it)
+                                # on AppShell's Sidebar/Topbar, not by opting the route out of it).
+                                # (list) and (detail) scope their skeletons like (overview): a
+                                # dynamic route is prefetched down to its *first* loading.tsx, so
+                                # one at assets/ or [id]/ would flash on every child route
   /403/page.tsx                 # target of lib/auth/session.ts's requireRole() (Phase 2)
   /(dashboard)/error.tsx, /error.tsx, /global-error.tsx   # error boundaries, all rendering
                                 # components/shared/ErrorFallback.tsx; Next 16.3 passes retry()
@@ -84,6 +90,10 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
   /api/assets/[id]/maintenance/route.ts               # GET/POST (Phase 5)
   /api/assets/[id]/maintenance/[maintenanceId]/route.ts       # PATCH (Phase 5)
   /api/assets/[id]/dispose/attachment/route.ts        # GET, serves the disposal document (Phase 5 fix)
+  /api/accessories/route.ts, /api/accessories/[id]/route.ts   # catalog GET (?active=1) / POST,
+                                # PATCH/DELETE (admin; DELETE 409s once attached anywhere)
+  /api/assets/[id]/accessories/route.ts   # GET, PUT (replace the whole list; admin + asset_manager).
+                                # Asset POST/PATCH also accept an `accessories` JSON form field
   /api/reports/{asset-register,audit-trail,disposal-register,depreciation}/route.ts
                                 # GET, exceljs workbook as Content-Disposition: attachment.
                                 # asset-register/audit-trail: every role (viewer dept-scoped in the
@@ -115,7 +125,8 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
                                 # AssetQrCode (server component), UserTypeahead (Phase 4);
                                 # TransferDialog/ConditionDialog/StatusDialog/DisposalDialog,
                                 # AuditLogTimeline, MaintenanceTab, AssetRowActions (list row's
-                                # View/Edit/Transfer/Dispose DropdownMenu) (Phase 5)
+                                # View/Edit/Transfer/Dispose DropdownMenu) (Phase 5);
+                                # AccessoriesEditor (shared row editor), AccessoriesTab (detail tab)
   /dashboard/                  # StatTile, BarBreakdown (hand-rolled CSS bars, no chart library),
                                 # WarrantyExpiringCard (client, window toggle), RecentActivityCard,
                                 # InRepairCard (Phase 6)
@@ -152,6 +163,9 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
   /hooks/useNotifications.ts    # TanStack Query hooks for the bell + page; shared ["notifications"]
                                 # key prefix, 60 s poll + refetch on focus (Phase 7)
   /hooks/useFieldErrors.ts      # per-field client validation + aria wiring for every form (Phase 8)
+  assetAccessories.ts           # canEditAccessories() status lock + formatAccessory(), shared by
+                                # the API and UI; lib/db/assetAccessories.ts's
+                                # syncAssetAccessories() is the single write path (diff + audit)
   assetSort.ts                  # assets-list sort keys + parseAssetSort(); SQL whitelist lives in
                                 # lib/db/assets.ts's buildAssetOrderBy() (Phase 8)
   /notifications/triggers.ts    # every notification rule: scheduleAssetChangeNotifications() (runs
@@ -273,6 +287,14 @@ paths in the DB, so the base path can move between environments without a data m
 - All list endpoints support pagination (`limit`/`offset` or cursor) â€” assets tables will grow.
 - Prefer server components for initial page data; use TanStack Query for client-side
   mutations/refetches (e.g. after a transfer action in a modal).
+- A route folder with child routes keeps its own `page.tsx` + `loading.tsx` inside a route group
+  (`(overview)`, `(list)`, `(detail)`, `(index)`), never directly in the folder. A dynamic route
+  is prefetched down to its *first* `loading.tsx`, so a parent's skeleton would flash on every
+  child route before that child's own skeleton.
+- Absolutely positioned content inside the app shell needs a positioned ancestor at or below
+  `ShellScrollArea` (which is `relative` for this reason). Anything that resolves against the
+  viewport instead overflows `<html>`, and Next's navigation scroll then scrolls `<html>`,
+  pushing the Topbar off-screen.
 
 ## Execution model
 

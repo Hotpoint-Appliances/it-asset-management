@@ -14,8 +14,12 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
-  DialogDescription,
 } from "@/components/ui/Dialog";
+import {
+  ConfirmDialog,
+  recordSaveConfirm,
+  useConfirm,
+} from "@/components/shared/ConfirmDialog";
 import {
   Table,
   TableHeader,
@@ -26,6 +30,8 @@ import {
 } from "@/components/ui/Table";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { Pagination } from "@/components/shared/Pagination";
 import type { AssetStatus } from "@/types/assetStatus";
 import { RequiredMark } from "@/components/shared/RequiredMark";
 import { FieldError } from "@/components/shared/FieldError";
@@ -36,6 +42,8 @@ function errorMessage(err: unknown): string {
     return err.response.data.error;
   return "Something went wrong. Please try again.";
 }
+
+const PAGE_SIZE = 10;
 
 export function AssetStatusesManager({
   initialStatuses,
@@ -51,6 +59,8 @@ export function AssetStatusesManager({
   const [sortOrder, setSortOrder] = React.useState(0);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const pagination = usePagination(initialStatuses, PAGE_SIZE);
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const fields = useFieldErrors<"name">();
 
   function openCreate() {
@@ -80,19 +90,24 @@ export function AssetStatusesManager({
       e.currentTarget,
     );
     if (!ok) return;
+    if (!(await confirm(recordSaveConfirm("status", name, editing?.name))))
+      return;
     setSubmitting(true);
     setError(null);
     try {
       const payload = { name, sortOrder };
       if (editing) {
         await axios.patch(`/api/asset-statuses/${editing.id}`, payload);
-        addToast({ title: "Status updated", variant: "success" });
       } else {
         await axios.post("/api/asset-statuses", payload);
-        addToast({ title: "Status created", variant: "success" });
       }
       setDialogOpen(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({
+          title: editing ? "Status updated" : "Status created",
+          variant: "success",
+        }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -105,9 +120,10 @@ export function AssetStatusesManager({
     setSubmitting(true);
     try {
       await axios.delete(`/api/asset-statuses/${deleting.id}`);
-      addToast({ title: "Status deleted", variant: "success" });
       setDeleting(null);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Status deleted", variant: "success" }),
+      );
     } catch (err) {
       addToast({
         title: "Could not delete status",
@@ -146,7 +162,7 @@ export function AssetStatusesManager({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {initialStatuses.map((status) => (
+            {pagination.pageItems.map((status) => (
               <TableRow key={status.id}>
                 <TableCell className="font-medium">{status.name}</TableCell>
                 <TableCell>{status.sortOrder}</TableCell>
@@ -173,6 +189,7 @@ export function AssetStatusesManager({
           </TableBody>
         </Table>
       )}
+      <Pagination {...pagination} noun="statuses" />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
@@ -237,36 +254,23 @@ export function AssetStatusesManager({
         </DialogContent>
       </Dialog>
 
-      <Dialog
+      <ConfirmDialog
         open={!!deleting}
         onOpenChange={(open) => !open && setDeleting(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete status</DialogTitle>
-          </DialogHeader>
-          <DialogBody>
-            <DialogDescription>
-              This will permanently delete <strong>{deleting?.name}</strong>.
-              This cannot be undone.
-            </DialogDescription>
-          </DialogBody>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button
-              variant="destructive"
-              disabled={submitting}
-              onClick={handleDelete}
-            >
-              {submitting ? "Deleting…" : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title="Delete status"
+        description={
+          <>
+            This will permanently delete <strong>{deleting?.name}</strong>. This
+            cannot be undone.
+          </>
+        }
+        confirmLabel="Delete"
+        submittingLabel="Deleting…"
+        onConfirm={handleDelete}
+        submitting={submitting}
+        destructive
+      />
+      {confirmDialog}
     </div>
   );
 }

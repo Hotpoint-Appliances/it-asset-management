@@ -17,12 +17,19 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/Dialog";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import {
+  ConfirmDialog,
+  ConfirmSummary,
+  useConfirm,
+} from "@/components/shared/ConfirmDialog";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { NOTE_REQUIRED_STATUSES } from "./StatusDialog";
 import { useUIStore } from "@/store";
 import { useSyncOnOpen } from "@/lib/hooks/useSyncOnOpen";
 import { formatCurrency } from "@/lib/format";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { Pagination } from "@/components/shared/Pagination";
+import { formatLookupName } from "@/lib/badgeVariants";
 import type {
   AssetMaintenance,
   MaintenanceType,
@@ -92,6 +99,8 @@ export function MaintenanceTab({
   const [promptSubmitting, setPromptSubmitting] = React.useState(false);
   const [restoreNote, setRestoreNote] = React.useState("");
   const fieldId = React.useId();
+  const pagination = usePagination(initialMaintenance, 5);
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   const inRepairStatus = statuses.find((s) => s.name === "in_repair");
   const restoreTargetStatus = restorePrompt
@@ -113,6 +122,25 @@ export function MaintenanceTab({
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
+    const confirmed = await confirm({
+      title: "Log maintenance?",
+      description: (
+        <ConfirmSummary
+          rows={[
+            ["Type", formatLookupName(maintenanceType)],
+            ["Vendor", vendors.find((v) => v.id === vendorId)?.name],
+            [
+              "Scheduled",
+              // A bare YYYY-MM-DD parses as UTC midnight; pin it to local midnight.
+              scheduledDate &&
+                new Date(`${scheduledDate}T00:00`).toLocaleDateString(),
+            ],
+          ]}
+        />
+      ),
+      confirmLabel: "Log maintenance",
+    });
+    if (!confirmed) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -122,9 +150,10 @@ export function MaintenanceTab({
         scheduledDate: scheduledDate || null,
         notes: notes || null,
       });
-      addToast({ title: "Maintenance record created", variant: "success" });
       setCreateOpen(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Maintenance record created", variant: "success" }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -134,8 +163,25 @@ export function MaintenanceTab({
 
   async function updateStatus(
     record: AssetMaintenance,
-    status: MaintenanceStatus,
+    status: Exclude<MaintenanceStatus, "scheduled">,
   ) {
+    // Start/complete are routine one-click steps; only cancelling a record asks first.
+    if (status === "cancelled") {
+      const confirmed = await confirm({
+        title: "Cancel maintenance record?",
+        description: (
+          <ConfirmSummary
+            rows={[
+              ["Type", formatLookupName(record.maintenanceType)],
+              ["Vendor", record.vendorName],
+            ]}
+          />
+        ),
+        confirmLabel: "Cancel record",
+        destructive: true,
+      });
+      if (!confirmed) return;
+    }
     try {
       const res = await axios.patch<{
         maintenance: AssetMaintenance;
@@ -146,8 +192,9 @@ export function MaintenanceTab({
         cost: record.cost,
         notes: record.notes,
       });
-      addToast({ title: "Maintenance record updated", variant: "success" });
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Maintenance record updated", variant: "success" }),
+      );
 
       if (
         status === "in_progress" &&
@@ -184,8 +231,9 @@ export function MaintenanceTab({
         statusId,
         note,
       });
-      addToast({ title: "Asset status updated", variant: "success" });
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Asset status updated", variant: "success" }),
+      );
     } catch (err) {
       addToast({
         title: "Could not update asset status",
@@ -222,7 +270,7 @@ export function MaintenanceTab({
         />
       ) : (
         <ul className="flex flex-col gap-2">
-          {initialMaintenance.map((record) => (
+          {pagination.pageItems.map((record) => (
             <li
               key={record.id}
               className="border-border flex flex-col gap-2 rounded-lg border p-3 text-sm"
@@ -291,6 +339,7 @@ export function MaintenanceTab({
           ))}
         </ul>
       )}
+      <Pagination {...pagination} noun="records" />
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>
@@ -444,6 +493,7 @@ export function MaintenanceTab({
           confirmStatusChange(restorePrompt.statusId, restoreNote || null)
         }
       />
+      {confirmDialog}
     </div>
   );
 }

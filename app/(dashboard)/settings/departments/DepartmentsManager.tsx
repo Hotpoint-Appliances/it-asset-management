@@ -14,8 +14,12 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
-  DialogDescription,
 } from "@/components/ui/Dialog";
+import {
+  ConfirmDialog,
+  recordSaveConfirm,
+  useConfirm,
+} from "@/components/shared/ConfirmDialog";
 import {
   Table,
   TableHeader,
@@ -26,6 +30,8 @@ import {
 } from "@/components/ui/Table";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { Pagination } from "@/components/shared/Pagination";
 import type { Department } from "@/types/department";
 import { RequiredMark } from "@/components/shared/RequiredMark";
 import { FieldError } from "@/components/shared/FieldError";
@@ -36,6 +42,8 @@ function errorMessage(err: unknown): string {
     return err.response.data.error;
   return "Something went wrong. Please try again.";
 }
+
+const PAGE_SIZE = 10;
 
 export function DepartmentsManager({
   initialDepartments,
@@ -51,6 +59,8 @@ export function DepartmentsManager({
   const [code, setCode] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const pagination = usePagination(initialDepartments, PAGE_SIZE);
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const fields = useFieldErrors<"name">();
 
   function openCreate() {
@@ -80,19 +90,24 @@ export function DepartmentsManager({
       e.currentTarget,
     );
     if (!ok) return;
+    if (!(await confirm(recordSaveConfirm("department", name, editing?.name))))
+      return;
     setSubmitting(true);
     setError(null);
     try {
       const payload = { name, code: code || null };
       if (editing) {
         await axios.patch(`/api/departments/${editing.id}`, payload);
-        addToast({ title: "Department updated", variant: "success" });
       } else {
         await axios.post("/api/departments", payload);
-        addToast({ title: "Department created", variant: "success" });
       }
       setDialogOpen(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({
+          title: editing ? "Department updated" : "Department created",
+          variant: "success",
+        }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -105,9 +120,10 @@ export function DepartmentsManager({
     setSubmitting(true);
     try {
       await axios.delete(`/api/departments/${deleting.id}`);
-      addToast({ title: "Department deleted", variant: "success" });
       setDeleting(null);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Department deleted", variant: "success" }),
+      );
     } catch (err) {
       addToast({
         title: "Could not delete department",
@@ -146,7 +162,7 @@ export function DepartmentsManager({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {initialDepartments.map((department) => (
+            {pagination.pageItems.map((department) => (
               <TableRow key={department.id}>
                 <TableCell className="font-medium">{department.name}</TableCell>
                 <TableCell>{department.code ?? "N/A"}</TableCell>
@@ -173,6 +189,7 @@ export function DepartmentsManager({
           </TableBody>
         </Table>
       )}
+      <Pagination {...pagination} noun="departments" />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
@@ -235,36 +252,23 @@ export function DepartmentsManager({
         </DialogContent>
       </Dialog>
 
-      <Dialog
+      <ConfirmDialog
         open={!!deleting}
         onOpenChange={(open) => !open && setDeleting(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete department</DialogTitle>
-          </DialogHeader>
-          <DialogBody>
-            <DialogDescription>
-              This will permanently delete <strong>{deleting?.name}</strong>.
-              This cannot be undone.
-            </DialogDescription>
-          </DialogBody>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button
-              variant="destructive"
-              disabled={submitting}
-              onClick={handleDelete}
-            >
-              {submitting ? "Deleting…" : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title="Delete department"
+        description={
+          <>
+            This will permanently delete <strong>{deleting?.name}</strong>. This
+            cannot be undone.
+          </>
+        }
+        confirmLabel="Delete"
+        submittingLabel="Deleting…"
+        onConfirm={handleDelete}
+        submitting={submitting}
+        destructive
+      />
+      {confirmDialog}
     </div>
   );
 }

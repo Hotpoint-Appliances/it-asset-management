@@ -148,6 +148,7 @@ Run after the first deployment and after each upgrade. Record the result in the 
 - [ ] Log in over HTTPS; the dashboard loads. A redirect's `Location` uses `https://`.
 - [ ] Upload an asset image of ~4 MB (proves `client_max_body_size`); an attachment of ~9 MB.
 - [ ] Six wrong passwords in a row → the sixth or later shows "Too many sign-in attempts" (nginx `limit_req`).
+- [ ] Sign in on two browsers, change the password from the user menu in one: it stays signed in, the other is sent to the login page on its next click (migration 003).
 - [ ] `https://<host>/api/cron/notifications-check` from another machine → 404.
 - [ ] `psql` → `\d notifications` shows `dedupe_key`, i.e. migration 001 is applied (repeat for newer migrations).
 - [ ] Assign an asset to a test user with a real mailbox: the `asset_assigned` email arrives, and its link opens the asset over HTTPS. (Phase 7 never verified an event email in a real inbox.)

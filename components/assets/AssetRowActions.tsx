@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/DropdownMenu";
 import { TransferDialog } from "./TransferDialog";
 import { DisposalDialog } from "./DisposalDialog";
-import { LinkProgress } from "@/components/layout/LinkProgress";
+import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import type { AssetListItem } from "@/types/asset";
 import type { Location } from "@/types/location";
 import type { Department } from "@/types/department";
@@ -42,6 +42,18 @@ export function AssetRowActions({
   const [transferOpen, setTransferOpen] = React.useState(false);
   const [disposeOpen, setDisposeOpen] = React.useState(false);
   const isDisposed = asset.statusName === "disposed";
+  const router = useRouteLoadingRouter();
+
+  /** The menu closes on select, unmounting its items, so a `LinkProgress` inside them would end
+   * the progress line at once. Client-side navigations go through this component's router
+   * instead, which stays mounted until the new page commits. Modified clicks (new tab) still
+   * fall through to the real anchor, since `onNavigate` only fires for SPA navigations. */
+  function navigateTo(href: string) {
+    return (e: { preventDefault: () => void }) => {
+      e.preventDefault();
+      router.push(href);
+    };
+  }
 
   return (
     <>
@@ -54,18 +66,22 @@ export function AssetRowActions({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem asChild>
-            <Link href={`/assets/${asset.id}`}>
+            <Link
+              href={`/assets/${asset.id}`}
+              onNavigate={navigateTo(`/assets/${asset.id}`)}
+            >
               <Eye className="h-4 w-4" />
               View
-              <LinkProgress />
             </Link>
           </DropdownMenuItem>
           {canManage && !isDisposed && (
             <DropdownMenuItem asChild>
-              <Link href={`/assets/${asset.id}/edit`}>
+              <Link
+                href={`/assets/${asset.id}/edit`}
+                onNavigate={navigateTo(`/assets/${asset.id}/edit`)}
+              >
                 <Pencil className="h-4 w-4" />
                 Edit
-                <LinkProgress />
               </Link>
             </DropdownMenuItem>
           )}

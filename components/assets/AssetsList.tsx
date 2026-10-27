@@ -12,6 +12,7 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -184,7 +185,7 @@ export function AssetsList({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Assets</h1>
           <p className="text-muted-foreground text-sm">
@@ -198,6 +199,15 @@ export function AssetsList({
               Export
             </a>
           </Button>
+          {canManage && (
+            <Button variant="outline" asChild>
+              <Link href="/assets/import" aria-label="Import assets">
+                <Upload className="h-4 w-4" />
+                <span className="hidden sm:inline">Import</span>
+                <LinkProgress />
+              </Link>
+            </Button>
+          )}
           {canManage && (
             <Button asChild>
               <Link href="/assets/new">

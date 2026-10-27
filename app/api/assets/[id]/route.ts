@@ -10,7 +10,10 @@ import {
   validateAssetInput,
   assetInputFromFormData,
 } from "@/lib/validation/assets";
+import { assetAccessoriesFromFormData } from "@/lib/validation/accessories";
+import { isDisposedStatusId } from "@/lib/db/assetStatuses";
 import { isUniqueViolation, isForeignKeyViolation } from "@/lib/db/query";
+import { AssetAccessoryError } from "@/lib/db/assetAccessories";
 import {
   assertValidImage,
   saveAssetImage,
@@ -78,11 +81,29 @@ export async function PATCH(
   if (!validated.success) {
     return NextResponse.json({ error: validated.error }, { status: 400 });
   }
+  if (await isDisposedStatusId(validated.data.statusId)) {
+    return NextResponse.json(
+      { error: "Use the disposal flow to mark an asset as disposed" },
+      { status: 400 },
+    );
+  }
+  const accessories = assetAccessoriesFromFormData(formData);
+  if (accessories && !accessories.success) {
+    return NextResponse.json({ error: accessories.error }, { status: 400 });
+  }
 
   let change;
   try {
-    change = await updateAsset(id, validated.data, session.userId);
+    change = await updateAsset(
+      id,
+      validated.data,
+      session.userId,
+      accessories?.data,
+    );
   } catch (err) {
+    if (err instanceof AssetAccessoryError) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    }
     if (isUniqueViolation(err)) {
       return NextResponse.json(
         { error: "Asset tag is already in use" },
@@ -111,6 +132,10 @@ export async function PATCH(
     const { relativePath } = await saveAssetImage(id, imageFile);
     asset = (await setAssetImagePath(id, relativePath)) ?? asset;
     if (previousImagePath) await deleteUploadedFile(previousImagePath);
+  } else if (formData.get("removeImage") === "1" && existing.imagePath) {
+    // The form's "Remove" on an existing image; a new upload above takes precedence.
+    asset = (await setAssetImagePath(id, null)) ?? asset;
+    await deleteUploadedFile(existing.imagePath);
   }
 
   return NextResponse.json({ asset });

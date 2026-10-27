@@ -14,8 +14,12 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
-  DialogDescription,
 } from "@/components/ui/Dialog";
+import {
+  ConfirmDialog,
+  recordSaveConfirm,
+  useConfirm,
+} from "@/components/shared/ConfirmDialog";
 import {
   Table,
   TableHeader,
@@ -26,6 +30,8 @@ import {
 } from "@/components/ui/Table";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { Pagination } from "@/components/shared/Pagination";
 import type { Vendor } from "@/types/vendor";
 import { RequiredMark } from "@/components/shared/RequiredMark";
 import { FieldError } from "@/components/shared/FieldError";
@@ -45,6 +51,8 @@ const emptyForm = {
   address: "",
 };
 
+const PAGE_SIZE = 10;
+
 export function VendorsManager({
   initialVendors,
 }: {
@@ -58,6 +66,8 @@ export function VendorsManager({
   const [form, setForm] = React.useState(emptyForm);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const pagination = usePagination(initialVendors, PAGE_SIZE);
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const fields = useFieldErrors<"name" | "contactEmail">();
 
   function openCreate() {
@@ -95,6 +105,8 @@ export function VendorsManager({
       e.currentTarget,
     );
     if (!ok) return;
+    if (!(await confirm(recordSaveConfirm("vendor", form.name, editing?.name))))
+      return;
     setSubmitting(true);
     setError(null);
     try {
@@ -107,13 +119,16 @@ export function VendorsManager({
       };
       if (editing) {
         await axios.patch(`/api/vendors/${editing.id}`, payload);
-        addToast({ title: "Vendor updated", variant: "success" });
       } else {
         await axios.post("/api/vendors", payload);
-        addToast({ title: "Vendor created", variant: "success" });
       }
       setDialogOpen(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({
+          title: editing ? "Vendor updated" : "Vendor created",
+          variant: "success",
+        }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -126,9 +141,10 @@ export function VendorsManager({
     setSubmitting(true);
     try {
       await axios.delete(`/api/vendors/${deleting.id}`);
-      addToast({ title: "Vendor deleted", variant: "success" });
       setDeleting(null);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Vendor deleted", variant: "success" }),
+      );
     } catch (err) {
       addToast({
         title: "Could not delete vendor",
@@ -169,7 +185,7 @@ export function VendorsManager({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {initialVendors.map((vendor) => (
+            {pagination.pageItems.map((vendor) => (
               <TableRow key={vendor.id}>
                 <TableCell className="font-medium">{vendor.name}</TableCell>
                 <TableCell>{vendor.contactName ?? "N/A"}</TableCell>
@@ -198,6 +214,7 @@ export function VendorsManager({
           </TableBody>
         </Table>
       )}
+      <Pagination {...pagination} noun="vendors" />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
@@ -312,36 +329,23 @@ export function VendorsManager({
         </DialogContent>
       </Dialog>
 
-      <Dialog
+      <ConfirmDialog
         open={!!deleting}
         onOpenChange={(open) => !open && setDeleting(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete vendor</DialogTitle>
-          </DialogHeader>
-          <DialogBody>
-            <DialogDescription>
-              This will permanently delete <strong>{deleting?.name}</strong>.
-              This cannot be undone.
-            </DialogDescription>
-          </DialogBody>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button
-              variant="destructive"
-              disabled={submitting}
-              onClick={handleDelete}
-            >
-              {submitting ? "Deleting…" : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title="Delete vendor"
+        description={
+          <>
+            This will permanently delete <strong>{deleting?.name}</strong>. This
+            cannot be undone.
+          </>
+        }
+        confirmLabel="Delete"
+        submittingLabel="Deleting…"
+        onConfirm={handleDelete}
+        submitting={submitting}
+        destructive
+      />
+      {confirmDialog}
     </div>
   );
 }

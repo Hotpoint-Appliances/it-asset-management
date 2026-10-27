@@ -10,6 +10,8 @@ import { listDepartments } from "@/lib/db/departments";
 import { listVendors } from "@/lib/db/vendors";
 import { listAssetConditions } from "@/lib/db/assetConditions";
 import { listAssetStatuses } from "@/lib/db/assetStatuses";
+import { listAccessories } from "@/lib/db/accessories";
+import { listAssetAccessories } from "@/lib/db/assetAccessories";
 import { AssetDetail } from "@/components/assets/AssetDetail";
 
 export default async function AssetDetailPage({
@@ -32,6 +34,8 @@ export default async function AssetDetailPage({
     vendors,
     conditions,
     statuses,
+    accessories,
+    accessoryCatalog,
   ] = await Promise.all([
     listAssetAttachments(id),
     listAuditLogForAsset(id),
@@ -44,12 +48,16 @@ export default async function AssetDetailPage({
     listVendors(500, 0),
     listAssetConditions(),
     listAssetStatuses(),
+    listAssetAccessories(id),
+    listAccessories({ activeOnly: true }),
   ]);
 
   return (
     <AssetDetail
       asset={asset}
       attachments={attachments}
+      accessories={accessories}
+      accessoryCatalog={accessoryCatalog}
       auditLog={auditLog}
       maintenance={maintenance}
       disposal={disposal}

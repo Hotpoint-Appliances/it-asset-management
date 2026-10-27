@@ -15,6 +15,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/Dialog";
+import { ConfirmSummary, useConfirm } from "@/components/shared/ConfirmDialog";
 import { UserTypeahead } from "./UserTypeahead";
 import { useUIStore } from "@/store";
 import { useSyncOnOpen } from "@/lib/hooks/useSyncOnOpen";
@@ -84,6 +85,7 @@ export function TransferDialog({
     "location" | "department" | "assignedUser" | "ownerName" | "ownerEmail"
   >();
   const fieldId = React.useId();
+  const { confirm, dialog: confirmDialog } = useConfirm();
 
   useSyncOnOpen(open, () => {
     setLocationId(asset.locationId);
@@ -128,6 +130,42 @@ export function TransferDialog({
       e.currentTarget,
     );
     if (!ok) return;
+    const ownerUnchanged = external
+      ? !asset.assignedUserId &&
+        ownerName.trim() === (asset.ownerName ?? "") &&
+        ownerEmail.trim() === (asset.ownerEmail ?? "")
+      : assignedUserId === asset.assignedUserId;
+    if (
+      locationId === asset.locationId &&
+      departmentId === asset.departmentId &&
+      ownerUnchanged
+    ) {
+      onOpenChange(false);
+      addToast({
+        title: "Nothing to transfer",
+        description: "The location, department and owner are unchanged.",
+        variant: "info",
+      });
+      return;
+    }
+    const confirmed = await confirm({
+      title: "Transfer asset?",
+      description: (
+        <ConfirmSummary
+          intro="The asset will be moved to:"
+          rows={[
+            ["Location", locations.find((l) => l.id === locationId)?.name],
+            [
+              "Department",
+              departments.find((d) => d.id === departmentId)?.name,
+            ],
+            ["Owner", external ? ownerName.trim() : assignedUserName],
+          ]}
+        />
+      ),
+      confirmLabel: "Transfer",
+    });
+    if (!confirmed) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -138,9 +176,10 @@ export function TransferDialog({
         ownerName: ownerMode === "external" ? ownerName : null,
         ownerEmail: ownerMode === "external" ? ownerEmail : null,
       });
-      addToast({ title: "Asset transferred", variant: "success" });
       onOpenChange(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Asset transferred", variant: "success" }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -322,6 +361,7 @@ export function TransferDialog({
           </DialogFooter>
         </form>
       </DialogContent>
+      {confirmDialog}
     </Dialog>
   );
 }

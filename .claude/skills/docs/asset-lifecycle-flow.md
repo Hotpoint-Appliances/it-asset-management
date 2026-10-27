@@ -67,7 +67,10 @@ consistent, complete CRUD + workflow actions around it.
    `in_storage` unless an **owner** (system user or free-text owner) is set at creation time, in
    which case `active`. Location is always required, so it can't be the trigger; owner-only was
    confirmed with the stakeholder in Phase 8. It's a form default only: the user can still pick
-   any status.
+   any status except `disposed`, which create/edit reject (disposal needs its own record, rule 6).
+   **Bulk creation** (Assets > Import, `lib/import/assetImport.ts`) applies the same rules per
+   row from an Excel file: all rows or none in one transaction, each `created` audit row noted
+   "Imported from <file>", and no assignment notifications.
 
 2. **Assignment / transfer** — changing `location_id`, `department_id`, or
    `assigned_user_id`/`owner_name`/`owner_email` on an existing asset always writes a row to
@@ -101,6 +104,17 @@ consistent, complete CRUD + workflow actions around it.
 7. **Soft delete** — only used to correct data-entry mistakes (e.g., duplicate asset created
    by accident). Requires admin role. Never used for disposal, loss, or theft — those are
    statuses, and history must be preserved.
+
+8. **Accessories** — an asset's accessories (`asset_accessories`, picked from the admin-managed
+   `accessories` catalog with a quantity and optional note) can be set at creation, in the full
+   edit form, or from the detail page's Accessories tab. Changes are **blocked** while the asset
+   is `disposed`, `lost` or `stolen` (`lib/assetAccessories.ts`), checked against the status the
+   save leaves the asset in, so recovering a lost asset and updating its kit in one edit works.
+   Existing accessories stay attached in every status (they're part of the record). Every
+   add/remove/change writes an `accessory_added` / `accessory_removed` / `accessory_updated` row
+   to `asset_audit_log` in the same transaction (`field_name = 'accessory'`, old/new values are
+   display snapshots such as `Charger × 2`). Transfers move accessories with the asset. A catalog
+   accessory that was ever attached can't be deleted, only retired (`is_active = false`).
 
 ## Out of scope for MVP (documented for future phases)
 

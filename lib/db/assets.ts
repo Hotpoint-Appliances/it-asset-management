@@ -1,4 +1,5 @@
 import { query, withTransaction } from "./query";
+import type { PoolClient } from "pg";
 import { toIsoString, toDateOnlyString } from "./dates";
 import type { PageResult } from "./departments";
 import type {
@@ -10,6 +11,8 @@ import type {
 } from "@/types/asset";
 import type { RoleName } from "@/lib/auth/session";
 import type { AssetSort } from "@/lib/assetSort";
+import type { AssetAccessoryInput } from "@/types/accessory";
+import { syncAssetAccessories } from "./assetAccessories";
 
 export interface AssetRow {
   id: string;
@@ -213,15 +216,17 @@ const ASSET_SORT_SQL: Record<AssetSort["key"], string> = {
   updated: "a.updated_at",
 };
 
-/** ORDER BY for the asset list / register: the requested column (with a.id as a stable
- * tiebreaker so paging never shuffles equal rows), or `fallback` when no sort was asked for. */
+/** ORDER BY for the asset list / register: the requested column, or `fallback` when no sort was
+ * asked for. Equal rows (e.g. one import's batch, which shares a timestamp) fall back to the
+ * asset tag so they read in a meaningful order, then a.id so paging never shuffles them. */
 export function buildAssetOrderBy(
   sort: AssetSort | null | undefined,
   fallback: string,
 ): string {
   if (!sort) return fallback;
   const dir = sort.dir === "desc" ? "DESC" : "ASC";
-  return `${ASSET_SORT_SQL[sort.key]} ${dir} NULLS LAST, a.id ${dir}`;
+  const tagTiebreak = sort.key === "tag" ? "" : `, a.asset_tag ${dir}`;
+  return `${ASSET_SORT_SQL[sort.key]} ${dir} NULLS LAST${tagTiebreak}, a.id ${dir}`;
 }
 
 export async function listAssets(
@@ -231,7 +236,7 @@ export async function listAssets(
   const { where, params } = buildAssetFilterClause(filters, requester);
   const orderBy = buildAssetOrderBy(
     filters.sort,
-    "a.created_at DESC, a.id DESC",
+    "a.created_at DESC, a.asset_tag DESC, a.id DESC",
   );
   const [rows, count] = await Promise.all([
     query<AssetListRow>(
@@ -276,49 +281,82 @@ export async function getAssetById(
   return mapAssetWithRelations(row);
 }
 
-export async function createAsset(
+/** Inserts the asset and its `created` audit row on `client` (the caller owns the transaction). */
+async function insertAsset(
+  client: PoolClient,
   input: AssetInput,
   createdBy: string,
+  auditNote: string | null = null,
 ): Promise<Asset> {
-  return withTransaction(async (client) => {
-    const result = await client.query<AssetRow>(
-      `INSERT INTO assets (
+  const result = await client.query<AssetRow>(
+    `INSERT INTO assets (
          asset_tag, name, category_id, model_number, serial_number, location_id, department_id,
          assigned_user_id, owner_name, owner_email, condition_id, status_id, vendor_id,
          purchase_date, purchase_cost, warranty_expiry, depreciation_method, useful_life_months,
          salvage_value, notes, created_by
        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
        RETURNING ${SELECT_COLUMNS}`,
-      [
-        input.assetTag,
-        input.name,
-        input.categoryId,
-        input.modelNumber,
-        input.serialNumber,
-        input.locationId,
-        input.departmentId,
-        input.assignedUserId,
-        input.ownerName,
-        input.ownerEmail,
-        input.conditionId,
-        input.statusId,
-        input.vendorId,
-        input.purchaseDate,
-        input.purchaseCost,
-        input.warrantyExpiry,
-        input.depreciationMethod,
-        input.usefulLifeMonths,
-        input.salvageValue,
-        input.notes,
-        createdBy,
-      ],
-    );
-    const asset = mapAsset(result.rows[0]);
-    await client.query(
-      `INSERT INTO asset_audit_log (asset_id, action_type, performed_by) VALUES ($1, 'created', $2)`,
-      [asset.id, createdBy],
-    );
+    [
+      input.assetTag,
+      input.name,
+      input.categoryId,
+      input.modelNumber,
+      input.serialNumber,
+      input.locationId,
+      input.departmentId,
+      input.assignedUserId,
+      input.ownerName,
+      input.ownerEmail,
+      input.conditionId,
+      input.statusId,
+      input.vendorId,
+      input.purchaseDate,
+      input.purchaseCost,
+      input.warrantyExpiry,
+      input.depreciationMethod,
+      input.usefulLifeMonths,
+      input.salvageValue,
+      input.notes,
+      createdBy,
+    ],
+  );
+  const asset = mapAsset(result.rows[0]);
+  await client.query(
+    `INSERT INTO asset_audit_log (asset_id, action_type, note, performed_by) VALUES ($1, 'created', $2, $3)`,
+    [asset.id, auditNote, createdBy],
+  );
+  return asset;
+}
+
+/** `accessories`, when given, is attached in the same transaction (with its own audit rows) so
+ * a rejected accessory list (e.g. a locked status) never leaves a half-created asset. */
+export async function createAsset(
+  input: AssetInput,
+  createdBy: string,
+  accessories?: AssetAccessoryInput[],
+): Promise<Asset> {
+  return withTransaction(async (client) => {
+    const asset = await insertAsset(client, input, createdBy);
+    if (accessories?.length) {
+      await syncAssetAccessories(client, asset.id, accessories, createdBy);
+    }
     return asset;
+  });
+}
+
+/** Bulk create for the Excel import: all rows or none, in one transaction. Each asset gets the
+ * usual `created` audit row, with `auditNote` (e.g. the source file) as its note. */
+export async function createAssets(
+  inputs: AssetInput[],
+  createdBy: string,
+  auditNote: string,
+): Promise<Asset[]> {
+  return withTransaction(async (client) => {
+    const assets: Asset[] = [];
+    for (const input of inputs) {
+      assets.push(await insertAsset(client, input, createdBy, auditNote));
+    }
+    return assets;
   });
 }
 
@@ -501,14 +539,21 @@ export interface AssetChange {
   after: Asset;
 }
 
+/** `accessories` undefined leaves the asset's accessory list untouched; otherwise it replaces
+ * it in the same transaction, checked against the status this edit writes. */
 export async function updateAsset(
   id: string,
   input: AssetInput,
   performedBy: string,
+  accessories?: AssetAccessoryInput[],
 ): Promise<AssetChange | null> {
-  return withTransaction((client) =>
-    updateAssetInternal(client, id, input, performedBy),
-  );
+  return withTransaction(async (client) => {
+    const change = await updateAssetInternal(client, id, input, performedBy);
+    if (change && accessories) {
+      await syncAssetAccessories(client, id, accessories, performedBy);
+    }
+    return change;
+  });
 }
 
 /** Shared by every dedicated lifecycle action (transfer/condition/status change): merges `patch`
@@ -615,7 +660,7 @@ export async function softDeleteAsset(
 
 export async function setAssetImagePath(
   id: string,
-  imagePath: string,
+  imagePath: string | null,
 ): Promise<Asset | null> {
   const result = await query<AssetRow>(
     `UPDATE assets SET image_path = $2 WHERE id = $1 AND deleted_at IS NULL RETURNING ${SELECT_COLUMNS}`,

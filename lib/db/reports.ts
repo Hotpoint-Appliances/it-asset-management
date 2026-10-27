@@ -41,6 +41,8 @@ export interface AssetRegisterRow {
   usefulLifeMonths: number | null;
   salvageValue: number | null;
   notes: string | null;
+  /** "Charger × 1, Mouse × 2", in catalog order; null when none are attached. */
+  accessories: string | null;
   createdByName: string;
   createdAt: string;
 }
@@ -76,6 +78,7 @@ export async function listAssetRegister(
     useful_life_months: number | null;
     salvage_value: string | null;
     notes: string | null;
+    accessories: string | null;
     created_by_name: string;
     created_at: Date | string;
   }>(
@@ -85,7 +88,10 @@ export async function listAssetRegister(
             cond.name AS condition_name, st.name AS status_name, v.name AS vendor_name,
             a.purchase_date, a.purchase_cost, a.warranty_expiry, a.depreciation_method,
             a.useful_life_months, a.salvage_value, a.notes, cb.full_name AS created_by_name,
-            a.created_at
+            a.created_at,
+            (SELECT string_agg(x.name || ' × ' || aa.quantity, ', ' ORDER BY x.sort_order, x.name)
+             FROM asset_accessories aa JOIN accessories x ON x.id = aa.accessory_id
+             WHERE aa.asset_id = a.id) AS accessories
      ${RELATIONS_JOIN}
      WHERE ${where}
      ORDER BY ${buildAssetOrderBy(filters.sort, "a.asset_tag")}`,
@@ -112,6 +118,7 @@ export async function listAssetRegister(
     usefulLifeMonths: r.useful_life_months,
     salvageValue: num(r.salvage_value),
     notes: r.notes,
+    accessories: r.accessories,
     createdByName: r.created_by_name,
     createdAt: toIsoString(r.created_at)!,
   }));

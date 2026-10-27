@@ -21,12 +21,18 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
-  DialogDescription,
 } from "@/components/ui/Dialog";
+import {
+  ConfirmDialog,
+  recordSaveConfirm,
+  useConfirm,
+} from "@/components/shared/ConfirmDialog";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { TreePicker } from "@/components/shared/TreePicker";
 import { buildTree, type TreeNode } from "@/lib/tree";
 import { useUIStore } from "@/store";
+import { usePagination } from "@/lib/hooks/usePagination";
+import { Pagination } from "@/components/shared/Pagination";
 import type { Location } from "@/types/location";
 import { RequiredMark } from "@/components/shared/RequiredMark";
 import { FieldError } from "@/components/shared/FieldError";
@@ -45,6 +51,8 @@ interface LocationNode {
   address: string | null;
 }
 
+const PAGE_SIZE = 10;
+
 export function LocationsManager({
   initialLocations,
 }: {
@@ -62,6 +70,7 @@ export function LocationsManager({
   const [address, setAddress] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const { confirm, dialog: confirmDialog } = useConfirm();
   const fields = useFieldErrors<"name">();
   const [collapsed, setCollapsed] = React.useState<Set<number>>(new Set());
 
@@ -72,6 +81,8 @@ export function LocationsManager({
     address: l.address,
   }));
   const tree = buildTree(treeItems);
+  // Paged by top-level node, so a branch never splits across pages.
+  const pagination = usePagination(tree, PAGE_SIZE);
 
   function openCreate(parentId: number | null = null) {
     setEditing(null);
@@ -102,19 +113,24 @@ export function LocationsManager({
       e.currentTarget,
     );
     if (!ok) return;
+    if (!(await confirm(recordSaveConfirm("location", name, editing?.name))))
+      return;
     setSubmitting(true);
     setError(null);
     try {
       const payload = { name, parentLocationId, address: address || null };
       if (editing) {
         await axios.patch(`/api/locations/${editing.id}`, payload);
-        addToast({ title: "Location updated", variant: "success" });
       } else {
         await axios.post("/api/locations", payload);
-        addToast({ title: "Location created", variant: "success" });
       }
       setDialogOpen(false);
-      router.refresh();
+      router.refresh(() =>
+        addToast({
+          title: editing ? "Location updated" : "Location created",
+          variant: "success",
+        }),
+      );
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -127,9 +143,10 @@ export function LocationsManager({
     setSubmitting(true);
     try {
       await axios.delete(`/api/locations/${deleting.id}`);
-      addToast({ title: "Location deleted", variant: "success" });
       setDeleting(null);
-      router.refresh();
+      router.refresh(() =>
+        addToast({ title: "Location deleted", variant: "success" }),
+      );
     } catch (err) {
       addToast({
         title: "Could not delete location",
@@ -239,9 +256,10 @@ export function LocationsManager({
         />
       ) : (
         <div className="border-border rounded-xl border shadow-sm">
-          {renderNodes(tree)}
+          {renderNodes(pagination.pageItems)}
         </div>
       )}
+      <Pagination {...pagination} noun="top-level locations" />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
@@ -322,37 +340,24 @@ export function LocationsManager({
         </DialogContent>
       </Dialog>
 
-      <Dialog
+      <ConfirmDialog
         open={!!deleting}
         onOpenChange={(open) => !open && setDeleting(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete location</DialogTitle>
-          </DialogHeader>
-          <DialogBody>
-            <DialogDescription>
-              This will permanently delete <strong>{deleting?.name}</strong>.
-              Any child locations will become top-level locations. This cannot
-              be undone.
-            </DialogDescription>
-          </DialogBody>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button
-              variant="destructive"
-              disabled={submitting}
-              onClick={handleDelete}
-            >
-              {submitting ? "Deleting…" : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title="Delete location"
+        description={
+          <>
+            This will permanently delete <strong>{deleting?.name}</strong>. Any
+            child locations will become top-level locations. This cannot be
+            undone.
+          </>
+        }
+        confirmLabel="Delete"
+        submittingLabel="Deleting…"
+        onConfirm={handleDelete}
+        submitting={submitting}
+        destructive
+      />
+      {confirmDialog}
     </div>
   );
 }

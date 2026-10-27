@@ -10,6 +10,13 @@ import { Select } from "@/components/ui/Select";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { TreePicker } from "@/components/shared/TreePicker";
 import { UserTypeahead } from "./UserTypeahead";
+import {
+  AccessoriesEditor,
+  accessoriesPayload,
+  accessoryOptions,
+  rowsFromAccessories,
+  type AccessoryRow,
+} from "./AccessoriesEditor";
 import { useUIStore } from "@/store";
 import type { AssetWithRelations } from "@/types/asset";
 import type { Category } from "@/types/category";
@@ -18,7 +25,13 @@ import type { Department } from "@/types/department";
 import type { Vendor } from "@/types/vendor";
 import type { AssetCondition } from "@/types/assetCondition";
 import type { AssetStatus } from "@/types/assetStatus";
+import type { Accessory, AssetAccessory } from "@/types/accessory";
+import { canEditAccessories } from "@/lib/assetAccessories";
+import { formatLookupName } from "@/lib/badgeVariants";
+import { formatCurrency } from "@/lib/format";
 import { RequiredMark } from "@/components/shared/RequiredMark";
+import { PresetInput, type Preset } from "@/components/shared/PresetInput";
+import { ConfirmSummary, useConfirm } from "@/components/shared/ConfirmDialog";
 import { FieldError } from "@/components/shared/FieldError";
 import { useFieldErrors, looksLikeEmail } from "@/lib/hooks/useFieldErrors";
 
@@ -99,6 +112,8 @@ function Section({
 
 type OwnerMode = "user" | "external";
 
+const NO_ACCESSORIES: AssetAccessory[] = [];
+
 interface FormState {
   assetTag: string;
   name: string;
@@ -124,6 +139,41 @@ interface FormState {
   salvageValue: string;
   notes: string;
 }
+
+/** The company's standard depreciation terms; anything else goes through "Custom…". */
+const USEFUL_LIFE_PRESETS: Preset[] = [36, 60].map((months) => ({
+  value: String(months),
+  label: `${months} months (${months / 12} years)`,
+}));
+const SALVAGE_VALUE_PRESETS: Preset[] = [7000, 12000, 20000].map((amount) => ({
+  value: String(amount),
+  label: formatCurrency(amount),
+}));
+
+/** Labels for the edit confirm's "changed fields" list; owner fields collapse into one entry. */
+const FIELD_LABELS: Partial<Record<keyof FormState, string>> = {
+  assetTag: "Asset tag",
+  name: "Name",
+  categoryId: "Category",
+  modelNumber: "Model number",
+  serialNumber: "Serial number",
+  locationId: "Location",
+  departmentId: "Department",
+  ownerMode: "Owner",
+  assignedUserId: "Owner",
+  ownerName: "Owner",
+  ownerEmail: "Owner email",
+  conditionId: "Condition",
+  statusId: "Status",
+  vendorId: "Vendor",
+  purchaseDate: "Purchase date",
+  purchaseCost: "Purchase cost",
+  warrantyExpiry: "Warranty expiry",
+  depreciationMethod: "Depreciation method",
+  usefulLifeMonths: "Useful life",
+  salvageValue: "Salvage value",
+  notes: "Notes",
+};
 
 function initialState(
   asset: AssetWithRelations | undefined,
@@ -166,6 +216,8 @@ export function AssetForm({
   vendors,
   conditions,
   statuses,
+  accessoryCatalog,
+  accessories = NO_ACCESSORIES,
 }: {
   mode: "create" | "edit";
   asset?: AssetWithRelations;
@@ -175,6 +227,10 @@ export function AssetForm({
   vendors: Vendor[];
   conditions: AssetCondition[];
   statuses: AssetStatus[];
+  /** Active catalog entries for the picker (Settings > Accessories). */
+  accessoryCatalog: Accessory[];
+  /** The asset's current accessories (edit mode). */
+  accessories?: AssetAccessory[];
 }) {
   const router = useRouteLoadingRouter();
   const addToast = useUIStore((s) => s.addToast);
@@ -191,6 +247,18 @@ export function AssetForm({
   const [form, setForm] = React.useState<FormState>(() =>
     initialState(asset, defaultStatusId),
   );
+  const [accessoryRows, setAccessoryRows] = React.useState<AccessoryRow[]>(() =>
+    rowsFromAccessories(accessories),
+  );
+  const accessoryChoices = React.useMemo(
+    () => accessoryOptions(accessoryCatalog, accessories),
+    [accessoryCatalog, accessories],
+  );
+  // Checked against the status being saved, same as the server (lib/db/assetAccessories.ts).
+  const selectedStatusName =
+    statuses.find((s) => s.id === form.statusId)?.name ?? null;
+  const accessoriesLocked =
+    selectedStatusName != null && !canEditAccessories(selectedStatusName);
   const [imageFile, setImageFile] = React.useState<File | null>(null);
   const [imagePreview, setImagePreview] = React.useState<string | null>(
     asset?.imagePath
@@ -200,6 +268,10 @@ export function AssetForm({
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const fields = useFieldErrors<AssetField>();
+  const { confirm, dialog: confirmDialog } = useConfirm();
+  const imageInputRef = React.useRef<HTMLInputElement>(null);
+  // An existing image whose preview the user cleared with "Remove" (and didn't replace).
+  const removingImage = !!asset?.imagePath && !imagePreview && !imageFile;
 
   const categoryItems = React.useMemo(
     () =>
@@ -257,6 +329,79 @@ export function AssetForm({
   function clearImage() {
     setImageFile(null);
     setImagePreview(null);
+    fields.clear("image");
+    // Reset the picker too, or choosing the same file again wouldn't fire onChange.
+    if (imageInputRef.current) imageInputRef.current.value = "";
+  }
+
+  function confirmOptions() {
+    if (mode === "create") {
+      const owner =
+        form.ownerMode === "user" ? form.assignedUserName : form.ownerName;
+      const status = statuses.find((s) => s.id === form.statusId);
+      return {
+        title: "Create asset?",
+        description: (
+          <ConfirmSummary
+            intro="This adds the asset to the register."
+            rows={[
+              ["Asset tag", form.assetTag.trim()],
+              ["Name", form.name.trim()],
+              [
+                "Category",
+                categories.find((c) => c.id === form.categoryId)?.name,
+              ],
+              ["Status", status && formatLookupName(status.name)],
+              [
+                "Location",
+                locations.find((l) => l.id === form.locationId)?.name,
+              ],
+              [
+                "Department",
+                departments.find((d) => d.id === form.departmentId)?.name,
+              ],
+              ["Owner", owner?.trim()],
+            ]}
+          />
+        ),
+        confirmLabel: "Create asset",
+      };
+    }
+    const changed = changedFields();
+    return {
+      title: "Save changes?",
+      description: (
+        <ConfirmSummary
+          intro={
+            <>
+              Updating <strong>{form.assetTag.trim()}</strong>:
+            </>
+          }
+          rows={[["Changed", [...changed].join(", ")]]}
+        />
+      ),
+      confirmLabel: "Save changes",
+    };
+  }
+
+  /** Labels of the fields an edit would change, empty when saving would be a no-op. */
+  function changedFields(): Set<string> {
+    const initial = initialState(asset, defaultStatusId);
+    const changed = new Set(
+      (Object.keys(FIELD_LABELS) as (keyof FormState)[])
+        .filter((key) => form[key] !== initial[key])
+        .map((key) => FIELD_LABELS[key]!),
+    );
+    if (imageFile || removingImage) changed.add("Image");
+    // Row keys are regenerated per call, so compare only what gets saved.
+    const rowValues = (rows: AccessoryRow[]) =>
+      JSON.stringify(rows.map((r) => [r.accessoryId, r.quantity, r.notes]));
+    if (
+      !accessoriesLocked &&
+      rowValues(accessoryRows) !== rowValues(rowsFromAccessories(accessories))
+    )
+      changed.add("Accessories");
+    return changed;
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -297,6 +442,21 @@ export function AssetForm({
       e.currentTarget,
     );
     if (!ok) return;
+    // A locked status leaves the asset's accessories untouched (the field isn't sent at all).
+    const accessoryResult = accessoriesLocked
+      ? null
+      : accessoriesPayload(accessoryRows);
+    if (accessoryResult && "error" in accessoryResult) {
+      setError(accessoryResult.error);
+      return;
+    }
+    if (mode === "edit" && asset && changedFields().size === 0) {
+      router.push(`/assets/${asset.id}`, undefined, () =>
+        addToast({ title: "No changes to save", variant: "info" }),
+      );
+      return;
+    }
+    if (!(await confirm(confirmOptions()))) return;
     setSubmitting(true);
     setError(null);
 
@@ -329,7 +489,11 @@ export function AssetForm({
     formData.set("usefulLifeMonths", form.usefulLifeMonths);
     formData.set("salvageValue", form.salvageValue);
     formData.set("notes", form.notes);
+    if (accessoryResult) {
+      formData.set("accessories", JSON.stringify(accessoryResult.items));
+    }
     if (imageFile) formData.set("image", imageFile);
+    else if (removingImage) formData.set("removeImage", "1");
 
     try {
       if (mode === "create") {
@@ -337,12 +501,14 @@ export function AssetForm({
           "/api/assets",
           formData,
         );
-        addToast({ title: "Asset created", variant: "success" });
-        router.push(`/assets/${res.data.asset.id}`);
+        router.push(`/assets/${res.data.asset.id}`, undefined, () =>
+          addToast({ title: "Asset created", variant: "success" }),
+        );
       } else if (asset) {
         await axios.patch(`/api/assets/${asset.id}`, formData);
-        addToast({ title: "Asset updated", variant: "success" });
-        router.push(`/assets/${asset.id}`);
+        router.push(`/assets/${asset.id}`, undefined, () =>
+          addToast({ title: "Asset updated", variant: "success" }),
+        );
       }
     } catch (err) {
       setError(errorMessage(err));
@@ -594,13 +760,35 @@ export function AssetForm({
             <option value="" disabled>
               Select a status
             </option>
-            {statuses.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name.replace(/_/g, " ")}
-              </option>
-            ))}
+            {/* Disposal goes through the disposal flow (it needs an asset_disposals record) */}
+            {statuses
+              .filter((s) => s.name !== "disposed")
+              .map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name.replace(/_/g, " ")}
+                </option>
+              ))}
           </Select>
         </Field>
+      </Section>
+
+      <Section title="Accessories">
+        <div className="flex flex-col gap-2 sm:col-span-2">
+          {accessoriesLocked && (
+            <p className="text-muted-foreground text-sm">
+              Accessories can&apos;t be changed while the asset is{" "}
+              {formatLookupName(selectedStatusName ?? "")}. Changes here
+              won&apos;t be saved.
+            </p>
+          )}
+          <AccessoriesEditor
+            idPrefix="asset-accessories"
+            rows={accessoryRows}
+            onChange={setAccessoryRows}
+            options={accessoryChoices}
+            disabled={accessoriesLocked}
+          />
+        </div>
       </Section>
 
       <Section title="Procurement">
@@ -676,13 +864,13 @@ export function AssetForm({
           error={fields.errors.usefulLifeMonths}
           errorId={fields.errorId("usefulLifeMonths")}
         >
-          <Input
+          <PresetInput
             id="asset-useful-life"
-            {...fields.invalid("usefulLifeMonths")}
-            type="number"
-            min="0"
+            controlProps={fields.invalid("usefulLifeMonths")}
+            presets={USEFUL_LIFE_PRESETS}
+            inputProps={{ min: "1", step: "1", placeholder: "Months" }}
             value={form.usefulLifeMonths}
-            onChange={(e) => update("usefulLifeMonths", e.target.value)}
+            onChange={(value) => update("usefulLifeMonths", value)}
           />
         </Field>
         <Field
@@ -691,14 +879,13 @@ export function AssetForm({
           error={fields.errors.salvageValue}
           errorId={fields.errorId("salvageValue")}
         >
-          <Input
+          <PresetInput
             id="asset-salvage-value"
-            {...fields.invalid("salvageValue")}
-            type="number"
-            step="0.01"
-            min="0"
+            controlProps={fields.invalid("salvageValue")}
+            presets={SALVAGE_VALUE_PRESETS}
+            inputProps={{ min: "0", step: "0.01", placeholder: "Amount" }}
             value={form.salvageValue}
-            onChange={(e) => update("salvageValue", e.target.value)}
+            onChange={(value) => update("salvageValue", value)}
           />
         </Field>
       </Section>
@@ -721,6 +908,7 @@ export function AssetForm({
             )}
             <div className="flex flex-col gap-1">
               <Input
+                ref={imageInputRef}
                 id="asset-image"
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
@@ -778,6 +966,7 @@ export function AssetForm({
               : "Save changes"}
         </Button>
       </div>
+      {confirmDialog}
     </form>
   );
 }

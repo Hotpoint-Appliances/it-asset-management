@@ -120,6 +120,7 @@ CREATE TABLE users (
   department_id INT REFERENCES departments(id) ON DELETE SET NULL,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   last_login_at TIMESTAMPTZ,
+  password_changed_at TIMESTAMPTZ, -- sessions issued before this are rejected (lib/auth/session.ts)
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -215,6 +216,39 @@ CREATE TABLE asset_attachments (
   uploaded_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_attachments_asset ON asset_attachments(asset_id);
+
+-- ============================================================
+-- Accessories (admin-managed catalog + what is attached to each asset). See migrations/002.
+--   Changes are blocked while an asset is disposed/lost/stolen and are audit-logged
+--   (accessory_added / accessory_removed / accessory_updated), both enforced in app logic.
+-- ============================================================
+CREATE TABLE accessories (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) UNIQUE NOT NULL,
+  description TEXT,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE, -- retired accessories stay on existing assets, hidden from pickers
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TRIGGER trg_accessories_updated_at BEFORE UPDATE ON accessories
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+INSERT INTO accessories (name, sort_order) VALUES
+  ('Charger', 1), ('Mouse', 2), ('Keyboard', 3), ('Docking station', 4), ('Laptop bag', 5);
+
+CREATE TABLE asset_accessories (
+  asset_id UUID NOT NULL REFERENCES assets(id) ON DELETE CASCADE,
+  accessory_id INT NOT NULL REFERENCES accessories(id) ON DELETE RESTRICT,
+  quantity INT NOT NULL DEFAULT 1 CHECK (quantity > 0),
+  notes TEXT,
+  created_by UUID NOT NULL REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (asset_id, accessory_id)
+);
+CREATE TRIGGER trg_asset_accessories_updated_at BEFORE UPDATE ON asset_accessories
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+CREATE INDEX idx_asset_accessories_accessory ON asset_accessories(accessory_id);
 
 -- ============================================================
 -- Maintenance / repair events

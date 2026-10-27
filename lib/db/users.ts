@@ -50,14 +50,24 @@ export async function findUserByEmail(email: string): Promise<AuthUser | null> {
   return row ? mapAuthUser(row) : null;
 }
 
+export interface SessionUser extends Omit<
+  AuthUser,
+  "passwordHash" | "isActive"
+> {
+  /** Tokens issued before this are rejected (signs out other sessions on a password change). */
+  passwordChangedAt: Date | null;
+}
+
 /** The session's per-request check (lib/auth/session.ts): the user's current role/department/
  * name, or null once they've been deactivated or no longer exist. Never returns the hash. */
 export async function findActiveSessionUser(
   id: string,
-): Promise<Omit<AuthUser, "passwordHash" | "isActive"> | null> {
-  const result = await query<Omit<AuthUserRow, "password_hash">>(
+): Promise<SessionUser | null> {
+  const result = await query<
+    Omit<AuthUserRow, "password_hash"> & { password_changed_at: Date | null }
+  >(
     `SELECT u.id, u.full_name, u.email, u.role_id, r.name AS role_name,
-            u.department_id, u.is_active
+            u.department_id, u.is_active, u.password_changed_at
      FROM users u
      JOIN roles r ON r.id = u.role_id
      WHERE u.id = $1`,
@@ -72,7 +82,33 @@ export async function findActiveSessionUser(
     roleId: row.role_id,
     roleName: row.role_name,
     departmentId: row.department_id,
+    passwordChangedAt: row.password_changed_at,
   };
+}
+
+/** The stored hash for an active user, for re-checking their current password. */
+export async function findPasswordHash(id: string): Promise<string | null> {
+  const result = await query<{ password_hash: string }>(
+    `SELECT password_hash FROM users WHERE id = $1 AND is_active`,
+    [id],
+  );
+  return result.rows[0]?.password_hash ?? null;
+}
+
+/** Sets a new password and stamps password_changed_at, which revokes every session issued
+ * before `changedAt` (lib/auth/session.ts). */
+export async function changePassword(
+  id: string,
+  password: string,
+  changedAt: Date,
+): Promise<void> {
+  const passwordHash = await hashPassword(password);
+  await query(
+    `UPDATE users
+     SET password_hash = $2, password_changed_at = $3, updated_at = now()
+     WHERE id = $1`,
+    [id, passwordHash, changedAt],
+  );
 }
 
 export async function touchLastLogin(userId: string): Promise<void> {
@@ -167,9 +203,12 @@ export interface UpdateUserInput {
   password?: string;
 }
 
+/** A password reset stamps password_changed_at with `passwordChangedAt`, revoking the user's
+ * sessions issued before it, as changePassword does. */
 export async function updateUser(
   id: string,
   input: UpdateUserInput,
+  passwordChangedAt: Date | null = null,
 ): Promise<UserSummary | null> {
   const passwordHash = input.password
     ? await hashPassword(input.password)
@@ -178,7 +217,8 @@ export async function updateUser(
     `WITH updated AS (
        UPDATE users
        SET full_name = $2, email = $3, role_id = $4, department_id = $5,
-           password_hash = COALESCE($6, password_hash)
+           password_hash = COALESCE($6, password_hash),
+           password_changed_at = CASE WHEN $6::text IS NULL THEN password_changed_at ELSE $7::timestamptz END
        WHERE id = $1
        RETURNING id, full_name, email, role_id, department_id, is_active
      )
@@ -190,6 +230,7 @@ export async function updateUser(
       input.roleId,
       input.departmentId,
       passwordHash,
+      passwordChangedAt,
     ],
   );
   return result.rows[0] ? mapUserSummary(result.rows[0]) : null;
