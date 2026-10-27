@@ -6,6 +6,7 @@ import {
   assetInputFromFormData,
 } from "@/lib/validation/assets";
 import { assetAccessoriesFromFormData } from "@/lib/validation/accessories";
+import { isDisposedStatusId } from "@/lib/db/assetStatuses";
 import { isUniqueViolation, isForeignKeyViolation } from "@/lib/db/query";
 import { AssetAccessoryError } from "@/lib/db/assetAccessories";
 import {
@@ -74,6 +75,12 @@ export async function POST(request: NextRequest) {
   const validated = validateAssetInput(assetInputFromFormData(formData));
   if (!validated.success) {
     return NextResponse.json({ error: validated.error }, { status: 400 });
+  }
+  if (await isDisposedStatusId(validated.data.statusId)) {
+    return NextResponse.json(
+      { error: "Use the disposal flow to mark an asset as disposed" },
+      { status: 400 },
+    );
   }
   const accessories = assetAccessoriesFromFormData(formData);
   if (accessories && !accessories.success) {

@@ -760,11 +760,14 @@ export function AssetForm({
             <option value="" disabled>
               Select a status
             </option>
-            {statuses.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name.replace(/_/g, " ")}
-              </option>
-            ))}
+            {/* Disposal goes through the disposal flow (it needs an asset_disposals record) */}
+            {statuses
+              .filter((s) => s.name !== "disposed")
+              .map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name.replace(/_/g, " ")}
+                </option>
+              ))}
           </Select>
         </Field>
       </Section>
