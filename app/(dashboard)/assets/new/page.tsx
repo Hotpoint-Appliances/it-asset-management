@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth/session";
 import { listCategories } from "@/lib/db/categories";
 import { listLocations } from "@/lib/db/locations";
@@ -7,6 +8,12 @@ import { listAssetConditions } from "@/lib/db/assetConditions";
 import { listAssetStatuses } from "@/lib/db/assetStatuses";
 import { listAccessories } from "@/lib/db/accessories";
 import { AssetForm } from "@/components/assets/AssetForm";
+
+export const metadata: Metadata = {
+  title: "New asset",
+  description:
+    "Register a new IT asset with its category, location, owner and procurement details.",
+};
 
 export default async function NewAssetPage() {
   await requireRole(["admin", "asset_manager"]);

@@ -1,6 +1,7 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { requireRole } from "@/lib/auth/session";
-import { getAssetById } from "@/lib/db/assets";
+import { getSession, requireRole } from "@/lib/auth/session";
+import { getAssetForPage } from "@/lib/db/assets";
 import { listCategories } from "@/lib/db/categories";
 import { listLocations } from "@/lib/db/locations";
 import { listDepartments } from "@/lib/db/departments";
@@ -11,6 +12,21 @@ import { listAccessories } from "@/lib/db/accessories";
 import { listAssetAccessories } from "@/lib/db/assetAccessories";
 import { AssetForm } from "@/components/assets/AssetForm";
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const session = await getSession();
+  if (!session) return {};
+  const asset = await getAssetForPage((await params).id, session);
+  if (!asset) return { title: "Asset not found" };
+  return {
+    title: `Edit ${asset.assetTag}`,
+    description: `Edit the details of ${asset.name}.`,
+  };
+}
+
 export default async function EditAssetPage({
   params,
 }: {
@@ -18,7 +34,7 @@ export default async function EditAssetPage({
 }) {
   const session = await requireRole(["admin", "asset_manager"]);
   const { id } = await params;
-  const asset = await getAssetById(id, session);
+  const asset = await getAssetForPage(id, session);
   if (!asset) notFound();
   if (asset.statusName === "disposed") notFound();
 

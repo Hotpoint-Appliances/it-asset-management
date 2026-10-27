@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import { requireSession } from "@/lib/auth/session";
 import { listNotificationsForUser } from "@/lib/db/notifications";
 import { NotificationsList } from "@/components/notifications/NotificationsList";
 
 const PAGE_SIZE = 20;
+
+export const metadata: Metadata = {
+  title: "Notifications",
+  description: "Your assignment, transfer, repair and warranty expiry alerts.",
+};
 
 /** Every notification for the signed-in user (phase-7), the bell's "View all" target. Server
  * renders the first page; the client list then keeps it in sync with the bell (shared TanStack

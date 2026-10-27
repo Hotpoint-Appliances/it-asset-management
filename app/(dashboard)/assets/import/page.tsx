@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth/session";
 import { AssetImport } from "@/components/assets/AssetImport";
+
+export const metadata: Metadata = {
+  title: "Import assets",
+  description:
+    "Bulk-create assets from a filled-in Excel template, checked in full before anything is saved.",
+};
 
 export default async function ImportAssetsPage() {
   await requireRole(["admin", "asset_manager"]);

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   Card,
@@ -7,6 +8,12 @@ import {
 } from "@/components/ui/Card";
 import { LinkProgress } from "@/components/layout/LinkProgress";
 import { settingsSections } from "@/components/layout/settings-sections";
+
+export const metadata: Metadata = {
+  title: "Settings",
+  description:
+    "Manage the categories, locations, departments, vendors, statuses and users the asset register relies on.",
+};
 
 export default function SettingsIndexPage() {
   return (

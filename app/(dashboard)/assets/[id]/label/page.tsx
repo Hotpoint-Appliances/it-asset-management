@@ -1,7 +1,23 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { requireSession } from "@/lib/auth/session";
-import { getAssetById } from "@/lib/db/assets";
+import { getSession, requireSession } from "@/lib/auth/session";
+import { getAssetForPage } from "@/lib/db/assets";
 import { AssetQrCode } from "@/components/assets/AssetQrCode";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const session = await getSession();
+  if (!session) return {};
+  const asset = await getAssetForPage((await params).id, session);
+  if (!asset) return { title: "Asset not found" };
+  return {
+    title: `Label ${asset.assetTag}`,
+    description: `Printable QR code label for ${asset.name}.`,
+  };
+}
 
 /** Dedicated print-friendly label view (phase-4-asset-management Step 6). Stays inside the
  * (dashboard) group like every other asset page; AppShell hides its chrome under print via the
@@ -13,7 +29,7 @@ export default async function AssetLabelPage({
 }) {
   const session = await requireSession();
   const { id } = await params;
-  const asset = await getAssetById(id, session);
+  const asset = await getAssetForPage(id, session);
   if (!asset) notFound();
 
   return (

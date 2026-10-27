@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { StatusPage } from "@/components/shared/StatusPage";
+
+export const metadata: Metadata = {
+  title: "Access denied",
+  description: "You don't have permission to view this page.",
+};
 
 export default function ForbiddenPage() {
   return (

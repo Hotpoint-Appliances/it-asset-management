@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Boxes, CheckCircle2, Wrench, ShieldAlert } from "lucide-react";
 import { requireSession } from "@/lib/auth/session";
 import {
@@ -15,6 +16,12 @@ import {
 import { WarrantyExpiringCard } from "@/components/dashboard/WarrantyExpiringCard";
 import { RecentActivityCard } from "@/components/dashboard/RecentActivityCard";
 import { InRepairCard } from "@/components/dashboard/InRepairCard";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description:
+    "Asset totals by status, category and department, assets in repair, warranties expiring soon and recent activity.",
+};
 
 /** Bar color per status, defined once here (like lib/badgeVariants.ts for badges); a status an
  * admin adds later falls back to the neutral bar. */

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { query, withTransaction } from "./query";
 import type { PoolClient } from "pg";
 import { toIsoString, toDateOnlyString } from "./dates";
@@ -280,6 +281,10 @@ export async function getAssetById(
     return null;
   return mapAssetWithRelations(row);
 }
+
+/** getAssetById memoized per request, so an asset page's generateMetadata and the page itself
+ * share one lookup (both pass the same memoized session object). */
+export const getAssetForPage = cache(getAssetById);
 
 /** Inserts the asset and its `created` audit row on `client` (the caller owns the transaction). */
 async function insertAsset(

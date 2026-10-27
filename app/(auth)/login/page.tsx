@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ClipboardCheck, ShieldCheck, Laptop } from "lucide-react";
 import { LoginForm } from "@/components/auth/LoginForm";
@@ -34,6 +35,12 @@ const highlights = [
   { icon: ClipboardCheck, text: "Manage assignments and handovers with ease" },
   { icon: ShieldCheck, text: "Keep your inventory accurate and accountable" },
 ];
+
+export const metadata: Metadata = {
+  title: "Sign in",
+  description:
+    "Sign in to the IT Asset Manager to track your organisation's IT assets.",
+};
 
 export default function LoginPage() {
   return (
