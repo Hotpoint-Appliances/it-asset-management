@@ -439,7 +439,7 @@ export function MaintenanceTab({
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit" disabled={submitting}>
+              <Button type="submit" loading={submitting}>
                 {submitting ? "Saving…" : "Save"}
               </Button>
             </DialogFooter>

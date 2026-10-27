@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Download, Loader2 } from "lucide-react";
+import { Download } from "lucide-react";
 import { Button, type ButtonProps } from "@/components/ui/Button";
 import { useUIStore } from "@/store";
 
@@ -65,15 +65,11 @@ export function DownloadButton({
     <Button
       type="button"
       onClick={handleClick}
-      disabled={disabled || downloading}
-      aria-busy={downloading || undefined}
+      disabled={disabled}
+      loading={downloading}
       {...props}
     >
-      {downloading ? (
-        <Loader2 aria-hidden="true" className="animate-spin" />
-      ) : (
-        <Download aria-hidden="true" className="h-4 w-4" />
-      )}
+      {!downloading && <Download aria-hidden="true" className="h-4 w-4" />}
       {children}
     </Button>
   );

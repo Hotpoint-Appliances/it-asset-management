@@ -243,7 +243,7 @@ export function DisposalDialog({
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" variant="destructive" disabled={submitting}>
+            <Button type="submit" variant="destructive" loading={submitting}>
               {submitting ? "Disposing…" : "Dispose asset"}
             </Button>
           </DialogFooter>

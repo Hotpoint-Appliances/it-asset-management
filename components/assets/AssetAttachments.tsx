@@ -117,14 +117,10 @@ export function AssetAttachments({
               <Button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={uploading !== null}
+                loading={uploading !== null}
                 className="gap-1.5"
               >
-                {uploading !== null ? (
-                  <Loader2 aria-hidden="true" className="animate-spin" />
-                ) : (
-                  <Upload className="h-4 w-4" />
-                )}
+                {uploading === null && <Upload className="h-4 w-4" />}
                 Upload a file
               </Button>
             ) : undefined

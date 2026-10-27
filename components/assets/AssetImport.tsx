@@ -6,7 +6,6 @@ import {
   AlertTriangle,
   CheckCircle2,
   FileSpreadsheet,
-  Loader2,
   Upload,
   XCircle,
 } from "lucide-react";
@@ -231,14 +230,11 @@ export function AssetImport() {
             <Button
               type="submit"
               variant={checked ? "outline" : "default"}
+              loading={busy === "check"}
               disabled={busy !== null || !file}
               className="self-start sm:self-auto"
             >
-              {busy === "check" ? (
-                <Loader2 aria-hidden="true" className="animate-spin" />
-              ) : (
-                <FileSpreadsheet className="h-4 w-4" />
-              )}
+              {busy !== "check" && <FileSpreadsheet className="h-4 w-4" />}
               {busy === "check"
                 ? "Checking…"
                 : result
@@ -268,14 +264,11 @@ export function AssetImport() {
                   <PreviewTable result={result} />
                   <Button
                     onClick={handleImport}
+                    loading={busy === "import"}
                     disabled={busy !== null}
                     className="self-start"
                   >
-                    {busy === "import" ? (
-                      <Loader2 aria-hidden="true" className="animate-spin" />
-                    ) : (
-                      <Upload className="h-4 w-4" />
-                    )}
+                    {busy !== "import" && <Upload className="h-4 w-4" />}
                     {busy === "import"
                       ? "Importing…"
                       : `Import ${result.preview.length} asset${result.preview.length === 1 ? "" : "s"}`}

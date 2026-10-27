@@ -958,7 +958,7 @@ export function AssetForm({
         <Button type="button" variant="outline" onClick={() => router.back()}>
           Cancel
         </Button>
-        <Button type="submit" disabled={submitting}>
+        <Button type="submit" loading={submitting}>
           {submitting
             ? "Saving…"
             : mode === "create"

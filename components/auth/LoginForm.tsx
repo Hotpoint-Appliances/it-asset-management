@@ -3,7 +3,6 @@
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
@@ -134,10 +133,7 @@ export function LoginForm() {
               {error}
             </p>
           )}
-          <Button type="submit" disabled={submitting} className="mt-1">
-            {submitting && (
-              <Loader2 aria-hidden="true" className="animate-spin" />
-            )}
+          <Button type="submit" loading={submitting} className="mt-1">
             {submitting ? "Signing in…" : "Sign in"}
           </Button>
         </form>

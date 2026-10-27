@@ -214,7 +214,8 @@ const ConfirmDialogContent = React.memo(
           <Button
             type="button"
             variant={destructive ? "destructive" : "default"}
-            disabled={submitting || confirmDisabled}
+            loading={submitting}
+            disabled={confirmDisabled}
             onClick={onConfirm}
           >
             {submitting ? submittingLabel : confirmLabel}
