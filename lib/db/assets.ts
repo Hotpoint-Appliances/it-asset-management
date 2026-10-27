@@ -216,15 +216,17 @@ const ASSET_SORT_SQL: Record<AssetSort["key"], string> = {
   updated: "a.updated_at",
 };
 
-/** ORDER BY for the asset list / register: the requested column (with a.id as a stable
- * tiebreaker so paging never shuffles equal rows), or `fallback` when no sort was asked for. */
+/** ORDER BY for the asset list / register: the requested column, or `fallback` when no sort was
+ * asked for. Equal rows (e.g. one import's batch, which shares a timestamp) fall back to the
+ * asset tag so they read in a meaningful order, then a.id so paging never shuffles them. */
 export function buildAssetOrderBy(
   sort: AssetSort | null | undefined,
   fallback: string,
 ): string {
   if (!sort) return fallback;
   const dir = sort.dir === "desc" ? "DESC" : "ASC";
-  return `${ASSET_SORT_SQL[sort.key]} ${dir} NULLS LAST, a.id ${dir}`;
+  const tagTiebreak = sort.key === "tag" ? "" : `, a.asset_tag ${dir}`;
+  return `${ASSET_SORT_SQL[sort.key]} ${dir} NULLS LAST${tagTiebreak}, a.id ${dir}`;
 }
 
 export async function listAssets(
@@ -234,7 +236,7 @@ export async function listAssets(
   const { where, params } = buildAssetFilterClause(filters, requester);
   const orderBy = buildAssetOrderBy(
     filters.sort,
-    "a.created_at DESC, a.id DESC",
+    "a.created_at DESC, a.asset_tag DESC, a.id DESC",
   );
   const [rows, count] = await Promise.all([
     query<AssetListRow>(
