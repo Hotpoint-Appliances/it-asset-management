@@ -120,6 +120,7 @@ CREATE TABLE users (
   department_id INT REFERENCES departments(id) ON DELETE SET NULL,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   last_login_at TIMESTAMPTZ,
+  password_changed_at TIMESTAMPTZ, -- sessions issued before this are rejected (lib/auth/session.ts)
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

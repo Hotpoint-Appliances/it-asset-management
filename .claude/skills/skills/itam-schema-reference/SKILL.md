@@ -67,6 +67,7 @@ ORM): apply with `psql "$DATABASE_URL" -f <file>`.
 | -------------------------------- | ----- | --------------------------------------------------------------- |
 | `001_notifications_dedupe_key`   | 7     | `notifications.dedupe_key` + partial unique index + `(user_id, created_at DESC)` index |
 | `002_asset_accessories`          | post-8 | `accessories` catalog (seeded) + `asset_accessories` (PK `(asset_id, accessory_id)`, quantity, notes) |
+| `003_users_password_changed_at`  | post-8 | `users.password_changed_at`; sessions issued before it are rejected (self-service password change) |
 
 ## Table reference
 

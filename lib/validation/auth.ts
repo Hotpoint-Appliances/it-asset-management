@@ -24,3 +24,40 @@ export function validateLoginInput(body: unknown): LoginValidationResult {
     data: { email: email.trim().toLowerCase(), password },
   };
 }
+
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export type ChangePasswordValidationResult =
+  | { success: true; data: ChangePasswordInput }
+  | { success: false; error: string };
+
+/** Same 8-character minimum as the admin user form (lib/validation/users.ts). */
+export function validateChangePasswordInput(
+  body: unknown,
+): ChangePasswordValidationResult {
+  if (typeof body !== "object" || body === null) {
+    return { success: false, error: "Invalid request body" };
+  }
+  const { currentPassword, newPassword } = body as Record<string, unknown>;
+
+  if (typeof currentPassword !== "string" || currentPassword.length === 0) {
+    return { success: false, error: "Current password is required" };
+  }
+  if (typeof newPassword !== "string" || newPassword.length < 8) {
+    return {
+      success: false,
+      error: "New password must be at least 8 characters",
+    };
+  }
+  if (newPassword === currentPassword) {
+    return {
+      success: false,
+      error: "New password must be different from your current password",
+    };
+  }
+
+  return { success: true, data: { currentPassword, newPassword } };
+}

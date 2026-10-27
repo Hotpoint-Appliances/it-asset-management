@@ -80,6 +80,14 @@ export async function resolveSessionToken(
   if (!payload) return null;
   const user = await findActiveSessionUser(payload.userId);
   if (!user) return null;
+  // A password change revokes sessions issued before it. `iat` is whole seconds, so compare at
+  // that precision (the route stamps the change at a whole second for the same reason).
+  if (
+    user.passwordChangedAt &&
+    (payload.iat ?? 0) < Math.floor(user.passwordChangedAt.getTime() / 1000)
+  ) {
+    return null;
+  }
   return {
     ...payload,
     roleId: user.roleId,

@@ -1,7 +1,8 @@
 "use client";
 
+import * as React from "react";
 import axios from "axios";
-import { LogOut } from "lucide-react";
+import { KeyRound, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +14,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { useSession } from "@/lib/auth/session-context";
 import { useUIStore } from "@/store";
+import { ChangePasswordDialog } from "./ChangePasswordDialog";
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "Admin",
@@ -25,6 +27,7 @@ export function UserMenu() {
   const loggingOut = useUIStore((s) => s.loggingOut);
   const setLoggingOut = useUIStore((s) => s.setLoggingOut);
   const addToast = useUIStore((s) => s.addToast);
+  const [passwordOpen, setPasswordOpen] = React.useState(false);
 
   if (!session) return null;
 
@@ -49,29 +52,39 @@ export function UserMenu() {
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="User menu">
-          <span className="bg-primary/10 text-primary flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold">
-            {initial}
-          </span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>
-          <div className="flex flex-col">
-            <span className="font-medium">{session.fullName}</span>
-            <span className="text-muted-foreground text-xs">
-              {ROLE_LABELS[session.roleName] ?? session.roleName}
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" aria-label="User menu">
+            <span className="bg-primary/10 text-primary flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold">
+              {initial}
             </span>
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={handleLogout} disabled={loggingOut}>
-          <LogOut className="h-4 w-4" />
-          Sign out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>
+            <div className="flex flex-col">
+              <span className="font-medium">{session.fullName}</span>
+              <span className="text-muted-foreground text-xs">
+                {ROLE_LABELS[session.roleName] ?? session.roleName}
+              </span>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onSelect={() => setPasswordOpen(true)}>
+            <KeyRound className="h-4 w-4" />
+            Change password
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={handleLogout} disabled={loggingOut}>
+            <LogOut className="h-4 w-4" />
+            Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <ChangePasswordDialog
+        open={passwordOpen}
+        onOpenChange={setPasswordOpen}
+      />
+    </>
   );
 }
