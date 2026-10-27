@@ -21,7 +21,8 @@ export function AuditTrailReportCard() {
       icon={ScrollText}
       title="Audit trail"
       description="Every recorded change across assets, with old and new values resolved to names. Leave the dates empty for the full history."
-      href={rangeInvalid ? "#" : href}
+      href={href}
+      disabled={rangeInvalid}
     >
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
