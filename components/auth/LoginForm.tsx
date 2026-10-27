@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
+import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
@@ -33,6 +35,8 @@ export function LoginForm() {
   const [error, setError] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const fields = useFieldErrors<"email" | "password">();
+  // Set by the reset-password page after a successful reset.
+  const passwordReset = searchParams.get("reset") === "1";
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -77,6 +81,18 @@ export function LoginForm() {
           Sign in to your IT Asset Manager account
         </p>
       </div>
+      {passwordReset && (
+        <div
+          role="status"
+          className="border-success/40 bg-success/5 mb-6 flex gap-3 rounded-lg border p-3 text-sm"
+        >
+          <CheckCircle2
+            aria-hidden="true"
+            className="text-success mt-0.5 h-4 w-4 shrink-0"
+          />
+          <p>Password updated. Sign in with your new password.</p>
+        </div>
+      )}
       <div>
         <form
           onSubmit={handleSubmit}
@@ -107,10 +123,18 @@ export function LoginForm() {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="password" className="text-sm font-medium">
-              Password
-              <RequiredMark />
-            </label>
+            <div className="flex items-center justify-between gap-2">
+              <label htmlFor="password" className="text-sm font-medium">
+                Password
+                <RequiredMark />
+              </label>
+              <Link
+                href="/forgot-password"
+                className="text-primary text-sm font-medium underline-offset-4 hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
             <PasswordInput
               id="password"
               name="password"

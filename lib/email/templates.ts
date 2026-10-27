@@ -67,3 +67,52 @@ export function renderNotificationEmail(
 
   return { subject, html };
 }
+
+/** The shared frame for one-off account emails (password reset and its confirmation). */
+function renderAccountEmail(
+  recipientName: string,
+  paragraphs: string[],
+): string {
+  const body = paragraphs
+    .map((p) => `<tr><td style="padding-bottom:12px">${p}</td></tr>`)
+    .join("");
+  return `<!doctype html><html><body style="margin:0;padding:24px;background:#f4f4f5;font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#18181b">
+  <table role="presentation" width="100%" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:8px;padding:24px">
+    <tr><td style="font-size:16px;font-weight:600;padding-bottom:8px">IT Asset Manager</td></tr>
+    <tr><td style="padding-bottom:12px">Hi ${escapeHtml(recipientName)},</td></tr>
+    ${body}
+    <tr><td style="padding-top:16px;border-top:1px solid #e4e4e7;color:#71717a;font-size:12px">
+      This is an automated message from the IT Asset Manager.
+    </td></tr>
+  </table></body></html>`;
+}
+
+export function renderPasswordResetEmail(
+  recipientName: string,
+  link: string,
+  ttlMinutes: number,
+): { subject: string; html: string } {
+  const href = escapeHtml(link);
+  return {
+    subject: "Reset your IT Asset Manager password",
+    html: renderAccountEmail(recipientName, [
+      "We received a request to reset your password. Choose a new one with the button below.",
+      `<a href="${href}" style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:6px;font-weight:600">Reset password</a>`,
+      `The link works once and expires in ${ttlMinutes} minutes. If the button doesn't work, paste this address into your browser:<br><span style="color:#52525b;word-break:break-all">${href}</span>`,
+      "If you didn't ask for this, you can ignore this email; your password won't change.",
+    ]),
+  };
+}
+
+export function renderPasswordChangedEmail(recipientName: string): {
+  subject: string;
+  html: string;
+} {
+  return {
+    subject: "Your IT Asset Manager password was changed",
+    html: renderAccountEmail(recipientName, [
+      "Your password was just reset using a link sent to this address, and you've been signed out on every device.",
+      "If this wasn't you, contact your IT administrator right away.",
+    ]),
+  };
+}
