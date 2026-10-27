@@ -34,6 +34,23 @@ const VARIANT_ICON_CLASS: Record<ToastVariant, string> = {
   loading: "text-toast-muted-foreground animate-spin",
 };
 
+/** Bold heading per variant; a loading toast never auto-dismisses, so it leads with its own title. */
+const VARIANT_LABEL: Record<ToastVariant, string | null> = {
+  success: "Success",
+  error: "Error",
+  warning: "Warning",
+  info: "Info",
+  loading: null,
+};
+
+const VARIANT_PROGRESS_CLASS: Record<ToastVariant, string> = {
+  success: "bg-toast-success",
+  error: "bg-toast-destructive",
+  warning: "bg-toast-warning",
+  info: "bg-toast-primary",
+  loading: "bg-toast-muted-foreground",
+};
+
 export function Toaster() {
   const toasts = useUIStore((s) => s.toasts);
   const removeToast = useUIStore((s) => s.removeToast);
@@ -60,43 +77,51 @@ function ToastCard({
 }) {
   const variant = toast.variant ?? "info";
   const Icon = VARIANT_ICON[variant];
-  const description =
-    toast.description ??
-    (variant === "error" ? "Error" : variant === "success" ? "Success" : null);
+  const label = VARIANT_LABEL[variant];
+  const autoDismiss = variant !== "loading" && toast.duration !== 0;
   const [closing, setClosing] = React.useState(false);
-
-  React.useEffect(() => {
-    if (variant === "loading" || toast.duration === 0) return;
-    const timer = setTimeout(
-      () => setClosing(true),
-      toast.duration ?? AUTO_DISMISS_MS,
-    );
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toast.id]);
 
   return (
     <div
       role={variant === "error" ? "alert" : "status"}
       aria-live={variant === "error" ? "assertive" : "polite"}
       className={cn(
-        "bg-toast text-toast-foreground border-toast-border flex items-start gap-3 rounded-xl border p-4 shadow-lg",
+        "group bg-toast text-toast-foreground border-toast-border relative flex items-start gap-3 overflow-hidden rounded-xl border p-4 shadow-lg",
         closing ? "toast-exit" : "toast-enter",
       )}
       data-state={closing ? "closed" : "open"}
-      onAnimationEnd={() => {
-        if (closing) onDismiss(toast.id);
+      onAnimationEnd={(e) => {
+        // The progress line's animationend bubbles up here too; only the card's own exit counts.
+        if (closing && e.target === e.currentTarget) onDismiss(toast.id);
       }}
     >
       <Icon
         className={cn("mt-0.5 h-7 w-7 shrink-0", VARIANT_ICON_CLASS[variant])}
       />
       <div className="flex-1 space-y-0.5">
-        <p className="text-sm font-medium">{toast.title}</p>
-        {description && (
-          <p className="text-toast-muted-foreground text-sm">{description}</p>
+        <p className="text-sm font-semibold">{label ?? toast.title}</p>
+        {label && <p className="text-sm">{toast.title}</p>}
+        {toast.description && (
+          <p className="text-toast-muted-foreground text-sm">
+            {toast.description}
+          </p>
         )}
       </div>
+      {autoDismiss && (
+        // Drives the auto-dismiss itself (via animationend), so pausing it on hover/focus pauses
+        // the countdown with it.
+        <div
+          aria-hidden
+          className={cn(
+            "toast-progress absolute inset-x-0 bottom-0 h-1",
+            VARIANT_PROGRESS_CLASS[variant],
+          )}
+          style={{
+            animationDuration: `${toast.duration ?? AUTO_DISMISS_MS}ms`,
+          }}
+          onAnimationEnd={() => setClosing(true)}
+        />
+      )}
       <button
         onClick={() => setClosing(true)}
         className="flex min-h-11 min-w-11 items-center justify-center opacity-70 hover:opacity-100"
