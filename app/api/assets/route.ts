@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiSession, requireApiRole } from "@/lib/auth/api";
-import { listAssets, createAsset, setAssetImagePath } from "@/lib/db/assets";
+import {
+  listAssets,
+  createAsset,
+  setAssetImagePath,
+  assetConflictMessage,
+} from "@/lib/db/assets";
 import {
   validateAssetInput,
   assetInputFromFormData,
@@ -100,7 +105,7 @@ export async function POST(request: NextRequest) {
     }
     if (isUniqueViolation(err)) {
       return NextResponse.json(
-        { error: "Asset tag is already in use" },
+        { error: await assetConflictMessage(err, validated.data) },
         { status: 409 },
       );
     }

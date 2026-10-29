@@ -26,7 +26,7 @@ export interface AssetRegisterRow {
   name: string;
   categoryName: string;
   modelNumber: string | null;
-  serialNumber: string | null;
+  serialNumber: string;
   locationName: string;
   departmentName: string;
   ownerName: string | null;
@@ -62,7 +62,7 @@ export async function listAssetRegister(
     name: string;
     category_name: string;
     model_number: string | null;
-    serial_number: string | null;
+    serial_number: string;
     location_name: string;
     department_name: string;
     assigned_user_name: string | null;

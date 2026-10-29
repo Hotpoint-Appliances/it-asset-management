@@ -8,7 +8,7 @@ export interface Asset {
   name: string;
   categoryId: number;
   modelNumber: string | null;
-  serialNumber: string | null;
+  serialNumber: string;
   locationId: number;
   departmentId: number;
   imagePath: string | null;
@@ -70,7 +70,7 @@ export interface AssetInput {
   name: string;
   categoryId: number;
   modelNumber: string | null;
-  serialNumber: string | null;
+  serialNumber: string;
   locationId: number;
   departmentId: number;
   assignedUserId: string | null;

@@ -779,6 +779,7 @@ export async function parseImportFile(
       unreadable.size ||
       !assetTag ||
       !name ||
+      !serialNumber ||
       !category ||
       !location ||
       !department ||
@@ -854,10 +855,10 @@ export async function parseImportFile(
   for (const rows of serialRows.values()) {
     if (rows.length < 2) continue;
     for (const r of rows) {
-      warnings.push({
+      errors.push({
         row: r,
         column: "Serial number",
-        message: `Same serial number as row ${rows.filter((x) => x !== r).join(", ")}`,
+        message: `Duplicate serial number in this file (also on row ${rows.filter((x) => x !== r).join(", ")})`,
       });
     }
   }
@@ -868,7 +869,7 @@ export async function parseImportFile(
     const tag = existingSerials.get(serial);
     if (!tag) continue;
     for (const r of rows) {
-      warnings.push({
+      errors.push({
         row: r,
         column: "Serial number",
         message: `Serial number is already recorded on asset ${tag}`,

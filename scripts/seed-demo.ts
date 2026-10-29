@@ -361,10 +361,10 @@ async function main() {
           : a.owner;
       const row = (
         await client.query(
-          `INSERT INTO assets (asset_tag, name, category_id, location_id, department_id, assigned_user_id, owner_name,
+          `INSERT INTO assets (asset_tag, serial_number, name, category_id, location_id, department_id, assigned_user_id, owner_name,
              condition_id, status_id, vendor_id, purchase_date, purchase_cost, warranty_expiry, depreciation_method,
              useful_life_months, salvage_value, created_by, created_at)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
+           VALUES ($1,'SN-' || $1::text,$2,$3,$4,$5,$6,$7,$8,$9,$10,
              CASE WHEN $11::int IS NULL THEN NULL ELSE CURRENT_DATE - $11::int END, $12,
              CASE WHEN $13::int IS NULL THEN NULL ELSE CURRENT_DATE + $13::int END, $14,$15,$16,$17,
              now() - interval '45 days')

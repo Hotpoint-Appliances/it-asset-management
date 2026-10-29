@@ -94,12 +94,12 @@ export const IMPORT_COLUMNS: ImportColumn[] = [
   {
     key: "serialNumber",
     header: "Serial number",
-    required: false,
+    required: true,
     kind: "text",
     maxLength: 100,
     width: 20,
     description:
-      "Manufacturer serial number. A serial already in the file or the system is flagged as a warning.",
+      "Manufacturer serial number. Must not already be on another asset or appear twice in the file (not case-sensitive).",
     example: "8XK2LM3",
   },
   {

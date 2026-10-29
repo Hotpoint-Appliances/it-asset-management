@@ -432,7 +432,7 @@ function OverviewGrid({ asset }: { asset: AssetWithRelations }) {
   const rows: [string, ReactNode][] = [
     ["Category", asset.categoryName],
     ["Model number", asset.modelNumber ?? "N/A"],
-    ["Serial number", asset.serialNumber ?? "N/A"],
+    ["Serial number", asset.serialNumber],
     ["Vendor", asset.vendorName ?? "N/A"],
     [
       "Purchase date",
