@@ -5,14 +5,14 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils";
 import { PageHeaderSkeleton } from "./PageHeaderSkeleton";
 
-/** Mirrors app/(dashboard)/(overview)/page.tsx widget for widget: stat tiles, bar breakdowns, the two list
- * cards and recent activity. */
+/** Mirrors app/(dashboard)/(overview)/page.tsx widget for widget: stat tiles, the status donut and bar
+ * breakdowns, the trend chart, lifecycle and the two list cards, and recent activity. */
 export function DashboardSkeleton() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeaderSkeleton title="Dashboard" />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTileSkeleton label="Total assets" icon={Boxes} />
         <StatTileSkeleton label="In service" icon={CheckCircle2} />
         <StatTileSkeleton label="In repair" icon={Wrench} />
@@ -21,12 +21,18 @@ export function DashboardSkeleton() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <BarBreakdownSkeleton title="Assets by status" />
+        <DonutSkeleton title="Assets by status" />
         <BarBreakdownSkeleton title="Assets by category" />
         <BarBreakdownSkeleton title="Assets by department" />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <BarBreakdownSkeleton title="Assets by location" />
+        <TrendSkeleton />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <LifecycleSkeleton />
         <ListCardSkeleton title="Warranty expiring soon" rows={4} withFilter />
         <ListCardSkeleton title="Assets in repair" rows={4} />
       </div>
@@ -59,6 +65,81 @@ function StatTileSkeleton({
         <div className="bg-muted text-muted-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
           <Icon className="h-5 w-5" />
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Ring outline + legend rows, the same footprint as StatusDonut. */
+function DonutSkeleton({ title }: { title: string }) {
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col items-center gap-4 pt-0 sm:flex-row lg:flex-col xl:flex-row">
+        <div className="border-muted h-36 w-36 shrink-0 animate-pulse rounded-full border-[24px]" />
+        <ul className="flex w-full flex-col gap-1">
+          {NAME_WIDTHS.map((width, i) => (
+            <li key={i} className="flex items-center gap-2 py-1">
+              <Skeleton className="h-2.5 w-2.5 rounded-full" />
+              <Skeleton className={cn("h-4 flex-none", width)} />
+              <Skeleton className="ml-auto h-4 w-6" />
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
+  );
+}
+
+function TrendSkeleton() {
+  return (
+    <Card className="lg:col-span-2">
+      <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-x-4 gap-y-2 pb-3">
+        <div className="flex flex-col gap-1.5">
+          <CardTitle className="text-base">Added vs disposed</CardTitle>
+          <p className="text-muted-foreground text-xs">Last 12 months</p>
+        </div>
+        <Skeleton className="h-5 w-48" />
+      </CardHeader>
+      <CardContent className="pt-0">
+        <Skeleton className="h-56 w-full" />
+      </CardContent>
+    </Card>
+  );
+}
+
+function LifecycleSkeleton() {
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">Lifecycle</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-5 pt-0">
+        <div className="grid grid-cols-2 gap-3">
+          <Skeleton className="h-[4.25rem] rounded-lg" />
+          <Skeleton className="h-[4.25rem] rounded-lg" />
+        </div>
+        <ul className="flex flex-col gap-2.5">
+          {BAR_WIDTHS.slice(0, 4).map((barWidth, i) => (
+            <li
+              key={i}
+              className="grid grid-cols-[minmax(0,9rem)_1fr_2.5rem] items-center gap-3 py-0.5"
+            >
+              <Skeleton className={cn("h-4", NAME_WIDTHS[i])} />
+              <div className="bg-muted h-2.5 overflow-hidden rounded-full">
+                <div
+                  className={cn(
+                    "bg-muted-foreground/20 h-full animate-pulse rounded-full",
+                    barWidth,
+                  )}
+                />
+              </div>
+              <Skeleton className="ml-auto h-4 w-6" />
+            </li>
+          ))}
+        </ul>
       </CardContent>
     </Card>
   );
