@@ -13,6 +13,10 @@ import {
   BarBreakdown,
   type BarItem,
 } from "@/components/dashboard/BarBreakdown";
+import {
+  StatusDonut,
+  type DonutItem,
+} from "@/components/dashboard/StatusDonut";
 import { WarrantyExpiringCard } from "@/components/dashboard/WarrantyExpiringCard";
 import { RecentActivityCard } from "@/components/dashboard/RecentActivityCard";
 import { InRepairCard } from "@/components/dashboard/InRepairCard";
@@ -20,18 +24,22 @@ import { InRepairCard } from "@/components/dashboard/InRepairCard";
 export const metadata: Metadata = {
   title: "Dashboard",
   description:
-    "Asset totals by status, category and department, assets in repair, warranties expiring soon and recent activity.",
+    "Asset totals by status, category, department and location, assets in repair, warranties expiring soon and recent activity.",
 };
 
-/** Bar color per status, defined once here (like lib/badgeVariants.ts for badges); a status an
- * admin adds later falls back to the neutral bar. */
-const STATUS_BAR: Record<string, string> = {
-  active: "bg-success",
-  in_repair: "bg-warning",
-  lost: "bg-destructive",
-  stolen: "bg-destructive",
-  disposed: "bg-muted-foreground/40",
+/** Donut color per status, defined once here (like lib/badgeVariants.ts for badges) as theme
+ * variables so slices follow dark mode. Any other status (one an admin added) takes the next
+ * shade of the accent, so two of them never share a slice color. */
+const STATUS_COLOR: Record<string, string> = {
+  active: "var(--success)",
+  in_repair: "var(--warning)",
+  lost: "var(--destructive)",
+  stolen: "var(--destructive)",
+  disposed: "color-mix(in oklab, var(--muted-foreground) 40%, transparent)",
 };
+const ACCENT_SHADES = [100, 60, 35].map(
+  (pct) => `color-mix(in oklab, var(--primary) ${pct}%, transparent)`,
+);
 
 /** Fleet dashboard (phase-6). Every widget's data comes from lib/db/dashboard.ts, which scopes
  * to the session user's department for viewers in SQL, so nothing here filters by role. */
@@ -47,9 +55,12 @@ export default async function DashboardPage() {
 
   const inRepair =
     overview.byStatus.find((s) => s.name === "in_repair")?.count ?? 0;
-  const statusBars: BarItem[] = overview.byStatus.map((s) => ({
+  let otherStatuses = 0;
+  const statusSlices: DonutItem[] = overview.byStatus.map((s) => ({
     ...s,
-    barClass: STATUS_BAR[s.name] ?? "bg-primary",
+    color:
+      STATUS_COLOR[s.name] ??
+      ACCENT_SHADES[otherStatuses++ % ACCENT_SHADES.length],
     href: `/assets?statusId=${s.id}`,
   }));
   const categoryBars: BarItem[] = overview.byCategory.map((c) => ({
@@ -59,6 +70,10 @@ export default async function DashboardPage() {
   const departmentBars: BarItem[] = overview.byDepartment.map((d) => ({
     ...d,
     href: `/assets?departmentId=${d.id}`,
+  }));
+  const locationBars: BarItem[] = overview.byLocation.map((l) => ({
+    ...l,
+    href: `/assets?locationId=${l.id}`,
   }));
   const expiringSoon = warranty.filter(
     (w) => w.daysRemaining <= windows[0],
@@ -102,9 +117,14 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <BarBreakdown title="Assets by status" items={statusBars} />
+        <StatusDonut
+          title="Assets by status"
+          items={statusSlices}
+          total={overview.total}
+        />
         <BarBreakdown title="Assets by category" items={categoryBars} />
         <BarBreakdown title="Assets by department" items={departmentBars} />
+        <BarBreakdown title="Assets by location" items={locationBars} />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">

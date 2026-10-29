@@ -32,7 +32,7 @@ export async function getFleetOverview(
   requester: AssetRequester,
 ): Promise<FleetOverview> {
   const params = scopeParams(requester);
-  const [status, category, department] = await Promise.all([
+  const [status, category, department, location] = await Promise.all([
     // Left-joined from the lookup so a status with zero assets still shows (as 0).
     query<CountRow>(
       `SELECT st.id, st.name, count(a.id) AS count
@@ -55,6 +55,14 @@ export async function getFleetOverview(
        GROUP BY d.id ORDER BY count(a.id) DESC, d.name LIMIT 8`,
       params,
     ),
+    // The asset's own location, not rolled up to its parent site, same as category.
+    query<CountRow>(
+      `SELECT l.id, l.name, count(a.id) AS count
+       FROM assets a JOIN locations l ON l.id = a.location_id JOIN asset_statuses st ON st.id = a.status_id
+       WHERE a.deleted_at IS NULL AND st.name <> 'disposed' AND ${SCOPE}
+       GROUP BY l.id ORDER BY count(a.id) DESC, l.name LIMIT 8`,
+      params,
+    ),
   ]);
   const byStatus = toCounts(status.rows);
   const total = byStatus.reduce((sum, s) => sum + s.count, 0);
@@ -65,6 +73,7 @@ export async function getFleetOverview(
     byStatus,
     byCategory: toCounts(category.rows),
     byDepartment: toCounts(department.rows),
+    byLocation: toCounts(location.rows),
   };
 }
 

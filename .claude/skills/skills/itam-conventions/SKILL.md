@@ -18,6 +18,9 @@ first when starting any implementation work on the IT Asset Management System.
 - `axios` — HTTP requests (internal API calls from client components)
 - `exceljs` — data export (reports phase)
 - `lucide-react` — icons
+- `recharts` (v3) — dashboard charts only (status donut, trend line); added after Phase 8 with
+  its `react-is` peer. Charts are client components fed server data, and every chart sits beside
+  a list or label with the exact numbers, so nothing is readable from the chart alone
 - `next-themes` — dark/light mode
 - `pg` — raw PostgreSQL queries (no ORM — write SQL directly against `schema/schema.sql`)
 - `@azure/msal-node` + Microsoft Graph — email notifications
@@ -127,7 +130,7 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts �
                                 # AuditLogTimeline, MaintenanceTab, AssetRowActions (list row's
                                 # View/Edit/Transfer/Dispose DropdownMenu) (Phase 5);
                                 # AccessoriesEditor (shared row editor), AccessoriesTab (detail tab)
-  /dashboard/                  # StatTile, BarBreakdown (hand-rolled CSS bars, no chart library),
+  /dashboard/                  # StatTile, BarBreakdown (hand-rolled CSS bars), StatusDonut (Recharts),
                                 # WarrantyExpiringCard (client, window toggle), RecentActivityCard,
                                 # InRepairCard (Phase 6)
   /reports/                    # ReportCard, AuditTrailReportCard (date-range options) (Phase 6)

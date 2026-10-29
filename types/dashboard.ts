@@ -13,6 +13,7 @@ export interface FleetOverview {
   /** Disposed assets are excluded from the breakdowns below. */
   byCategory: CountByName[];
   byDepartment: CountByName[];
+  byLocation: CountByName[];
 }
 
 export interface WarrantyExpiringItem {
