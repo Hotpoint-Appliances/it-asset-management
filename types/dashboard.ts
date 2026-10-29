@@ -46,3 +46,26 @@ export interface AssetInRepairItem {
   vendorName: string | null;
   startedAt: string;
 }
+
+/** Non-disposed assets bucketed by age since purchase, plus the refresh outlook from each
+ * asset's useful life. Assets without a purchase date land in `unknownAge`; ones without a
+ * useful life can't be judged and are left out of the refresh counts. */
+export interface LifecycleOverview {
+  ageBands: { label: string; count: number }[];
+  unknownAge: number;
+  pastUsefulLife: number;
+  /** Reaching the end of their useful life within the next `dueWithinMonths` months. */
+  dueSoon: number;
+  dueWithinMonths: number;
+  /** Past or nearing end of life, oldest end-of-life first (capped). */
+  refreshDue: RefreshDueItem[];
+}
+
+export interface RefreshDueItem {
+  id: string;
+  assetTag: string;
+  name: string;
+  endOfLife: string;
+  /** Negative once past end of life. */
+  daysRemaining: number;
+}

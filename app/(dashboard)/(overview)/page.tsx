@@ -6,6 +6,7 @@ import {
   listWarrantyExpiring,
   listRecentActivity,
   listAssetsInRepair,
+  getLifecycleOverview,
 } from "@/lib/db/dashboard";
 import { getWarrantyWindows } from "@/lib/db/systemSettings";
 import { StatTile } from "@/components/dashboard/StatTile";
@@ -20,11 +21,12 @@ import {
 import { WarrantyExpiringCard } from "@/components/dashboard/WarrantyExpiringCard";
 import { RecentActivityCard } from "@/components/dashboard/RecentActivityCard";
 import { InRepairCard } from "@/components/dashboard/InRepairCard";
+import { LifecycleCard } from "@/components/dashboard/LifecycleCard";
 
 export const metadata: Metadata = {
   title: "Dashboard",
   description:
-    "Asset totals by status, category, department and location, assets in repair, warranties expiring soon and recent activity.",
+    "Asset totals by status, category, department and location, asset age and refresh due, assets in repair, warranties expiring soon and recent activity.",
 };
 
 /** Donut color per status, defined once here (like lib/badgeVariants.ts for badges) as theme
@@ -46,11 +48,12 @@ const ACCENT_SHADES = [100, 60, 35].map(
 export default async function DashboardPage() {
   const session = await requireSession();
   const windows = await getWarrantyWindows();
-  const [overview, warranty, activity, repairs] = await Promise.all([
+  const [overview, warranty, activity, repairs, lifecycle] = await Promise.all([
     getFleetOverview(session),
     listWarrantyExpiring(windows[windows.length - 1], session),
     listRecentActivity(session, 8),
     listAssetsInRepair(session),
+    getLifecycleOverview(session),
   ]);
 
   const inRepair =
@@ -127,7 +130,8 @@ export default async function DashboardPage() {
         <BarBreakdown title="Assets by location" items={locationBars} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <LifecycleCard data={lifecycle} />
         <WarrantyExpiringCard items={warranty} windows={windows} />
         <InRepairCard items={repairs} />
       </div>
