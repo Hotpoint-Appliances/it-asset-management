@@ -10,7 +10,7 @@ export interface BarItem extends CountByName {
   href?: string;
 }
 
-/** Hand-rolled horizontal bar chart (no charting dependency, per itam-conventions' fixed stack):
+/** Hand-rolled horizontal bar chart (plain CSS; a ranking doesn't need Recharts):
  * one row per bucket with the exact count printed beside the bar, so the chart never depends on
  * color or bar length alone to be read. */
 export function BarBreakdown({

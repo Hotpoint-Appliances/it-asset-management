@@ -5,6 +5,7 @@ import {
   updateAsset,
   setAssetImagePath,
   softDeleteAsset,
+  assetConflictMessage,
 } from "@/lib/db/assets";
 import {
   validateAssetInput,
@@ -106,7 +107,7 @@ export async function PATCH(
     }
     if (isUniqueViolation(err)) {
       return NextResponse.json(
-        { error: "Asset tag is already in use" },
+        { error: await assetConflictMessage(err, validated.data) },
         { status: 409 },
       );
     }

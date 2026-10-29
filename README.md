@@ -54,4 +54,4 @@ so notifications stay in-app and nobody gets test email.
 
 See **[docs/deployment.md](docs/deployment.md)**: Windows Server, nginx (HTTPS) → PM2 cluster →
 PostgreSQL, the scheduled notification task, and the sign-off checklist. HTTPS is required: the
-session cookie is `Secure` in production.
+session cookie is `Secure` in production (`SESSION_COOKIE_SECURE` overrides it for testing only).

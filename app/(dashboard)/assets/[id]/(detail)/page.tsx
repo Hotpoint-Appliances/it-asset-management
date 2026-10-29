@@ -1,6 +1,7 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { requireSession } from "@/lib/auth/session";
-import { getAssetById } from "@/lib/db/assets";
+import { getSession, requireSession } from "@/lib/auth/session";
+import { getAssetForPage } from "@/lib/db/assets";
 import { listAssetAttachments } from "@/lib/db/assetAttachments";
 import { getDisposalByAssetId } from "@/lib/db/disposals";
 import { listAuditLogForAsset } from "@/lib/db/auditLog";
@@ -14,6 +15,21 @@ import { listAccessories } from "@/lib/db/accessories";
 import { listAssetAccessories } from "@/lib/db/assetAccessories";
 import { AssetDetail } from "@/components/assets/AssetDetail";
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const session = await getSession();
+  if (!session) return {};
+  const asset = await getAssetForPage((await params).id, session);
+  if (!asset) return { title: "Asset not found" };
+  return {
+    title: asset.assetTag,
+    description: `${asset.name}: details, attachments, maintenance, accessories and audit history.`,
+  };
+}
+
 export default async function AssetDetailPage({
   params,
 }: {
@@ -21,7 +37,7 @@ export default async function AssetDetailPage({
 }) {
   const session = await requireSession();
   const { id } = await params;
-  const asset = await getAssetById(id, session);
+  const asset = await getAssetForPage(id, session);
   if (!asset) notFound();
 
   const [

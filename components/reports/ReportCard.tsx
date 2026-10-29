@@ -1,25 +1,26 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { Download } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { DownloadButton } from "@/components/shared/DownloadButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 
-/** One exportable report. Downloads are plain `<a download>` links to the /api/reports route,
- * the server builds the workbook and answers with Content-Disposition: attachment, so there's
- * no client-side generation and no fetch/blob juggling. `children` is for report-specific
- * options (e.g. the audit trail's date range) rendered above the button. */
+/** One exportable report. The /api/reports route builds the workbook and answers with
+ * Content-Disposition: attachment; DownloadButton fetches it so the button can show progress.
+ * `children` is for report-specific options (e.g. the audit trail's date range) rendered
+ * above the button. `disabled` blocks the download while those options are invalid. */
 export function ReportCard({
   icon: Icon,
   title,
   description,
   href,
   children,
+  disabled,
 }: {
   icon: LucideIcon;
   title: string;
   description: string;
   href: string;
   children?: ReactNode;
+  disabled?: boolean;
 }) {
   return (
     <Card className="flex flex-col">
@@ -34,12 +35,9 @@ export function ReportCard({
       </CardHeader>
       <CardContent className="mt-auto flex flex-col gap-4 pt-0">
         {children}
-        <Button asChild className="self-start">
-          <a href={href} download>
-            <Download className="h-4 w-4" />
-            Download .xlsx
-          </a>
-        </Button>
+        <DownloadButton href={href} disabled={disabled} className="self-start">
+          Download .xlsx
+        </DownloadButton>
       </CardContent>
     </Card>
   );

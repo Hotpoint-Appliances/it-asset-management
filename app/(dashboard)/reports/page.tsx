@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import { ClipboardList, Trash2, TrendingDown } from "lucide-react";
 import { requireSession } from "@/lib/auth/session";
 import { ReportCard } from "@/components/reports/ReportCard";
 import { AuditTrailReportCard } from "@/components/reports/AuditTrailReportCard";
+
+export const metadata: Metadata = {
+  title: "Reports",
+  description:
+    "Excel exports of the asset register, audit trail, disposal register and depreciation summary.",
+};
 
 /** Reports hub (phase-6). Who sees what mirrors the export routes' own role checks: everyone
  * gets the register and audit trail (viewers scoped to their department by the query), while the

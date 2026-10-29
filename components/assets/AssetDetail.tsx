@@ -18,7 +18,6 @@ import {
   AlertOctagon,
   BroomSparkles,
   UserRound,
-  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -32,6 +31,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/DropdownMenu";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { DownloadButton } from "@/components/shared/DownloadButton";
 import { AssetAttachments } from "./AssetAttachments";
 import { TransferDialog } from "./TransferDialog";
 import { ConditionDialog } from "./ConditionDialog";
@@ -281,15 +281,13 @@ export function AssetDetail({
         <TabsContent value="audit">
           <div className="flex flex-col gap-3">
             <div className="flex justify-end">
-              <Button variant="outline" size="sm" asChild>
-                <a
-                  href={`/api/reports/audit-trail?assetId=${asset.id}`}
-                  download
-                >
-                  <Download className="h-4 w-4" />
-                  Export audit trail
-                </a>
-              </Button>
+              <DownloadButton
+                href={`/api/reports/audit-trail?assetId=${asset.id}`}
+                variant="outline"
+                size="sm"
+              >
+                Export audit trail
+              </DownloadButton>
             </div>
             <AuditLogTimeline
               entries={auditLog}
@@ -434,7 +432,7 @@ function OverviewGrid({ asset }: { asset: AssetWithRelations }) {
   const rows: [string, ReactNode][] = [
     ["Category", asset.categoryName],
     ["Model number", asset.modelNumber ?? "N/A"],
-    ["Serial number", asset.serialNumber ?? "N/A"],
+    ["Serial number", asset.serialNumber],
     ["Vendor", asset.vendorName ?? "N/A"],
     [
       "Purchase date",

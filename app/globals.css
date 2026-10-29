@@ -360,6 +360,26 @@ html::-webkit-scrollbar-thumb:hover {
     animation-name: toast-out-right;
   }
 }
+/* Countdown line along the toast's bottom edge. Its animationend is what
+   dismisses the toast, so it keeps running under reduced motion (a thin
+   linear shrink, not a vestibular trigger) and pauses while the toast is
+   hovered or holds focus, giving the reader time (WCAG 2.2.1). */
+@keyframes toast-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+@utility toast-progress {
+  transform-origin: left;
+  animation: toast-progress linear both;
+  .group:hover &,
+  .group:focus-within & {
+    animation-play-state: paused;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .toast-enter {
     animation-name: fade-in;

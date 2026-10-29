@@ -47,12 +47,23 @@ async function verifySession(token: string): Promise<SessionPayload | null> {
   }
 }
 
+/** Whether the session cookie is `Secure`: on in production (HTTPS behind nginx), off under
+ * `next dev` (plain HTTP). SESSION_COOKIE_SECURE=true|false overrides it, e.g. `false` to test a
+ * production build over plain HTTP; browsers drop a Secure cookie there, so sign-in would
+ * silently bounce back to /login. Never set it to false on a real deployment. */
+function isSecureCookie(): boolean {
+  const flag = process.env.SESSION_COOKIE_SECURE?.trim().toLowerCase();
+  if (flag === "true") return true;
+  if (flag === "false") return false;
+  return process.env.NODE_ENV === "production";
+}
+
 export async function setSessionCookie(payload: SessionPayload): Promise<void> {
   const token = await signSession(payload);
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: false,
+    secure: isSecureCookie(),
     sameSite: "strict",
     maxAge: SESSION_DURATION_SECONDS,
     path: "/",

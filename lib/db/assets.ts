@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { query, withTransaction } from "./query";
 import type { PoolClient } from "pg";
 import { toIsoString, toDateOnlyString } from "./dates";
@@ -13,6 +14,7 @@ import type { RoleName } from "@/lib/auth/session";
 import type { AssetSort } from "@/lib/assetSort";
 import type { AssetAccessoryInput } from "@/types/accessory";
 import { syncAssetAccessories } from "./assetAccessories";
+import { findExistingSerialNumbers } from "./assetImport";
 
 export interface AssetRow {
   id: string;
@@ -20,7 +22,7 @@ export interface AssetRow {
   name: string;
   category_id: number;
   model_number: string | null;
-  serial_number: string | null;
+  serial_number: string;
   location_id: number;
   department_id: number;
   image_path: string | null;
@@ -281,6 +283,10 @@ export async function getAssetById(
   return mapAssetWithRelations(row);
 }
 
+/** getAssetById memoized per request, so an asset page's generateMetadata and the page itself
+ * share one lookup (both pass the same memoized session object). */
+export const getAssetForPage = cache(getAssetById);
+
 /** Inserts the asset and its `created` audit row on `client` (the caller owns the transaction). */
 async function insertAsset(
   client: PoolClient,
@@ -342,6 +348,28 @@ export async function createAsset(
     }
     return asset;
   });
+}
+
+/** The partial unique index that keeps a serial number on one live asset (migration 005). */
+const SERIAL_UNIQUE_INDEX = "uq_assets_serial_number_live";
+
+/** The 409 message for a unique_violation from createAsset/updateAsset: either the asset tag's
+ * UNIQUE constraint or the live-serial index, in which case it names the asset holding it. */
+export async function assetConflictMessage(
+  err: unknown,
+  input: AssetInput,
+): Promise<string> {
+  const constraint =
+    typeof err === "object" && err !== null && "constraint" in err
+      ? err.constraint
+      : null;
+  if (constraint !== SERIAL_UNIQUE_INDEX) return "Asset tag is already in use";
+  const tag = (await findExistingSerialNumbers([input.serialNumber])).get(
+    input.serialNumber.toLowerCase(),
+  );
+  return tag
+    ? `Serial number is already recorded on asset ${tag}`
+    : "Serial number is already in use";
 }
 
 /** Bulk create for the Excel import: all rows or none, in one transaction. Each asset gets the

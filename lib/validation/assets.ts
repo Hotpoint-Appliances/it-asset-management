@@ -44,10 +44,8 @@ export function validateAssetInput(body: unknown): AssetValidationResult {
   if (modelNumber === undefined) {
     return { success: false, error: "modelNumber must be a string or null" };
   }
-  const serialNumber = optionalString(b.serialNumber);
-  if (serialNumber === undefined) {
-    return { success: false, error: "serialNumber must be a string or null" };
-  }
+  const serialNumber = requireString(b.serialNumber, "Serial number");
+  if (!serialNumber.ok) return { success: false, error: serialNumber.error };
 
   const assignedUserId = optionalString(b.assignedUserId);
   if (assignedUserId === undefined) {
@@ -126,7 +124,7 @@ export function validateAssetInput(body: unknown): AssetValidationResult {
       name: name.value,
       categoryId,
       modelNumber,
-      serialNumber,
+      serialNumber: serialNumber.value,
       locationId,
       departmentId,
       assignedUserId,

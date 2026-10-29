@@ -7,6 +7,8 @@ import type {
   WarrantyExpiringItem,
   RecentActivityItem,
   AssetInRepairItem,
+  LifecycleOverview,
+  MonthlyMovement,
 } from "@/types/dashboard";
 
 /** Every query here takes the requester and enforces viewer department scoping in SQL, the
@@ -32,7 +34,7 @@ export async function getFleetOverview(
   requester: AssetRequester,
 ): Promise<FleetOverview> {
   const params = scopeParams(requester);
-  const [status, category, department] = await Promise.all([
+  const [status, category, department, location] = await Promise.all([
     // Left-joined from the lookup so a status with zero assets still shows (as 0).
     query<CountRow>(
       `SELECT st.id, st.name, count(a.id) AS count
@@ -55,6 +57,14 @@ export async function getFleetOverview(
        GROUP BY d.id ORDER BY count(a.id) DESC, d.name LIMIT 8`,
       params,
     ),
+    // The asset's own location, not rolled up to its parent site, same as category.
+    query<CountRow>(
+      `SELECT l.id, l.name, count(a.id) AS count
+       FROM assets a JOIN locations l ON l.id = a.location_id JOIN asset_statuses st ON st.id = a.status_id
+       WHERE a.deleted_at IS NULL AND st.name <> 'disposed' AND ${SCOPE}
+       GROUP BY l.id ORDER BY count(a.id) DESC, l.name LIMIT 8`,
+      params,
+    ),
   ]);
   const byStatus = toCounts(status.rows);
   const total = byStatus.reduce((sum, s) => sum + s.count, 0);
@@ -65,6 +75,7 @@ export async function getFleetOverview(
     byStatus,
     byCategory: toCounts(category.rows),
     byDepartment: toCounts(department.rows),
+    byLocation: toCounts(location.rows),
   };
 }
 
@@ -172,5 +183,104 @@ export async function listAssetsInRepair(
     maintenanceType: r.maintenance_type,
     vendorName: r.vendor_name,
     startedAt: toIsoString(r.started_at)!,
+  }));
+}
+
+/** Age bands and refresh outlook for non-disposed assets (see LifecycleOverview). Age runs from
+ * purchase_date; end of life is purchase_date + useful_life_months. */
+export async function getLifecycleOverview(
+  requester: AssetRequester,
+  dueWithinMonths = 6,
+  limit = 5,
+): Promise<LifecycleOverview> {
+  const params = [...scopeParams(requester), dueWithinMonths];
+  const live = `FROM assets a JOIN asset_statuses st ON st.id = a.status_id
+     WHERE a.deleted_at IS NULL AND st.name <> 'disposed' AND ${SCOPE}`;
+  const endOfLife = `(a.purchase_date + make_interval(months => a.useful_life_months))::date`;
+  const [counts, due] = await Promise.all([
+    query<Record<string, string>>(
+      `SELECT
+         count(*) FILTER (WHERE a.purchase_date > CURRENT_DATE - interval '1 year') AS under_1,
+         count(*) FILTER (WHERE a.purchase_date <= CURRENT_DATE - interval '1 year'
+                            AND a.purchase_date > CURRENT_DATE - interval '3 years') AS y1_3,
+         count(*) FILTER (WHERE a.purchase_date <= CURRENT_DATE - interval '3 years'
+                            AND a.purchase_date > CURRENT_DATE - interval '5 years') AS y3_5,
+         count(*) FILTER (WHERE a.purchase_date <= CURRENT_DATE - interval '5 years') AS over_5,
+         count(*) FILTER (WHERE a.purchase_date IS NULL) AS unknown,
+         count(*) FILTER (WHERE ${endOfLife} <= CURRENT_DATE) AS past_life,
+         count(*) FILTER (WHERE ${endOfLife} > CURRENT_DATE
+                            AND ${endOfLife} <= CURRENT_DATE + make_interval(months => $3::int)) AS due_soon
+       ${live}`,
+      params,
+    ),
+    query<{
+      id: string;
+      asset_tag: string;
+      name: string;
+      end_of_life: Date | string;
+      days_remaining: number;
+    }>(
+      `SELECT a.id, a.asset_tag, a.name, ${endOfLife} AS end_of_life,
+              (${endOfLife} - CURRENT_DATE)::int AS days_remaining
+       ${live} AND ${endOfLife} <= CURRENT_DATE + make_interval(months => $3::int)
+       ORDER BY end_of_life, a.asset_tag LIMIT $4`,
+      [...params, limit],
+    ),
+  ]);
+  const c = counts.rows[0];
+  return {
+    ageBands: [
+      { label: "Under 1 year", count: Number(c.under_1) },
+      { label: "1–3 years", count: Number(c.y1_3) },
+      { label: "3–5 years", count: Number(c.y3_5) },
+      { label: "Over 5 years", count: Number(c.over_5) },
+    ],
+    unknownAge: Number(c.unknown),
+    pastUsefulLife: Number(c.past_life),
+    dueSoon: Number(c.due_soon),
+    dueWithinMonths,
+    refreshDue: due.rows.map((r) => ({
+      id: r.id,
+      assetTag: r.asset_tag,
+      name: r.name,
+      endOfLife: toDateOnlyString(r.end_of_life)!,
+      daysRemaining: r.days_remaining,
+    })),
+  };
+}
+
+/** Assets added (by when they were registered, imports included) and disposed (by disposal
+ * date) in each of the last `months` calendar months, this month included, oldest first.
+ * Every month is present, with zeros when nothing happened. */
+export async function listMonthlyMovement(
+  requester: AssetRequester,
+  months = 12,
+): Promise<MonthlyMovement[]> {
+  const result = await query<{
+    month: string;
+    added: string;
+    disposed: string;
+  }>(
+    `WITH months AS (
+       SELECT generate_series(
+         date_trunc('month', CURRENT_DATE) - make_interval(months => $3::int - 1),
+         date_trunc('month', CURRENT_DATE),
+         interval '1 month'
+       )::date AS month
+     )
+     SELECT to_char(m.month, 'YYYY-MM') AS month,
+       (SELECT count(*) FROM assets a
+        WHERE a.deleted_at IS NULL AND ${SCOPE}
+          AND date_trunc('month', a.created_at)::date = m.month) AS added,
+       (SELECT count(*) FROM asset_disposals dp JOIN assets a ON a.id = dp.asset_id
+        WHERE a.deleted_at IS NULL AND ${SCOPE}
+          AND date_trunc('month', dp.disposal_date)::date = m.month) AS disposed
+     FROM months m ORDER BY m.month`,
+    [...scopeParams(requester), months],
+  );
+  return result.rows.map((r) => ({
+    month: r.month,
+    added: Number(r.added),
+    disposed: Number(r.disposed),
   }));
 }

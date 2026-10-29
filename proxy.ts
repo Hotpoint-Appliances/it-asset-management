@@ -2,11 +2,16 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { resolveSessionToken, SESSION_COOKIE } from "@/lib/auth/session";
 
-const PUBLIC_PATHS = ["/login"];
+// Signed-out pages; a signed-in visitor is sent to the dashboard instead.
+const GUEST_PATHS = ["/login", "/forgot-password"];
+// Open either way: an emailed reset link can be followed from a browser that's still signed in
+// (the reset signs that session out too).
+const OPEN_PATHS = ["/reset-password"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isPublicPath = PUBLIC_PATHS.includes(pathname);
+  const isGuestPath = GUEST_PATHS.includes(pathname);
+  const isPublicPath = isGuestPath || OPEN_PATHS.includes(pathname);
 
   // The same DB-backed check getSession() uses (Proxy runs on Node.js in Next 16, so pg works
   // here). A token-only check would loop for a deactivated user: the layout would send them to
@@ -21,7 +26,7 @@ export async function proxy(request: NextRequest) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("from", pathname);
     response = NextResponse.redirect(loginUrl);
-  } else if (isPublicPath && session) {
+  } else if (isGuestPath && session) {
     response = NextResponse.redirect(new URL("/", request.url));
   } else {
     response = NextResponse.next();

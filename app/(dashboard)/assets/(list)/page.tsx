@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/auth/session";
 import { listAssets } from "@/lib/db/assets";
@@ -22,6 +23,11 @@ function toIds(value: string | string[] | undefined): number[] {
     .map(Number)
     .filter((n) => Number.isInteger(n));
 }
+
+export const metadata: Metadata = {
+  title: "Assets",
+  description: "Search, filter, sort and export the IT asset register.",
+};
 
 export default async function AssetsPage({
   searchParams,

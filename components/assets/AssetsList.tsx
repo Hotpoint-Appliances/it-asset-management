@@ -8,7 +8,6 @@ import {
   Search,
   X,
   Boxes,
-  Download,
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
@@ -26,6 +25,7 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/Table";
+import { DownloadButton } from "@/components/shared/DownloadButton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { MultiSelectFilter } from "@/components/shared/MultiSelectFilter";
 import { AssetRowActions } from "./AssetRowActions";
@@ -193,12 +193,9 @@ export function AssetsList({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" asChild>
-            <a href={exportHref} download>
-              <Download className="h-4 w-4" />
-              Export
-            </a>
-          </Button>
+          <DownloadButton href={exportHref} variant="outline">
+            Export
+          </DownloadButton>
           {canManage && (
             <Button variant="outline" asChild>
               <Link href="/assets/import" aria-label="Import assets">

@@ -60,8 +60,10 @@ section. The same pass introduced the shared `DatePicker` used by the reports pa
 - **Dashboard lives at `/`** (`app/(dashboard)/(overview)/page.tsx`), not `/dashboard`: the sidebar's
   Dashboard item already points at `/`, so no nav change and no redirect. (The original Produces
   line said `/dashboard`; superseded.)
-- **No charting dependency**: bars are hand-rolled CSS (`BarBreakdown`), stat tiles and lists
-  otherwise. Every bar prints its exact count and links into the pre-filtered assets list.
+- **Charts**: bars are hand-rolled CSS (`BarBreakdown`), stat tiles and lists otherwise. Every bar
+  prints its exact count and links into the pre-filtered assets list. (Superseded in part: the
+  status split is now a Recharts donut, `StatusDonut`, whose legend keeps the counts and links;
+  see itam-conventions' stack. Assets by location was added alongside category/department.)
 - **Warranty window**: `system_settings` key `warranty_expiry_windows_days` (comma-separated,
   e.g. `30,60,90`, max 3 values, each 1-365); missing/invalid falls back to 30/60/90. No admin
   settings UI (out of scope); set via SQL until one exists.

@@ -24,8 +24,8 @@ image upload and printable QR/barcode labels.
    pagination. `viewer` role sees only their own department (enforced at the query layer,
    consistent with Phase 2).
 2. **Asset create/edit form** — full page (not modal, per [[itam-design-system]] guidance on
-   form size). Fields per `schema/schema.sql`: required (asset_tag, name, category, location,
-   department, condition, status) and optional (model_number, serial_number, image,
+   form size). Fields per `schema/schema.sql`: required (asset_tag, name, category, serial_number,
+   location, department, condition, status) and optional (model_number, image,
    assigned_user_id/owner_name/owner_email, vendor, purchase_date, purchase_cost,
    warranty_expiry, depreciation fields, notes). Use the `<TreePicker>` from Phase 3 for
    category/location, and a type-ahead search over `users` for `assigned_user_id` with

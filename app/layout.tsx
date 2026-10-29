@@ -16,8 +16,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "IT Asset Manager",
+  // Pages set a short title ("Assets") and the template names the app after it.
+  title: {
+    template: "%s · IT Asset Manager",
+    default: "IT Asset Manager",
+  },
   description: "Internal IT asset tracking and lifecycle management",
+  // An internal tool: keep it out of search engines if it's ever reachable publicly.
+  robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {

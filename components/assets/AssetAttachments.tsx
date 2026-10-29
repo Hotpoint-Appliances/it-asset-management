@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
-import { Paperclip, Trash2, Upload } from "lucide-react";
+import { Loader2, Paperclip, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
@@ -28,7 +28,8 @@ export function AssetAttachments({
 }) {
   const router = useRouteLoadingRouter();
   const addToast = useUIStore((s) => s.addToast);
-  const [uploading, setUploading] = React.useState(false);
+  // null = idle, otherwise the upload's percent sent so far.
+  const [uploading, setUploading] = React.useState<number | null>(null);
   const [deleting, setDeleting] = React.useState<AssetAttachment | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -36,11 +37,15 @@ export function AssetAttachments({
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploading(true);
+    setUploading(0);
     try {
       const formData = new FormData();
       formData.set("file", file);
-      await axios.post(`/api/assets/${assetId}/attachments`, formData);
+      await axios.post(`/api/assets/${assetId}/attachments`, formData, {
+        onUploadProgress: (e) => {
+          if (e.total) setUploading(Math.round((e.loaded / e.total) * 100));
+        },
+      });
       router.refresh(() =>
         addToast({ title: "Attachment uploaded", variant: "success" }),
       );
@@ -51,7 +56,7 @@ export function AssetAttachments({
         variant: "error",
       });
     } finally {
-      setUploading(false);
+      setUploading(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
@@ -80,14 +85,23 @@ export function AssetAttachments({
   return (
     <div className="flex flex-col gap-4">
       {canManage && (
-        <div className="flex justify-end">
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          {uploading !== null && (
+            <p
+              role="status"
+              className="text-muted-foreground flex items-center gap-2 text-sm"
+            >
+              <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+              {uploading < 100 ? `Uploading… ${uploading}%` : "Saving…"}
+            </p>
+          )}
           <Input
             ref={fileInputRef}
             id="attachment-upload"
             type="file"
             accept="image/jpeg,image/png,image/webp,application/pdf"
             onChange={handleFileChange}
-            disabled={uploading}
+            disabled={uploading !== null}
             className="max-w-xs"
           />
         </div>
@@ -103,9 +117,10 @@ export function AssetAttachments({
               <Button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
+                loading={uploading !== null}
                 className="gap-1.5"
               >
-                <Upload className="h-4 w-4" />
+                {uploading === null && <Upload className="h-4 w-4" />}
                 Upload a file
               </Button>
             ) : undefined

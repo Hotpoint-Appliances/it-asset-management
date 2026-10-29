@@ -5,9 +5,7 @@ import axios from "axios";
 import {
   AlertTriangle,
   CheckCircle2,
-  Download,
   FileSpreadsheet,
-  Loader2,
   Upload,
   XCircle,
 } from "lucide-react";
@@ -28,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/Table";
+import { DownloadButton } from "@/components/shared/DownloadButton";
 import { Pagination } from "@/components/shared/Pagination";
 import { usePagination } from "@/lib/hooks/usePagination";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
@@ -169,12 +168,13 @@ export function AssetImport() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <Button variant="outline" asChild className="self-start">
-            <a href="/api/assets/import/template" download>
-              <Download className="h-4 w-4" />
-              Download template
-            </a>
-          </Button>
+          <DownloadButton
+            href="/api/assets/import/template"
+            variant="outline"
+            className="self-start"
+          >
+            Download template
+          </DownloadButton>
           <ul className="text-muted-foreground list-disc space-y-1 pl-5 text-sm">
             <li>
               Columns marked * are required. Each asset needs an owner: an{" "}
@@ -230,14 +230,11 @@ export function AssetImport() {
             <Button
               type="submit"
               variant={checked ? "outline" : "default"}
+              loading={busy === "check"}
               disabled={busy !== null || !file}
               className="self-start sm:self-auto"
             >
-              {busy === "check" ? (
-                <Loader2 aria-hidden="true" className="animate-spin" />
-              ) : (
-                <FileSpreadsheet className="h-4 w-4" />
-              )}
+              {busy !== "check" && <FileSpreadsheet className="h-4 w-4" />}
               {busy === "check"
                 ? "Checking…"
                 : result
@@ -267,14 +264,11 @@ export function AssetImport() {
                   <PreviewTable result={result} />
                   <Button
                     onClick={handleImport}
+                    loading={busy === "import"}
                     disabled={busy !== null}
                     className="self-start"
                   >
-                    {busy === "import" ? (
-                      <Loader2 aria-hidden="true" className="animate-spin" />
-                    ) : (
-                      <Upload className="h-4 w-4" />
-                    )}
+                    {busy !== "import" && <Upload className="h-4 w-4" />}
                     {busy === "import"
                       ? "Importing…"
                       : `Import ${result.preview.length} asset${result.preview.length === 1 ? "" : "s"}`}

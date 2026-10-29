@@ -71,11 +71,11 @@ export async function POST(request: NextRequest) {
       `Imported from ${file.name.slice(0, 120)}`,
     );
   } catch (err) {
-    // Something changed between the checks above and the insert (another user created one of
-    // these tags, or a referenced setting was deleted). The transaction rolled back.
+    // Something changed between the checks above and the insert (another user recorded one of
+    // these tags or serials, or a referenced setting was deleted). The transaction rolled back.
     if (isUniqueViolation(err)) {
       return fileProblem(
-        "One of these asset tags was just created by someone else. Nothing was imported; check the file again.",
+        "One of these asset tags or serial numbers was just recorded by someone else. Nothing was imported; check the file again.",
         409,
       );
     }

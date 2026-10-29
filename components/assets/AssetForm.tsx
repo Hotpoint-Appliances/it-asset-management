@@ -77,6 +77,7 @@ type AssetField =
   | "assetTag"
   | "name"
   | "categoryId"
+  | "serialNumber"
   | "locationId"
   | "departmentId"
   | "assignedUserId"
@@ -413,6 +414,8 @@ export function AssetForm({
         assetTag: !form.assetTag.trim() && "Enter an asset tag.",
         name: !form.name.trim() && "Enter a name.",
         categoryId: form.categoryId == null && "Select a category.",
+        serialNumber:
+          !form.serialNumber.trim() && "Enter the manufacturer serial number.",
         locationId: form.locationId == null && "Select a location.",
         departmentId: form.departmentId == null && "Select a department.",
         assignedUserId:
@@ -572,9 +575,17 @@ export function AssetForm({
             onChange={(e) => update("modelNumber", e.target.value)}
           />
         </Field>
-        <Field label="Serial number" htmlFor="asset-serial">
+        <Field
+          label="Serial number"
+          htmlFor="asset-serial"
+          required
+          error={fields.errors.serialNumber}
+          errorId={fields.errorId("serialNumber")}
+        >
           <Input
             id="asset-serial"
+            required
+            {...fields.invalid("serialNumber")}
             value={form.serialNumber}
             onChange={(e) => update("serialNumber", e.target.value)}
           />
@@ -958,7 +969,7 @@ export function AssetForm({
         <Button type="button" variant="outline" onClick={() => router.back()}>
           Cancel
         </Button>
-        <Button type="submit" disabled={submitting}>
+        <Button type="submit" loading={submitting}>
           {submitting
             ? "Saving…"
             : mode === "create"

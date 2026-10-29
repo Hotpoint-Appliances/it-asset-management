@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import axios from "axios";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import {
@@ -189,10 +188,7 @@ export function ChangePasswordDialog({
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={submitting}>
-              {submitting && (
-                <Loader2 aria-hidden="true" className="animate-spin" />
-              )}
+            <Button type="submit" loading={submitting}>
               {submitting ? "Saving…" : "Change password"}
             </Button>
           </DialogFooter>
