@@ -8,6 +8,7 @@ import type {
   RecentActivityItem,
   AssetInRepairItem,
   LifecycleOverview,
+  MonthlyMovement,
 } from "@/types/dashboard";
 
 /** Every query here takes the requester and enforces viewer department scoping in SQL, the
@@ -246,4 +247,40 @@ export async function getLifecycleOverview(
       daysRemaining: r.days_remaining,
     })),
   };
+}
+
+/** Assets added (by when they were registered, imports included) and disposed (by disposal
+ * date) in each of the last `months` calendar months, this month included, oldest first.
+ * Every month is present, with zeros when nothing happened. */
+export async function listMonthlyMovement(
+  requester: AssetRequester,
+  months = 12,
+): Promise<MonthlyMovement[]> {
+  const result = await query<{
+    month: string;
+    added: string;
+    disposed: string;
+  }>(
+    `WITH months AS (
+       SELECT generate_series(
+         date_trunc('month', CURRENT_DATE) - make_interval(months => $3::int - 1),
+         date_trunc('month', CURRENT_DATE),
+         interval '1 month'
+       )::date AS month
+     )
+     SELECT to_char(m.month, 'YYYY-MM') AS month,
+       (SELECT count(*) FROM assets a
+        WHERE a.deleted_at IS NULL AND ${SCOPE}
+          AND date_trunc('month', a.created_at)::date = m.month) AS added,
+       (SELECT count(*) FROM asset_disposals dp JOIN assets a ON a.id = dp.asset_id
+        WHERE a.deleted_at IS NULL AND ${SCOPE}
+          AND date_trunc('month', dp.disposal_date)::date = m.month) AS disposed
+     FROM months m ORDER BY m.month`,
+    [...scopeParams(requester), months],
+  );
+  return result.rows.map((r) => ({
+    month: r.month,
+    added: Number(r.added),
+    disposed: Number(r.disposed),
+  }));
 }

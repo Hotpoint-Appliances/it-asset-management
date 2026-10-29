@@ -69,3 +69,11 @@ export interface RefreshDueItem {
   /** Negative once past end of life. */
   daysRemaining: number;
 }
+
+/** One calendar month of fleet movement: assets added to the register and assets disposed. */
+export interface MonthlyMovement {
+  /** "YYYY-MM". */
+  month: string;
+  added: number;
+  disposed: number;
+}

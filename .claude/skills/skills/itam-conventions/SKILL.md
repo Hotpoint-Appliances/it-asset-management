@@ -131,6 +131,7 @@ proxy.ts                        # Next.js 16 renamed middleware.ts to proxy.ts â
                                 # View/Edit/Transfer/Dispose DropdownMenu) (Phase 5);
                                 # AccessoriesEditor (shared row editor), AccessoriesTab (detail tab)
   /dashboard/                  # StatTile, BarBreakdown (hand-rolled CSS bars), StatusDonut (Recharts), LifecycleCard (age bands + refresh due),
+                                # MovementTrendCard (Recharts, added vs disposed per month),
                                 # WarrantyExpiringCard (client, window toggle), RecentActivityCard,
                                 # InRepairCard (Phase 6)
   /reports/                    # ReportCard, AuditTrailReportCard (date-range options) (Phase 6)
