@@ -110,11 +110,13 @@ function Figure({
   tone: "default" | "warning" | "danger";
 }) {
   return (
-    <div className="bg-muted/50 rounded-lg px-3 py-2.5">
+    // The number is pinned to the bottom of the box, so the pair keeps its numbers level when one
+    // label wraps to two lines and the other does not.
+    <div className="bg-muted/50 flex flex-col rounded-lg px-3 py-2.5">
       <p className="text-muted-foreground text-xs">{label}</p>
       <p
         className={cn(
-          "mt-0.5 text-2xl font-semibold tabular-nums",
+          "mt-auto pt-0.5 text-2xl font-semibold tabular-nums",
           tone === "warning" && "text-warning",
           tone === "danger" && "text-destructive",
         )}

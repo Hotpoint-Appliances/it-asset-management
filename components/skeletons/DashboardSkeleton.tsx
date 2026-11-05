@@ -127,8 +127,10 @@ function LifecycleSkeleton() {
       </CardHeader>
       <CardContent className="flex flex-col gap-5 pt-0">
         <div className="grid grid-cols-2 gap-3">
-          <Skeleton className="h-[4.25rem] rounded-lg" />
-          <Skeleton className="h-[4.25rem] rounded-lg" />
+          <FigureSkeleton label="Past useful life" />
+          {/* The real label carries the window from getLifecycleOverview's default. Spelling it out
+              lets it wrap exactly as the loaded one does, so the card does not jump. */}
+          <FigureSkeleton label="Due within 6 months" />
         </div>
         <ul className="flex flex-col gap-2.5">
           {BAR_WIDTHS.slice(0, 4).map((barWidth, i) => (
@@ -151,6 +153,17 @@ function LifecycleSkeleton() {
         </ul>
       </CardContent>
     </Card>
+  );
+}
+
+function FigureSkeleton({ label }: { label: string }) {
+  return (
+    <div className="bg-muted/50 flex flex-col rounded-lg px-3 py-2.5">
+      <p className="text-muted-foreground text-xs">{label}</p>
+      <div className="mt-auto pt-0.5">
+        <Skeleton className="h-8 w-8" />
+      </div>
+    </div>
   );
 }
 
