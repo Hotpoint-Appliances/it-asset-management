@@ -130,6 +130,8 @@ export function LoginForm() {
               </label>
               <Link
                 href="/forgot-password"
+                // Out of the tab order so Tab goes from the email straight to the password.
+                tabIndex={-1}
                 className="text-primary text-sm font-medium underline-offset-4 hover:underline"
               >
                 Forgot password?
