@@ -78,8 +78,8 @@ ORM): apply with `psql "$DATABASE_URL" -f <file>`.
 | `locations`         | Physical locations, self-referencing hierarchy                                                   |
 | `categories`        | Asset categories, self-referencing hierarchy                                                     |
 | `vendors`           | Suppliers — used by assets (purchase) and asset_maintenance (repair vendor)                      |
-| `asset_conditions`  | Admin-editable condition lookup (seeded: good/bad/worse)                                         |
-| `asset_statuses`    | Admin-editable status lookup (seeded: active/in_storage/reserved/in_repair/lost/stolen/disposed) |
+| `asset_conditions`  | Admin-editable condition lookup (seeded: good/fair/bad/worse)                                    |
+| `asset_statuses`    | Admin-editable status lookup (seeded: active/in_storage/reserved/in_repair/lost/stolen/disposed/awaiting_disposal/faulty/beyond_repair) |
 | `users`             | System users; role + optional department                                                         |
 | `assets`            | Core entity — see full column list in schema.sql                                                 |
 | `asset_audit_log`   | Unified history for every tracked asset event                                                    |
