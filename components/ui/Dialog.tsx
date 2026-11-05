@@ -28,6 +28,7 @@ function DialogOverlay({
 function DialogContent({
   className,
   children,
+  onInteractOutside,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content>) {
   return (
@@ -41,6 +42,17 @@ function DialogContent({
           "sm:border-border sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-auto sm:max-h-[85dvh] sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:border",
           className,
         )}
+        onInteractOutside={(e) => {
+          // Toasts render outside the dialog, but using one isn't a click away from it.
+          const target = e.detail.originalEvent.target;
+          if (
+            target instanceof Element &&
+            target.closest("[data-toast-layer]")
+          ) {
+            e.preventDefault();
+          }
+          onInteractOutside?.(e);
+        }}
         {...props}
       >
         {children}

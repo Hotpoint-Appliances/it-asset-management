@@ -415,6 +415,17 @@ html {
     animation-play-state: paused;
   }
 }
+/* Bottom corner, except on phones with a dialog open: dialogs are full-screen there with their
+   actions along the bottom, so the toasts move out of the way to the top. */
+.toast-layer {
+  bottom: max(1rem, env(safe-area-inset-bottom));
+}
+@media (width < 40rem) {
+  body:has([role="dialog"][data-state="open"]) .toast-layer {
+    top: max(1rem, env(safe-area-inset-top));
+    bottom: auto;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .toast-enter {
     animation-name: fade-in;

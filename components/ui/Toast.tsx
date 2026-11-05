@@ -59,7 +59,12 @@ export function Toaster() {
 
   return (
     <Portal>
-      <div className="fixed inset-x-4 bottom-4 z-100 flex flex-col gap-2 sm:inset-x-auto sm:right-4 sm:w-full sm:max-w-sm">
+      {/* An open modal sets pointer-events: none on <body>, so the layer turns them back on for its
+          cards. DialogContent reads data-toast-layer so that using a toast doesn't close the dialog. */}
+      <div
+        data-toast-layer
+        className="toast-layer pointer-events-none fixed inset-x-4 z-100 flex flex-col gap-2 *:pointer-events-auto sm:inset-x-auto sm:right-4 sm:w-full sm:max-w-sm"
+      >
         {toasts.map((toast) => (
           <ToastCard key={toast.id} toast={toast} onDismiss={removeToast} />
         ))}
@@ -99,7 +104,17 @@ function ToastCard({
         className={cn("mt-0.5 h-7 w-7 shrink-0", VARIANT_ICON_CLASS[variant])}
       />
       <div className="flex-1 space-y-0.5">
-        <p className="text-sm font-semibold">{label ?? toast.title}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold">{label ?? toast.title}</p>
+          {toast.count > 1 && (
+            <span
+              aria-label={`Shown ${toast.count} times`}
+              className="bg-toast-muted-foreground/20 rounded-full px-1.5 text-xs leading-5 font-semibold tabular-nums"
+            >
+              x{toast.count}
+            </span>
+          )}
+        </div>
         {label && <p className="text-sm">{toast.title}</p>}
         {toast.description && (
           <p className="text-toast-muted-foreground text-sm">

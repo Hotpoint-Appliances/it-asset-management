@@ -9,6 +9,48 @@ export interface Toast {
   variant?: ToastVariant;
   /** ms before auto-dismiss; 0 or a "loading" variant means it never auto-dismisses. */
   duration?: number;
+  /** How many times it has fired while on screen, shown as a pill from 2 up. */
+  count: number;
+  firedAt: number;
+}
+
+/** The most shown at once, so a burst can't fill the screen. The oldest goes first. */
+const MAX_TOASTS = 4;
+
+/** A repeat this soon is one event firing twice (React runs effects twice in development), not
+ * something the user did again, so it doesn't add to the count. */
+const SAME_EVENT_WINDOW_MS = 300;
+
+/** Repeating a toast still on screen replaces it, with a new id so it comes back as the newest
+ * with its full time, and adds to its count rather than stacking copies. A "loading" toast is
+ * tied to work in progress, so it never merges and is never evicted. */
+function withToast(
+  toasts: Toast[],
+  toast: Omit<Toast, "id" | "count" | "firedAt">,
+  id: string,
+): Toast[] {
+  const firedAt = Date.now();
+  const isLoading = (t: { variant?: ToastVariant }) => t.variant === "loading";
+  const isSame = (t: Toast) =>
+    !isLoading(t) &&
+    (t.variant ?? "info") === (toast.variant ?? "info") &&
+    t.title === toast.title &&
+    t.description === toast.description;
+  const repeated = toasts.find(isSame);
+  const isSameEvent =
+    repeated && firedAt - repeated.firedAt < SAME_EVENT_WINDOW_MS;
+
+  const next = [
+    ...toasts.filter((t) => !isSame(t)),
+    {
+      ...toast,
+      id,
+      firedAt,
+      count: (repeated?.count ?? 0) + (isSameEvent ? 0 : 1),
+    },
+  ];
+  let excess = next.filter((t) => !isLoading(t)).length - MAX_TOASTS;
+  return next.filter((t) => isLoading(t) || excess-- <= 0);
 }
 
 function generateId() {
@@ -31,7 +73,7 @@ interface UIState {
   sidebarCollapsed: boolean | null;
   setSidebarCollapsed: (collapsed: boolean) => void;
   toasts: Toast[];
-  addToast: (toast: Omit<Toast, "id">) => string;
+  addToast: (toast: Omit<Toast, "id" | "count" | "firedAt">) => string;
   removeToast: (id: string) => void;
   /** Counter, not a boolean — overlapping route-progress signals (a `<Link>` navigation and a
    * `router.refresh()` firing close together) must not cancel each other out early. */
@@ -59,7 +101,7 @@ export const useUIStore = create<UIState>()((set) => ({
   toasts: [],
   addToast: (toast) => {
     const id = generateId();
-    set((state) => ({ toasts: [...state.toasts, { ...toast, id }] }));
+    set((state) => ({ toasts: withToast(state.toasts, toast, id) }));
     return id;
   },
   removeToast: (id) =>
