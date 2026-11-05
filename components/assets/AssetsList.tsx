@@ -28,8 +28,10 @@ import {
 import { DownloadButton } from "@/components/shared/DownloadButton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { MultiSelectFilter } from "@/components/shared/MultiSelectFilter";
+import { AssetColumnsMenu } from "./AssetColumnsMenu";
 import { AssetRowActions } from "./AssetRowActions";
 import { LinkProgress } from "@/components/layout/LinkProgress";
+import { useAssetColumns } from "@/lib/hooks/useAssetColumns";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import { cn } from "@/lib/utils";
 import {
@@ -86,6 +88,8 @@ export function AssetsList({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [search, setSearch] = React.useState(searchParams.get("search") ?? "");
+  const columns = useAssetColumns();
+  const { isVisible } = columns;
 
   function currentValues(key: string): string[] {
     return searchParams.getAll(key);
@@ -290,6 +294,7 @@ export function AssetsList({
               Clear filters
             </Button>
           )}
+          <AssetColumnsMenu columns={columns} />
         </div>
       </div>
 
@@ -322,12 +327,16 @@ export function AssetsList({
               <TableRow>
                 {sortableHead("tag", "Tag")}
                 {sortableHead("name", "Name")}
-                {sortableHead("category", "Category")}
-                {sortableHead("status", "Status")}
-                {sortableHead("condition", "Condition")}
-                {sortableHead("location", "Location")}
-                {sortableHead("department", "Department")}
-                {sortableHead("owner", "Owner")}
+                {isVisible("serial") && sortableHead("serial", "Serial number")}
+                {isVisible("category") && sortableHead("category", "Category")}
+                {isVisible("status") && sortableHead("status", "Status")}
+                {isVisible("condition") &&
+                  sortableHead("condition", "Condition")}
+                {isVisible("location") && sortableHead("location", "Location")}
+                {isVisible("department") &&
+                  sortableHead("department", "Department")}
+                {isVisible("owner") && sortableHead("owner", "Owner")}
+                {isVisible("email") && sortableHead("email", "Owner email")}
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -350,22 +359,46 @@ export function AssetsList({
                       <LinkProgress />
                     </Link>
                   </TableCell>
-                  <TableCell>{asset.categoryName}</TableCell>
-                  <TableCell>
-                    <Badge variant={statusBadgeVariant(asset.statusName)}>
-                      {formatLookupName(asset.statusName)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={conditionBadgeVariant(asset.conditionName)}>
-                      {formatLookupName(asset.conditionName)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{asset.locationName}</TableCell>
-                  <TableCell>{asset.departmentName}</TableCell>
-                  <TableCell>
-                    {asset.assignedUserName ?? asset.ownerName ?? "N/A"}
-                  </TableCell>
+                  {isVisible("serial") && (
+                    <TableCell className="font-mono text-xs">
+                      {asset.serialNumber}
+                    </TableCell>
+                  )}
+                  {isVisible("category") && (
+                    <TableCell>{asset.categoryName}</TableCell>
+                  )}
+                  {isVisible("status") && (
+                    <TableCell>
+                      <Badge variant={statusBadgeVariant(asset.statusName)}>
+                        {formatLookupName(asset.statusName)}
+                      </Badge>
+                    </TableCell>
+                  )}
+                  {isVisible("condition") && (
+                    <TableCell>
+                      <Badge
+                        variant={conditionBadgeVariant(asset.conditionName)}
+                      >
+                        {formatLookupName(asset.conditionName)}
+                      </Badge>
+                    </TableCell>
+                  )}
+                  {isVisible("location") && (
+                    <TableCell>{asset.locationName}</TableCell>
+                  )}
+                  {isVisible("department") && (
+                    <TableCell>{asset.departmentName}</TableCell>
+                  )}
+                  {isVisible("owner") && (
+                    <TableCell>
+                      {asset.assignedUserName ?? asset.ownerName ?? "N/A"}
+                    </TableCell>
+                  )}
+                  {isVisible("email") && (
+                    <TableCell>
+                      {asset.assignedUserEmail ?? asset.ownerEmail ?? "N/A"}
+                    </TableCell>
+                  )}
                   <TableCell className="relative z-10 text-right">
                     <AssetRowActions
                       asset={asset}

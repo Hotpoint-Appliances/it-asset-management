@@ -51,6 +51,7 @@ export interface AssetListItem {
   id: string;
   assetTag: string;
   name: string;
+  serialNumber: string;
   imagePath: string | null;
   categoryName: string;
   statusName: string;
@@ -61,6 +62,7 @@ export interface AssetListItem {
   departmentName: string;
   assignedUserId: string | null;
   assignedUserName: string | null;
+  assignedUserEmail: string | null;
   ownerName: string | null;
   ownerEmail: string | null;
 }

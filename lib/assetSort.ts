@@ -12,6 +12,8 @@ export const ASSET_SORT_KEYS = [
   "location",
   "department",
   "owner",
+  "email",
+  "serial",
   "updated",
 ] as const;
 

@@ -134,6 +134,7 @@ interface AssetListRow {
   id: string;
   asset_tag: string;
   name: string;
+  serial_number: string;
   image_path: string | null;
   category_name: string;
   status_name: string;
@@ -144,6 +145,7 @@ interface AssetListRow {
   department_name: string;
   assigned_user_id: string | null;
   assigned_user_name: string | null;
+  assigned_user_email: string | null;
   owner_name: string | null;
   owner_email: string | null;
 }
@@ -153,6 +155,7 @@ function mapAssetListItem(row: AssetListRow): AssetListItem {
     id: row.id,
     assetTag: row.asset_tag,
     name: row.name,
+    serialNumber: row.serial_number,
     imagePath: row.image_path,
     categoryName: row.category_name,
     statusName: row.status_name,
@@ -163,6 +166,7 @@ function mapAssetListItem(row: AssetListRow): AssetListItem {
     departmentName: row.department_name,
     assignedUserId: row.assigned_user_id,
     assignedUserName: row.assigned_user_name,
+    assignedUserEmail: row.assigned_user_email,
     ownerName: row.owner_name,
     ownerEmail: row.owner_email,
   };
@@ -230,6 +234,8 @@ const ASSET_SORT_SQL: Record<AssetSort["key"], string> = {
   location: "lower(l.name)",
   department: "lower(d.name)",
   owner: "lower(COALESCE(au.full_name, a.owner_name))",
+  email: "lower(COALESCE(au.email, a.owner_email))",
+  serial: "lower(a.serial_number)",
   updated: "a.updated_at",
 };
 
@@ -257,10 +263,11 @@ export async function listAssets(
   );
   const [rows, count] = await Promise.all([
     query<AssetListRow>(
-      `SELECT a.id, a.asset_tag, a.name, a.image_path,
+      `SELECT a.id, a.asset_tag, a.name, a.serial_number, a.image_path,
               c.name AS category_name, st.name AS status_name, cond.name AS condition_name,
               a.location_id, l.name AS location_name, a.department_id, d.name AS department_name,
-              a.assigned_user_id, au.full_name AS assigned_user_name, a.owner_name, a.owner_email
+              a.assigned_user_id, au.full_name AS assigned_user_name, au.email AS assigned_user_email,
+              a.owner_name, a.owner_email
        ${RELATIONS_JOIN}
        WHERE ${where}
        ORDER BY ${orderBy}

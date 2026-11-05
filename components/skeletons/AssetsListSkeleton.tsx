@@ -30,6 +30,7 @@ export function AssetsListSkeleton() {
           {FILTER_WIDTHS.map((width, i) => (
             <Skeleton key={i} className={cn("h-9", width)} />
           ))}
+          <Skeleton className="ml-auto h-9 w-28" />
         </div>
       </div>
 
