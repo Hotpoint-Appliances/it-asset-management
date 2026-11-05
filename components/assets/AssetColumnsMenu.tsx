@@ -32,10 +32,7 @@ export function AssetColumnsMenu({
           <ChevronDown className="h-3.5 w-3.5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="flex flex-col overflow-hidden p-0"
-      >
+      <DropdownMenuContent align="end" customLayout>
         {/* The header and footer stay pinned; only the column list between them scrolls. */}
         <div className="shrink-0 px-1 pt-1">
           <DropdownMenuLabel>Visible columns</DropdownMenuLabel>

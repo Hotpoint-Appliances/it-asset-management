@@ -69,7 +69,8 @@ export function NotificationBell() {
         align="end"
         // Only the list scrolls; the header and the Mark all / View all actions stay pinned
         // instead of sliding below the menu's max height.
-        className="flex max-h-[min(32rem,var(--radix-dropdown-menu-content-available-height))] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden"
+        customLayout
+        className="max-h-[min(32rem,var(--radix-dropdown-menu-content-available-height))] w-[min(24rem,calc(100vw-2rem))] p-1"
       >
         <DropdownMenuLabel className="flex shrink-0 items-center justify-between">
           <span className="font-medium">Notifications</span>

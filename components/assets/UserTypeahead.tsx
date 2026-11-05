@@ -133,43 +133,45 @@ export function UserTypeahead({
               left: position.left,
               width: position.width,
             }}
-            className="bg-card border-border scroll-area-thin fixed z-[60] max-h-56 overflow-y-auto rounded-lg border p-1 shadow-md"
+            className="bg-card border-border fixed z-[60] flex max-h-56 flex-col overflow-clip rounded-lg border shadow-md"
           >
-            {loadingUsers ? (
-              <div className="space-y-1 p-1">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="bg-muted h-10 w-full animate-pulse rounded-md"
-                  />
-                ))}
-              </div>
-            ) : matches.length === 0 ? (
-              <p className="text-muted-foreground px-3 py-2 text-sm">
-                No matching users
-              </p>
-            ) : (
-              matches.map((u) => (
-                <button
-                  type="button"
-                  key={u.id}
-                  onClick={() => {
-                    onSelect({ id: u.id, fullName: u.fullName });
-                    setQuery("");
-                    setOpen(false);
-                  }}
-                  className={cn(
-                    "flex min-h-11 w-full flex-col items-start rounded-md px-2 py-1.5 text-left text-sm",
-                    "hover:bg-muted",
-                  )}
-                >
-                  <span className="font-medium">{u.fullName}</span>
-                  <span className="text-muted-foreground text-xs">
-                    {u.email}
-                  </span>
-                </button>
-              ))
-            )}
+            <div className="scroll-area-thin min-h-0 flex-1 overflow-y-auto p-1">
+              {loadingUsers ? (
+                <div className="space-y-1 p-1">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="bg-muted h-10 w-full animate-pulse rounded-md"
+                    />
+                  ))}
+                </div>
+              ) : matches.length === 0 ? (
+                <p className="text-muted-foreground px-3 py-2 text-sm">
+                  No matching users
+                </p>
+              ) : (
+                matches.map((u) => (
+                  <button
+                    type="button"
+                    key={u.id}
+                    onClick={() => {
+                      onSelect({ id: u.id, fullName: u.fullName });
+                      setQuery("");
+                      setOpen(false);
+                    }}
+                    className={cn(
+                      "flex min-h-11 w-full flex-col items-start rounded-md px-2 py-1.5 text-left text-sm",
+                      "hover:bg-muted",
+                    )}
+                  >
+                    <span className="font-medium">{u.fullName}</span>
+                    <span className="text-muted-foreground text-xs">
+                      {u.email}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
           </div>
         </Portal>
       )}

@@ -102,7 +102,8 @@ export function MultiSelectFilter({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className="flex max-h-72 flex-col overflow-hidden p-0"
+        customLayout
+        className="max-h-72"
         onFocus={searchable ? handleContentFocus : undefined}
         onKeyDown={searchable ? handleContentKeyDown : undefined}
       >

@@ -13,23 +13,39 @@ function DropdownMenu({
 }
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
 
+/** The rounded box clips and an inner element scrolls, so the scrollbar and hover rows are cut by
+ * the corners instead of running into them. `customLayout` skips that inner element, for menus
+ * that pin a header or footer around their own scroller (`scroll-area-thin min-h-0 flex-1
+ * overflow-y-auto`). */
 function DropdownMenuContent({
   className,
   sideOffset = 4,
+  customLayout = false,
+  children,
   ...props
-}: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Content> & {
+  customLayout?: boolean;
+}) {
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
         sideOffset={sideOffset}
         className={cn(
-          "bg-card text-card-foreground border-border scroll-area-thin z-50 min-w-48 overflow-y-auto rounded-lg border p-1 shadow-md",
+          "bg-card text-card-foreground border-border z-50 flex min-w-48 flex-col overflow-clip rounded-lg border shadow-md",
           "max-h-[min(24rem,var(--radix-dropdown-menu-content-available-height))]",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           className,
         )}
         {...props}
-      />
+      >
+        {customLayout ? (
+          children
+        ) : (
+          <div className="scroll-area-thin min-h-0 flex-1 overflow-y-auto p-1">
+            {children}
+          </div>
+        )}
+      </DropdownMenuPrimitive.Content>
     </DropdownMenuPrimitive.Portal>
   );
 }
