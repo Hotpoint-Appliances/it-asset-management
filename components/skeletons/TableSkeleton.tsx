@@ -6,6 +6,8 @@ import {
   TableRow,
   TableHead,
   TableCell,
+  stickyEndHeadClass,
+  stickyEndCellClass,
 } from "@/components/ui/Table";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +17,8 @@ export interface SkeletonColumn {
   cell?: "text" | "mono" | "badge" | "actions";
   /** Icon buttons in an `actions` cell. */
   actions?: number;
+  /** Pinned to the right edge, for a table whose real last column is. */
+  sticky?: boolean;
 }
 
 // Cycled per cell so rows read as varied data rather than a stamped grid.
@@ -36,7 +40,10 @@ export function TableSkeleton({
           {columns.map((col) => (
             <TableHead
               key={col.header}
-              className={cn(col.cell === "actions" && "text-right")}
+              className={cn(
+                col.cell === "actions" && "text-right",
+                col.sticky && stickyEndHeadClass,
+              )}
             >
               {col.header}
             </TableHead>
@@ -45,9 +52,12 @@ export function TableSkeleton({
       </TableHeader>
       <TableBody>
         {Array.from({ length: rows }).map((_, row) => (
-          <TableRow key={row} className="hover:bg-transparent">
+          <TableRow key={row} className="group/row hover:bg-transparent">
             {columns.map((col, i) => (
-              <TableCell key={col.header}>
+              <TableCell
+                key={col.header}
+                className={cn(col.sticky && stickyEndCellClass)}
+              >
                 <CellSkeleton column={col} width={TEXT_WIDTHS[(row + i) % 4]} />
               </TableCell>
             ))}

@@ -24,6 +24,8 @@ import {
   TableRow,
   TableHead,
   TableCell,
+  stickyEndHeadClass,
+  stickyEndCellClass,
 } from "@/components/ui/Table";
 import { DownloadButton } from "@/components/shared/DownloadButton";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -341,7 +343,9 @@ export function AssetsList({
                   sortableHead("department", "Department")}
                 {isVisible("owner") && sortableHead("owner", "Owner")}
                 {isVisible("email") && sortableHead("email", "Owner email")}
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className={cn(stickyEndHeadClass, "text-right")}>
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -350,7 +354,7 @@ export function AssetsList({
                 // (a real anchor, so ctrl/middle-click, prefetch and keyboard focus all work),
                 // not a row onClick, which would also fire for clicks inside the actions menu's
                 // portaled dialogs since React bubbles events through portals.
-                <TableRow key={asset.id} className="relative">
+                <TableRow key={asset.id} className="group/row relative">
                   <TableCell className="font-mono text-xs font-medium">
                     {asset.assetTag}
                   </TableCell>
@@ -402,7 +406,7 @@ export function AssetsList({
                       {asset.assignedUserEmail ?? asset.ownerEmail ?? "N/A"}
                     </TableCell>
                   )}
-                  <TableCell className="relative z-10 text-right">
+                  <TableCell className={cn(stickyEndCellClass, "text-right")}>
                     <AssetRowActions
                       asset={asset}
                       canManage={canManage}

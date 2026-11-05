@@ -90,4 +90,19 @@ const TableCell = React.forwardRef<
 ));
 TableCell.displayName = "TableCell";
 
+/** Pins a table's last column to the right edge while the rest scrolls under it. It needs opaque
+ * backgrounds matching the translucent header and row hover tints, and the divider is a pseudo
+ * element because a collapsed table's borders don't travel with a sticky cell. The row needs
+ * `group/row` for the hover tint. */
+const stickyEndClass =
+  "before:bg-border sticky right-0 z-10 before:absolute before:inset-y-0 before:left-0 before:w-px";
+export const stickyEndHeadClass = cn(
+  stickyEndClass,
+  "bg-[color-mix(in_srgb,var(--muted)_50%,var(--background))]",
+);
+export const stickyEndCellClass = cn(
+  stickyEndClass,
+  "bg-background group-hover/row:bg-[color-mix(in_srgb,var(--muted)_50%,var(--background))] transition-colors",
+);
+
 export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell };
