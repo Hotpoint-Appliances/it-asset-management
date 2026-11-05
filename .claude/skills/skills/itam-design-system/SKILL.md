@@ -89,6 +89,13 @@ decorative borders, or texture beyond what's specified below.
 
 ## Scrollbars
 
+- Rounded boxes clip and an inner element scrolls: `overflow-clip` plus a radius on the outer box,
+  the `overflow-*-auto` on a child, so scrollbars and hover rows are cut by the corners. Use
+  `overflow-clip` rather than `overflow-hidden`: it can't be scrolled by focus or `scrollIntoView`
+  and doesn't break `position: sticky`. `Card` clips by default, so a card holding something that
+  extends past its edge (`DatePicker`'s inline calendar, see `ReportCard`) adds `overflow-visible`.
+  `DropdownMenuContent` adds the inner scroller itself; pass `customLayout` to pin a header or footer
+  around your own.
 - Every scrollable element gets a transparent-track scrollbar via one of two utility classes
   defined in `app/globals.css`: `.scroll-area` (default width, ~10px thumb) for page-level /
   modal / layout-wrapper scrolling (`main` content area, `Dialog`/`Sheet` content), and
