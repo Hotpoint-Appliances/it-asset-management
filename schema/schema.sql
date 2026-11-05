@@ -106,7 +106,8 @@ CREATE TABLE asset_statuses (
 );
 INSERT INTO asset_statuses (name, sort_order) VALUES
   ('active', 1), ('in_storage', 2), ('reserved', 3), ('in_repair', 4),
-  ('lost', 5), ('stolen', 6), ('disposed', 7);
+  ('lost', 5), ('stolen', 6), ('disposed', 7),
+  ('awaiting_disposal', 8), ('faulty', 9), ('beyond_repair', 10);
 
 -- ============================================================
 -- Users
