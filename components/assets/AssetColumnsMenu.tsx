@@ -32,32 +32,42 @@ export function AssetColumnsMenu({
           <ChevronDown className="h-3.5 w-3.5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Visible columns</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {ASSET_COLUMNS.map((column) => (
-          <DropdownMenuCheckboxItem
-            key={column.key}
-            checked={columns.isVisible(column.key)}
-            onCheckedChange={(checked) =>
-              columns.setVisible(column.key, checked === true)
-            }
-            onSelect={(e) => e.preventDefault()}
+      <DropdownMenuContent
+        align="end"
+        className="flex flex-col overflow-hidden p-0"
+      >
+        {/* The header and footer stay pinned; only the column list between them scrolls. */}
+        <div className="shrink-0 px-1 pt-1">
+          <DropdownMenuLabel>Visible columns</DropdownMenuLabel>
+          <DropdownMenuSeparator className="mb-0" />
+        </div>
+        <div className="scroll-area-thin min-h-0 flex-1 overflow-y-auto p-1">
+          {ASSET_COLUMNS.map((column) => (
+            <DropdownMenuCheckboxItem
+              key={column.key}
+              checked={columns.isVisible(column.key)}
+              onCheckedChange={(checked) =>
+                columns.setVisible(column.key, checked === true)
+              }
+              onSelect={(e) => e.preventDefault()}
+            >
+              {column.label}
+            </DropdownMenuCheckboxItem>
+          ))}
+        </div>
+        <div className="shrink-0 px-1 pb-1">
+          <DropdownMenuSeparator className="mt-0" />
+          <DropdownMenuItem
+            disabled={columns.isDefault}
+            onSelect={(e) => {
+              e.preventDefault();
+              columns.reset();
+            }}
           >
-            {column.label}
-          </DropdownMenuCheckboxItem>
-        ))}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          disabled={columns.isDefault}
-          onSelect={(e) => {
-            e.preventDefault();
-            columns.reset();
-          }}
-        >
-          <RotateCcw className="h-4 w-4" />
-          Reset to default
-        </DropdownMenuItem>
+            <RotateCcw className="h-4 w-4" />
+            Reset to default
+          </DropdownMenuItem>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
