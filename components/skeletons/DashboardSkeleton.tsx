@@ -1,5 +1,11 @@
 import type { LucideIcon } from "lucide-react";
-import { Boxes, CheckCircle2, Wrench, ShieldAlert } from "lucide-react";
+import {
+  Boxes,
+  CheckCircle2,
+  Wrench,
+  TriangleAlert,
+  ShieldAlert,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils";
@@ -12,10 +18,11 @@ export function DashboardSkeleton() {
     <div className="flex flex-col gap-6">
       <PageHeaderSkeleton title="Dashboard" />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <StatTileSkeleton label="Total assets" icon={Boxes} />
         <StatTileSkeleton label="In service" icon={CheckCircle2} />
         <StatTileSkeleton label="In repair" icon={Wrench} />
+        <StatTileSkeleton label="Needs attention" icon={TriangleAlert} />
         {/* The warranty label carries the configured window, so it's data. */}
         <StatTileSkeleton icon={ShieldAlert} />
       </div>

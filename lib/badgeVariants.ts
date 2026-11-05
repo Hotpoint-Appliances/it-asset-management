@@ -27,9 +27,12 @@ const CONDITION_VARIANTS: Record<string, BadgeVariant> = {
 };
 
 /** Settings stores names as typed, so "awaiting disposal" and "awaiting_disposal" both reach here. */
+export function statusKey(name: string): string {
+  return name.trim().toLowerCase().replace(/\s+/g, "_");
+}
+
 export function statusBadgeVariant(name: string): BadgeVariant {
-  const key = name.trim().toLowerCase().replace(/\s+/g, "_");
-  return STATUS_VARIANTS[key] ?? "outline";
+  return STATUS_VARIANTS[statusKey(name)] ?? "outline";
 }
 
 export function conditionBadgeVariant(name: string): BadgeVariant {
