@@ -5,14 +5,14 @@ import * as React from "react";
 /** The assets table's optional columns, in display order. Tag, Name and Actions are always shown:
  * a row needs its identity and its link, and the row menu is the only route to its actions. */
 export const ASSET_COLUMNS = [
-  { key: "serial", label: "Serial number", defaultVisible: false },
+  { key: "serial", label: "Serial number", defaultVisible: true },
   { key: "category", label: "Category", defaultVisible: true },
   { key: "status", label: "Status", defaultVisible: true },
   { key: "condition", label: "Condition", defaultVisible: true },
   { key: "location", label: "Location", defaultVisible: true },
   { key: "department", label: "Department", defaultVisible: true },
   { key: "owner", label: "Owner", defaultVisible: true },
-  { key: "email", label: "Owner email", defaultVisible: false },
+  { key: "email", label: "Owner email", defaultVisible: true },
 ] as const;
 
 export type AssetColumnKey = (typeof ASSET_COLUMNS)[number]["key"];

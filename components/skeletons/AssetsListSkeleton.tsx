@@ -39,12 +39,14 @@ export function AssetsListSkeleton() {
         columns={[
           { header: "Tag", cell: "mono" },
           { header: "Name" },
+          { header: "Serial number", cell: "mono" },
           { header: "Category" },
           { header: "Status", cell: "badge" },
           { header: "Condition", cell: "badge" },
           { header: "Location" },
           { header: "Department" },
           { header: "Owner" },
+          { header: "Owner email" },
           { header: "Actions", cell: "actions" },
         ]}
       />
