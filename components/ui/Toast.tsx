@@ -91,7 +91,7 @@ function ToastCard({
       role={variant === "error" ? "alert" : "status"}
       aria-live={variant === "error" ? "assertive" : "polite"}
       className={cn(
-        "group bg-toast text-toast-foreground border-toast-border relative flex items-start gap-3 overflow-hidden rounded-xl border p-4 shadow-lg",
+        "group bg-toast text-toast-foreground border-toast-border relative flex items-start gap-3 overflow-clip rounded-xl border p-4 shadow-lg",
         closing ? "toast-exit" : "toast-enter",
       )}
       data-state={closing ? "closed" : "open"}

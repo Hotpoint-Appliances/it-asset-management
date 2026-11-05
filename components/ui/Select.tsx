@@ -224,7 +224,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
             onFocus={searchable ? handleContentFocus : undefined}
             onKeyDown={searchable ? handleContentKeyDown : undefined}
             className={cn(
-              "bg-card text-card-foreground border-border relative z-50 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-lg border shadow-md",
+              "bg-card text-card-foreground border-border relative z-50 min-w-[var(--radix-select-trigger-width)] overflow-clip rounded-lg border shadow-md",
               "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
             )}
           >

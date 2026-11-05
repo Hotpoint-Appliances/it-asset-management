@@ -36,7 +36,7 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Content
         className={cn(
-          "bg-card text-card-foreground fixed z-50 flex flex-col overflow-hidden p-0 shadow-lg",
+          "bg-card text-card-foreground fixed z-50 flex flex-col overflow-clip p-0 shadow-lg",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           "inset-x-0 top-0 h-dvh max-h-dvh w-full",
           "sm:border-border sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-auto sm:max-h-[85dvh] sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:border",

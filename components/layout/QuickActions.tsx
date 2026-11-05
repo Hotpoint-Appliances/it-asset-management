@@ -184,7 +184,7 @@ export function QuickActions({ className }: { className?: string }) {
               ? { top: rect.top, left: rect.left, width: rect.width }
               : undefined
           }
-          className="bg-card text-card-foreground border-border data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed z-50 flex max-h-[min(28rem,80dvh)] flex-col overflow-hidden rounded-xl border shadow-lg"
+          className="bg-card text-card-foreground border-border data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed z-50 flex max-h-[min(28rem,80dvh)] flex-col overflow-clip rounded-xl border shadow-lg"
         >
           <DialogPrimitive.Title className="sr-only">
             Quick actions

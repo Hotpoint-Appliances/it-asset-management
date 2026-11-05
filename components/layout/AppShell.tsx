@@ -18,7 +18,7 @@ export function AppShell({
       <Sidebar defaultCollapsed={sidebarCollapsed} className="print:hidden" />
       {/* Inset content panel from `nav` up: rounded, offset from the canvas on top/right/bottom,
           clipping the scroll area to its corners. Full-bleed below `nav` (drawer mode). */}
-      <div className="nav:my-2 nav:mr-2 nav:overflow-hidden nav:rounded-xl nav:border nav:border-border nav:bg-background nav:shadow-sm flex min-h-0 min-w-0 flex-1 flex-col print:m-0 print:min-h-0 print:overflow-visible print:rounded-none print:border-0 print:shadow-none">
+      <div className="nav:my-2 nav:mr-2 nav:overflow-clip nav:rounded-xl nav:border nav:border-border nav:bg-background nav:shadow-sm flex min-h-0 min-w-0 flex-1 flex-col print:m-0 print:min-h-0 print:overflow-visible print:rounded-none print:border-0 print:shadow-none">
         <Topbar defaultCollapsed={sidebarCollapsed} className="print:hidden" />
         {/* `relative` makes this the containing block for absolute descendants (sr-only spans,
             Select's hidden native <select>). Without it they resolve against the viewport, overflow
