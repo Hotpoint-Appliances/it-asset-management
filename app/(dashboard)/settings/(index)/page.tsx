@@ -6,7 +6,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/Card";
-import { LinkProgress } from "@/components/layout/LinkProgress";
 import { settingsSections } from "@/components/layout/settings-sections";
 
 export const metadata: Metadata = {
@@ -29,7 +28,6 @@ export default function SettingsIndexPage() {
               </div>
             </CardHeader>
           </Card>
-          <LinkProgress />
         </Link>
       ))}
     </div>

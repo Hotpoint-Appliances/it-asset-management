@@ -20,6 +20,10 @@ function generateId() {
 
 const SIDEBAR_COOKIE = "itam_sidebar_collapsed";
 
+/** Clears the progress line if a navigation never completes (failed, or cancelled by another). */
+const NAVIGATION_TIMEOUT_MS = 15_000;
+let navigationTimer: ReturnType<typeof setTimeout> | undefined;
+
 interface UIState {
   mobileNavOpen: boolean;
   setMobileNavOpen: (open: boolean) => void;
@@ -34,6 +38,10 @@ interface UIState {
   routeLoading: number;
   startRouteLoading: () => void;
   endRouteLoading: () => void;
+  /** A navigation has started and its URL hasn't rendered yet (see instrumentation-client.ts). */
+  navigating: boolean;
+  startNavigation: () => void;
+  endNavigation: () => void;
   loggingOut: boolean;
   setLoggingOut: (loggingOut: boolean) => void;
 }
@@ -61,6 +69,19 @@ export const useUIStore = create<UIState>()((set) => ({
     set((state) => ({ routeLoading: state.routeLoading + 1 })),
   endRouteLoading: () =>
     set((state) => ({ routeLoading: Math.max(0, state.routeLoading - 1) })),
+  navigating: false,
+  startNavigation: () => {
+    clearTimeout(navigationTimer);
+    navigationTimer = setTimeout(
+      () => set({ navigating: false }),
+      NAVIGATION_TIMEOUT_MS,
+    );
+    set({ navigating: true });
+  },
+  endNavigation: () => {
+    clearTimeout(navigationTimer);
+    set({ navigating: false });
+  },
   loggingOut: false,
   setLoggingOut: (loggingOut) => set({ loggingOut }),
 }));

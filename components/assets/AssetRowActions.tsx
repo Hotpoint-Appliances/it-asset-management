@@ -44,10 +44,10 @@ export function AssetRowActions({
   const isDisposed = asset.statusName === "disposed";
   const router = useRouteLoadingRouter();
 
-  /** The menu closes on select, unmounting its items, so a `LinkProgress` inside them would end
-   * the progress line at once. Client-side navigations go through this component's router
-   * instead, which stays mounted until the new page commits. Modified clicks (new tab) still
-   * fall through to the real anchor, since `onNavigate` only fires for SPA navigations. */
+  /** Client-side navigations go through this component's router, which stays mounted until the
+   * new page commits, unlike the menu items, which unmount when the menu closes on select.
+   * Modified clicks (new tab) still fall through to the real anchor, since `onNavigate` only
+   * fires for SPA navigations. */
   function navigateTo(href: string) {
     return (e: { preventDefault: () => void }) => {
       e.preventDefault();

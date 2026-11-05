@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { navItems } from "./nav-items";
 import { useSession } from "@/lib/auth/session-context";
-import { LinkProgress } from "./LinkProgress";
 import {
   Tooltip,
   TooltipTrigger,
@@ -38,9 +37,7 @@ export function SidebarNav({
         const content = (
           <Link
             href={item.href}
-            onClick={
-              pathname === item.href ? onCurrentPageClick : undefined
-            }
+            onClick={pathname === item.href ? onCurrentPageClick : undefined}
             className={cn(
               "flex min-h-11 min-w-0 items-center gap-3 rounded-lg text-sm font-medium transition-colors",
               collapsed ? "justify-center px-0" : "px-3 py-2",
@@ -52,7 +49,6 @@ export function SidebarNav({
           >
             <Icon className="h-4 w-4 shrink-0" />
             {!collapsed && <span className="truncate">{item.label}</span>}
-            <LinkProgress />
           </Link>
         );
 

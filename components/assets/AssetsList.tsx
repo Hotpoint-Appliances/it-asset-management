@@ -30,7 +30,6 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { MultiSelectFilter } from "@/components/shared/MultiSelectFilter";
 import { AssetColumnsMenu } from "./AssetColumnsMenu";
 import { AssetRowActions } from "./AssetRowActions";
-import { LinkProgress } from "@/components/layout/LinkProgress";
 import { useAssetColumns } from "@/lib/hooks/useAssetColumns";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import { cn } from "@/lib/utils";
@@ -205,7 +204,6 @@ export function AssetsList({
               <Link href="/assets/import" aria-label="Import assets">
                 <Upload className="h-4 w-4" />
                 <span className="hidden sm:inline">Import</span>
-                <LinkProgress />
               </Link>
             </Button>
           )}
@@ -214,7 +212,6 @@ export function AssetsList({
               <Link href="/assets/new">
                 <Plus className="h-4 w-4" />
                 New Asset
-                <LinkProgress />
               </Link>
             </Button>
           )}
@@ -356,7 +353,6 @@ export function AssetsList({
                       className="focus-visible:after:ring-ring after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-inset"
                     >
                       {asset.name}
-                      <LinkProgress />
                     </Link>
                   </TableCell>
                   {isVisible("serial") && (

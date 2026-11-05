@@ -1,8 +1,7 @@
-import { Suspense, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { Footer } from "./Footer";
-import { RouteProgress } from "./RouteProgress";
 import { LogoutOverlay } from "./LogoutOverlay";
 import { ShellScrollArea } from "./ShellScrollArea";
 
@@ -15,9 +14,6 @@ export function AppShell({
 }) {
   return (
     <div className="nav:bg-canvas flex h-dvh overflow-hidden print:block print:h-auto print:overflow-visible print:bg-transparent">
-      <Suspense fallback={null}>
-        <RouteProgress />
-      </Suspense>
       <LogoutOverlay />
       <Sidebar defaultCollapsed={sidebarCollapsed} className="print:hidden" />
       {/* Inset content panel from `nav` up: rounded, offset from the canvas on top/right/bottom,
