@@ -173,6 +173,14 @@ export interface AssetRequester {
   departmentId: number | null;
 }
 
+/** The search term as a literal ILIKE fragment: `%`, `_` and `\` would otherwise act as pattern
+ * syntax, so the `_` in `john_doe@…` would match any character. Whitespace-only searches count as
+ * no search. */
+function toSearchPattern(search: string | null | undefined): string | null {
+  const term = search?.trim();
+  return term ? term.replace(/[\\%_]/g, "\\$&") : null;
+}
+
 /** Builds the shared WHERE clause + params for list/count, including the viewer department
  * scoping enforced at the query layer per itam-conventions (consistent with Phase 2's pattern
  * in listUsers). */
@@ -186,7 +194,7 @@ export function buildAssetFilterClause(
     filters.departmentIds.length ? filters.departmentIds : null,
     filters.locationIds.length ? filters.locationIds : null,
     filters.conditionIds.length ? filters.conditionIds : null,
-    filters.search || null,
+    toSearchPattern(filters.search),
     requester.roleName === "viewer",
     requester.departmentId,
   ];
@@ -197,7 +205,14 @@ export function buildAssetFilterClause(
     AND ($3::int[] IS NULL OR a.department_id = ANY($3))
     AND ($4::int[] IS NULL OR a.location_id = ANY($4))
     AND ($5::int[] IS NULL OR a.condition_id = ANY($5))
-    AND ($6::text IS NULL OR a.asset_tag ILIKE '%' || $6 || '%' OR a.name ILIKE '%' || $6 || '%' OR a.serial_number ILIKE '%' || $6 || '%')
+    AND ($6::text IS NULL
+      OR a.asset_tag ILIKE '%' || $6 || '%'
+      OR a.name ILIKE '%' || $6 || '%'
+      OR a.serial_number ILIKE '%' || $6 || '%'
+      OR au.full_name ILIKE '%' || $6 || '%'
+      OR au.email ILIKE '%' || $6 || '%'
+      OR a.owner_name ILIKE '%' || $6 || '%'
+      OR a.owner_email ILIKE '%' || $6 || '%')
     AND ($7::boolean IS FALSE OR a.department_id = $8)
   `;
   return { where, params };

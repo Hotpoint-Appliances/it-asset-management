@@ -224,7 +224,7 @@ export function AssetsList({
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by tag, name, or serial number…"
+              placeholder="Search by tag, name, serial number, owner or email…"
               className="pl-9"
             />
           </div>
