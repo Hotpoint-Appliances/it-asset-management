@@ -137,7 +137,7 @@ function LifecycleSkeleton() {
               className="grid grid-cols-[minmax(0,9rem)_1fr_2.5rem] items-center gap-3 py-0.5"
             >
               <Skeleton className={cn("h-4", NAME_WIDTHS[i])} />
-              <div className="bg-muted h-2.5 overflow-hidden rounded-full">
+              <div className="bg-muted h-2.5 overflow-clip rounded-full">
                 <div
                   className={cn(
                     "bg-muted-foreground/20 h-full animate-pulse rounded-full",
@@ -172,7 +172,7 @@ function BarBreakdownSkeleton({ title }: { title: string }) {
             >
               <Skeleton className={cn("h-4", NAME_WIDTHS[i])} />
               {/* The track is the real (static) bar track; only the fill is a placeholder. */}
-              <div className="bg-muted h-2.5 overflow-hidden rounded-full">
+              <div className="bg-muted h-2.5 overflow-clip rounded-full">
                 <div
                   className={cn(
                     "bg-muted-foreground/20 h-full animate-pulse rounded-full",

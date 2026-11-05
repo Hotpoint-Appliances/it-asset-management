@@ -42,7 +42,7 @@ export function LifecycleCard({ data }: { data: LifecycleOverview }) {
                 className="grid grid-cols-[minmax(0,9rem)_1fr_2.5rem] items-center gap-3 text-sm"
               >
                 <span className="truncate">{band.label}</span>
-                <div className="bg-muted h-2.5 overflow-hidden rounded-full">
+                <div className="bg-muted h-2.5 overflow-clip rounded-full">
                   <div
                     className="bg-primary h-full rounded-full"
                     style={{ width: `${(band.count / max) * 100}%` }}

@@ -39,7 +39,7 @@ export function BarBreakdown({
                   <span className="truncate capitalize">
                     {item.name.replace(/_/g, " ")}
                   </span>
-                  <div className="bg-muted h-2.5 overflow-hidden rounded-full">
+                  <div className="bg-muted h-2.5 overflow-clip rounded-full">
                     <div
                       className={cn(
                         "h-full rounded-full",

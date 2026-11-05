@@ -363,7 +363,7 @@ export function DatePicker({
           role="dialog"
           aria-label="Choose date"
           className={cn(
-            "border-border bg-card text-card-foreground absolute right-0 z-50 w-76 max-w-[calc(100vw-2rem)] rounded-xl border p-3 shadow-lg",
+            "border-border bg-card text-card-foreground absolute right-0 z-50 w-76 max-w-[calc(100vw-2rem)] overflow-clip rounded-xl border p-3 shadow-lg",
             openUp ? "bottom-full mb-1.5" : "top-full mt-1.5",
           )}
         >
