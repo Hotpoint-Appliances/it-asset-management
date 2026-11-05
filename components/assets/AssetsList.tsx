@@ -509,7 +509,7 @@ function SortableHead({
         onClick={onSort}
         aria-label={`${label}, ${next}`}
         className={cn(
-          "hover:text-foreground focus-visible:ring-ring -mx-2 inline-flex min-h-11 items-center gap-1 rounded-md px-2 whitespace-nowrap focus-visible:ring-2 focus-visible:outline-none",
+          "hover:text-foreground focus-visible:ring-ring -mx-2 inline-flex min-h-11 items-center gap-1 rounded-md px-2 tracking-wide whitespace-nowrap uppercase focus-visible:ring-2 focus-visible:outline-none",
           direction && "text-foreground",
         )}
       >
