@@ -75,6 +75,9 @@ function daysIn(year: number, month: number): number {
   return new Date(year, month + 1, 0).getDate();
 }
 
+/** The popover's gap from its trigger plus the room kept clear at the window edge. */
+const POPOVER_MARGIN = 14;
+
 function formatDisplay(ymd: YMD): string {
   return `${ymd.day} ${MONTHS[ymd.month].slice(0, 3)} ${ymd.year}`;
 }
@@ -134,6 +137,7 @@ export function DatePicker({
     () => selected ?? fromDate(new Date()),
   );
   const [openUp, setOpenUp] = React.useState(false);
+  const [maxHeight, setMaxHeight] = React.useState<number | undefined>();
   const rootRef = React.useRef<HTMLDivElement>(null);
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const popoverRef = React.useRef<HTMLDivElement>(null);
@@ -198,13 +202,17 @@ export function DatePicker({
     return () => window.removeEventListener("keydown", onKeyDown, true);
   }, [open]);
 
-  // Flip above the trigger if it would overflow the viewport, and keep it in view.
+  // Below the trigger when it fits, otherwise whichever side has more room, scrolling inside
+  // whatever height that leaves so the whole calendar stays reachable in a short window.
   React.useLayoutEffect(() => {
     if (!open || !popoverRef.current || !rootRef.current) return;
     const rootRect = rootRef.current.getBoundingClientRect();
-    const height = popoverRef.current.offsetHeight;
-    const spaceBelow = window.innerHeight - rootRect.bottom;
-    setOpenUp(spaceBelow < height + 8 && rootRect.top > height + 8);
+    const height = popoverRef.current.scrollHeight;
+    const spaceBelow = window.innerHeight - rootRect.bottom - POPOVER_MARGIN;
+    const spaceAbove = rootRect.top - POPOVER_MARGIN;
+    const up = spaceBelow < height && spaceAbove > spaceBelow;
+    setOpenUp(up);
+    setMaxHeight(up ? spaceAbove : spaceBelow);
   }, [open]);
 
   // Focus the active day when the popover opens or keyboard navigation moves the cursor.
@@ -363,127 +371,130 @@ export function DatePicker({
           role="dialog"
           aria-label="Choose date"
           className={cn(
-            "border-border bg-card text-card-foreground absolute right-0 z-50 w-76 max-w-[calc(100vw-2rem)] overflow-clip rounded-xl border p-3 shadow-lg",
+            "border-border bg-card text-card-foreground absolute right-0 z-50 flex w-76 max-w-[calc(100vw-2rem)] flex-col overflow-clip rounded-xl border shadow-lg",
             openUp ? "bottom-full mb-1.5" : "top-full mt-1.5",
           )}
+          style={{ maxHeight }}
         >
-          <div className="mb-2 flex items-center gap-1">
-            <button
-              type="button"
-              aria-label="Previous month"
-              onClick={() => setCursor(addMonths(cursor, -1))}
-              className="hover:bg-muted focus-visible:ring-ring flex h-8 w-8 shrink-0 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <Select
-              aria-label="Month"
-              value={cursor.month}
-              onChange={(e) => jumpTo(cursor.year, Number(e.target.value))}
-              onOpenChange={onMenuOpenChange}
-              searchable={false}
-              className="h-8 min-w-0 flex-1 gap-1 pr-1.5 pl-2.5 font-medium shadow-none"
-            >
-              {MONTHS.map((name, m) => (
-                <option
-                  key={name}
-                  value={m}
-                  disabled={isDisabledMonth(cursor.year, m)}
-                >
-                  {name}
-                </option>
-              ))}
-            </Select>
-            <Select
-              aria-label="Year"
-              value={cursor.year}
-              onChange={(e) => jumpTo(Number(e.target.value), cursor.month)}
-              onOpenChange={onMenuOpenChange}
-              searchable={false}
-              className="h-8 w-[4.75rem] shrink-0 gap-1 pr-1.5 pl-2.5 font-medium shadow-none"
-            >
-              {years.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </Select>
-            <button
-              type="button"
-              aria-label="Next month"
-              onClick={() => setCursor(addMonths(cursor, 1))}
-              className="hover:bg-muted focus-visible:ring-ring flex h-8 w-8 shrink-0 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div ref={gridRef} onKeyDown={onGridKeyDown}>
-            <div className="text-muted-foreground mb-1 grid grid-cols-7 text-center text-xs">
-              {WEEKDAYS.map((d) => (
-                <span key={d} className="py-1">
-                  {d}
-                </span>
-              ))}
-            </div>
-            <div role="grid" className="grid grid-cols-7 gap-y-0.5">
-              {cells.map((cell, i) => {
-                if (!cell) return <span key={`blank-${i}`} />;
-                const iso = toIso(cell);
-                const isSelected = !!selected && iso === toIso(selected);
-                const isToday = iso === toIso(today);
-                const isActive = cell.day === cursor.day;
-                const dayDisabled = isDisabledDay(cell);
-                return (
-                  <button
-                    key={iso}
-                    type="button"
-                    role="gridcell"
-                    data-active={isActive}
-                    tabIndex={isActive ? 0 : -1}
-                    aria-selected={isSelected}
-                    aria-current={isToday ? "date" : undefined}
-                    disabled={dayDisabled}
-                    onClick={() => selectDay(cell)}
-                    className={cn(
-                      "focus-visible:ring-ring mx-auto flex h-9 w-9 items-center justify-center rounded-md text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none",
-                      "disabled:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-40",
-                      isSelected
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-muted",
-                      isToday &&
-                        !isSelected &&
-                        "bg-foreground text-background hover:bg-foreground/85 font-semibold",
-                    )}
-                  >
-                    {cell.day}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="mt-2 flex justify-between border-t pt-2">
-            <button
-              type="button"
-              onClick={() => selectDay(today)}
-              disabled={isDisabledDay(today)}
-              className="text-primary focus-visible:ring-ring rounded px-1 text-sm hover:underline focus-visible:ring-2 focus-visible:outline-none disabled:no-underline disabled:opacity-40"
-            >
-              Today
-            </button>
-            {!required && selected && (
+          <div className="scroll-area-thin min-h-0 flex-1 overflow-y-auto p-3">
+            <div className="mb-2 flex items-center gap-1">
               <button
                 type="button"
-                onClick={() => {
-                  onChange("");
-                  closePicker();
-                }}
-                className="text-muted-foreground hover:text-foreground focus-visible:ring-ring rounded px-1 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                aria-label="Previous month"
+                onClick={() => setCursor(addMonths(cursor, -1))}
+                className="hover:bg-muted focus-visible:ring-ring flex h-8 w-8 shrink-0 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
               >
-                Clear
+                <ChevronLeft className="h-4 w-4" />
               </button>
-            )}
+              <Select
+                aria-label="Month"
+                value={cursor.month}
+                onChange={(e) => jumpTo(cursor.year, Number(e.target.value))}
+                onOpenChange={onMenuOpenChange}
+                searchable={false}
+                className="h-8 min-w-0 flex-1 gap-1 pr-1.5 pl-2.5 font-medium shadow-none"
+              >
+                {MONTHS.map((name, m) => (
+                  <option
+                    key={name}
+                    value={m}
+                    disabled={isDisabledMonth(cursor.year, m)}
+                  >
+                    {name}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                aria-label="Year"
+                value={cursor.year}
+                onChange={(e) => jumpTo(Number(e.target.value), cursor.month)}
+                onOpenChange={onMenuOpenChange}
+                searchable={false}
+                className="h-8 w-[4.75rem] shrink-0 gap-1 pr-1.5 pl-2.5 font-medium shadow-none"
+              >
+                {years.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </Select>
+              <button
+                type="button"
+                aria-label="Next month"
+                onClick={() => setCursor(addMonths(cursor, 1))}
+                className="hover:bg-muted focus-visible:ring-ring flex h-8 w-8 shrink-0 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div ref={gridRef} onKeyDown={onGridKeyDown}>
+              <div className="text-muted-foreground mb-1 grid grid-cols-7 text-center text-xs">
+                {WEEKDAYS.map((d) => (
+                  <span key={d} className="py-1">
+                    {d}
+                  </span>
+                ))}
+              </div>
+              <div role="grid" className="grid grid-cols-7 gap-y-0.5">
+                {cells.map((cell, i) => {
+                  if (!cell) return <span key={`blank-${i}`} />;
+                  const iso = toIso(cell);
+                  const isSelected = !!selected && iso === toIso(selected);
+                  const isToday = iso === toIso(today);
+                  const isActive = cell.day === cursor.day;
+                  const dayDisabled = isDisabledDay(cell);
+                  return (
+                    <button
+                      key={iso}
+                      type="button"
+                      role="gridcell"
+                      data-active={isActive}
+                      tabIndex={isActive ? 0 : -1}
+                      aria-selected={isSelected}
+                      aria-current={isToday ? "date" : undefined}
+                      disabled={dayDisabled}
+                      onClick={() => selectDay(cell)}
+                      className={cn(
+                        "focus-visible:ring-ring mx-auto flex h-9 w-9 items-center justify-center rounded-md text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none",
+                        "disabled:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-40",
+                        isSelected
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-muted",
+                        isToday &&
+                          !isSelected &&
+                          "bg-foreground text-background hover:bg-foreground/85 font-semibold",
+                      )}
+                    >
+                      {cell.day}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="border-border mt-2 flex justify-between border-t pt-2">
+              <button
+                type="button"
+                onClick={() => selectDay(today)}
+                disabled={isDisabledDay(today)}
+                className="text-primary focus-visible:ring-ring rounded px-1 text-sm hover:underline focus-visible:ring-2 focus-visible:outline-none disabled:no-underline disabled:opacity-40"
+              >
+                Today
+              </button>
+              {!required && selected && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange("");
+                    closePicker();
+                  }}
+                  className="text-muted-foreground hover:text-foreground focus-visible:ring-ring rounded px-1 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

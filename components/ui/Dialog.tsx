@@ -43,11 +43,12 @@ function DialogContent({
           className,
         )}
         onInteractOutside={(e) => {
-          // Toasts render outside the dialog, but using one isn't a click away from it.
+          // Toasts and the user picker's panel render outside the dialog (see data-dialog-safe), but
+          // using one isn't a click away from it.
           const target = e.detail.originalEvent.target;
           if (
             target instanceof Element &&
-            target.closest("[data-toast-layer]")
+            target.closest("[data-dialog-safe]")
           ) {
             e.preventDefault();
           }

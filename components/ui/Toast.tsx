@@ -60,9 +60,9 @@ export function Toaster() {
   return (
     <Portal>
       {/* An open modal sets pointer-events: none on <body>, so the layer turns them back on for its
-          cards. DialogContent reads data-toast-layer so that using a toast doesn't close the dialog. */}
+          cards. DialogContent reads data-dialog-safe so that using a toast doesn't close the dialog. */}
       <div
-        data-toast-layer
+        data-dialog-safe
         className="toast-layer pointer-events-none fixed inset-x-4 z-100 flex flex-col gap-2 *:pointer-events-auto sm:inset-x-auto sm:right-4 sm:w-full sm:max-w-sm"
       >
         {toasts.map((toast) => (

@@ -8,6 +8,11 @@ import { Portal } from "@/components/ui/Portal";
 import { cn } from "@/lib/utils";
 import type { User } from "@/types/user";
 
+const PANEL_MAX_HEIGHT = 224;
+const PANEL_GAP = 4;
+/** Kept clear between the panel and the window edge. */
+const PANEL_EDGE = 8;
+
 /** Type-ahead search over `users`, per phase-4-asset-management Step 2 ("type-ahead search over
  * users for assigned_user_id, with free-text fallback"). Fetches the (already department/role
  * scoped, per lib/db/users.listUsers) user list once and filters client-side, the list is
@@ -34,9 +39,11 @@ export function UserTypeahead({
   const [query, setQuery] = React.useState("");
   const [open, setOpen] = React.useState(false);
   const [position, setPosition] = React.useState<{
-    top: number;
+    top?: number;
+    bottom?: number;
     left: number;
     width: number;
+    maxHeight: number;
   } | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const panelRef = React.useRef<HTMLDivElement>(null);
@@ -67,7 +74,19 @@ export function UserTypeahead({
   const updatePosition = React.useCallback(() => {
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
-    setPosition({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+    // Below when the panel fits there, otherwise whichever side has more room; the list scrolls
+    // inside whatever height that leaves.
+    const spaceBelow =
+      window.innerHeight - rect.bottom - PANEL_GAP - PANEL_EDGE;
+    const spaceAbove = rect.top - PANEL_GAP - PANEL_EDGE;
+    const below = spaceBelow >= PANEL_MAX_HEIGHT || spaceBelow >= spaceAbove;
+    setPosition({
+      top: below ? rect.bottom + PANEL_GAP : undefined,
+      bottom: below ? undefined : window.innerHeight - rect.top + PANEL_GAP,
+      left: rect.left,
+      width: rect.width,
+      maxHeight: Math.min(PANEL_MAX_HEIGHT, below ? spaceBelow : spaceAbove),
+    });
   }, []);
 
   React.useEffect(() => {
@@ -128,12 +147,17 @@ export function UserTypeahead({
         <Portal>
           <div
             ref={panelRef}
+            // Portaled to <body>, which a modal sets to pointer-events: none, so the panel turns them
+            // back on, and DialogContent reads data-dialog-safe so that a click here doesn't close it.
+            data-dialog-safe
             style={{
               top: position.top,
+              bottom: position.bottom,
               left: position.left,
               width: position.width,
+              maxHeight: position.maxHeight,
             }}
-            className="bg-card border-border fixed z-[60] flex max-h-56 flex-col overflow-clip rounded-lg border shadow-md"
+            className="bg-card border-border pointer-events-auto fixed z-[60] flex flex-col overflow-clip rounded-lg border shadow-md"
           >
             <div className="scroll-area-thin min-h-0 flex-1 overflow-y-auto p-1">
               {loadingUsers ? (
