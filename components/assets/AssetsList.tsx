@@ -86,7 +86,14 @@ export function AssetsList({
   const router = useRouteLoadingRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [search, setSearch] = React.useState(searchParams.get("search") ?? "");
+  const urlSearch = searchParams.get("search") ?? "";
+  const [search, setSearch] = React.useState(urlSearch);
+  // Back/forward and links change the URL without remounting this page, so the box follows it.
+  const [prevUrlSearch, setPrevUrlSearch] = React.useState(urlSearch);
+  if (urlSearch !== prevUrlSearch) {
+    setPrevUrlSearch(urlSearch);
+    setSearch(urlSearch);
+  }
   const columns = useAssetColumns();
   const { isVisible } = columns;
 
