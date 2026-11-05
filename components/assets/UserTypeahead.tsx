@@ -16,7 +16,11 @@ const PANEL_EDGE = 8;
 /** Type-ahead search over `users`, per phase-4-asset-management Step 2 ("type-ahead search over
  * users for assigned_user_id, with free-text fallback"). Fetches the (already department/role
  * scoped, per lib/db/users.listUsers) user list once and filters client-side, the list is
- * small enough that a dedicated search endpoint isn't justified yet. */
+ * small enough that a dedicated search endpoint isn't justified yet.
+ *
+ * Keyboard: focus stays in the input and the arrow keys move a highlight through the list (the
+ * ARIA combobox pattern). Inside a dialog the panel sits outside the focus trap, so Tab could never
+ * reach it. Enter picks the highlighted user, Escape closes only the list. */
 export function UserTypeahead({
   value,
   displayName,
@@ -47,6 +51,12 @@ export function UserTypeahead({
   } | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const panelRef = React.useRef<HTMLDivElement>(null);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const clearRef = React.useRef<HTMLButtonElement>(null);
+  const listId = React.useId();
+  const [activeIndex, setActiveIndex] = React.useState(-1);
+  // Picking or clearing swaps the input and the chip, which would drop focus out of the form.
+  const pendingFocus = React.useRef<"input" | "clear" | null>(null);
 
   React.useEffect(() => {
     axios
@@ -112,6 +122,74 @@ export function UserTypeahead({
       .slice(0, 20);
   }, [users, query]);
 
+  const optionId = (index: number) => `${listId}-option-${index}`;
+
+  // Escape closes only the list, never a parent Radix Dialog (its Escape listener is on `document`
+  // in the capture phase; `window` capture runs first).
+  React.useEffect(() => {
+    if (!open) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      e.stopPropagation();
+      setOpen(false);
+      setActiveIndex(-1);
+    }
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [open]);
+
+  const isSelected = Boolean(value && displayName);
+  React.useEffect(() => {
+    if (pendingFocus.current === "clear" && isSelected) {
+      clearRef.current?.focus();
+      pendingFocus.current = null;
+    } else if (pendingFocus.current === "input" && !isSelected) {
+      inputRef.current?.focus();
+      pendingFocus.current = null;
+    }
+  }, [isSelected]);
+
+  React.useEffect(() => {
+    if (activeIndex < 0) return;
+    document
+      .getElementById(`${listId}-option-${activeIndex}`)
+      ?.scrollIntoView({ block: "nearest" });
+  }, [activeIndex, listId]);
+
+  function selectUser(user: User) {
+    pendingFocus.current = "clear";
+    onSelect({ id: user.id, fullName: user.fullName });
+    setQuery("");
+    setOpen(false);
+    setActiveIndex(-1);
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Tab") {
+      setOpen(false);
+      setActiveIndex(-1);
+    } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!open) {
+        setOpen(true);
+        return;
+      }
+      if (matches.length === 0) return;
+      const step = e.key === "ArrowDown" ? 1 : -1;
+      setActiveIndex((index) =>
+        // From no highlight, Up lands on the last user rather than one before it.
+        index < 0 && step < 0
+          ? matches.length - 1
+          : (index + step + matches.length) % matches.length,
+      );
+    } else if (e.key === "Enter" && open) {
+      // With the list open, Enter belongs to the list and must not submit the form.
+      e.preventDefault();
+      const user = matches[activeIndex];
+      if (user) selectUser(user);
+    }
+  }
+
   if (value && displayName) {
     return (
       <div className="border-border bg-muted/50 flex min-h-11 items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm">
@@ -120,9 +198,13 @@ export function UserTypeahead({
           {displayName}
         </span>
         <button
+          ref={clearRef}
           type="button"
-          onClick={() => onSelect(null)}
-          className="text-muted-foreground hover:text-foreground flex h-6 w-6 items-center justify-center"
+          onClick={() => {
+            pendingFocus.current = "input";
+            onSelect(null);
+          }}
+          className="text-muted-foreground hover:text-foreground focus-visible:ring-ring flex h-6 w-6 items-center justify-center rounded focus-visible:ring-2 focus-visible:outline-none"
           aria-label="Clear selected user"
         >
           <X className="h-4 w-4" />
@@ -134,14 +216,28 @@ export function UserTypeahead({
   return (
     <div ref={containerRef} className="relative">
       <Input
+        ref={inputRef}
         id={id}
+        role="combobox"
+        aria-autocomplete="list"
+        aria-expanded={open}
+        aria-controls={listId}
+        aria-activedescendant={
+          open && activeIndex >= 0 ? optionId(activeIndex) : undefined
+        }
+        autoComplete="off"
         aria-label={ariaLabel}
         aria-invalid={ariaInvalid}
         aria-describedby={ariaDescribedBy}
         value={query}
         placeholder="Search users by name or email…"
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setOpen(true);
+          setActiveIndex(-1);
+        }}
         onFocus={() => setOpen(true)}
+        onKeyDown={handleKeyDown}
       />
       {open && position && (
         <Portal>
@@ -174,26 +270,29 @@ export function UserTypeahead({
                   No matching users
                 </p>
               ) : (
-                matches.map((u) => (
-                  <button
-                    type="button"
-                    key={u.id}
-                    onClick={() => {
-                      onSelect({ id: u.id, fullName: u.fullName });
-                      setQuery("");
-                      setOpen(false);
-                    }}
-                    className={cn(
-                      "flex min-h-11 w-full flex-col items-start rounded-md px-2 py-1.5 text-left text-sm",
-                      "hover:bg-muted",
-                    )}
-                  >
-                    <span className="font-medium">{u.fullName}</span>
-                    <span className="text-muted-foreground text-xs">
-                      {u.email}
-                    </span>
-                  </button>
-                ))
+                <div id={listId} role="listbox" aria-label="Users">
+                  {matches.map((u, index) => (
+                    <div
+                      key={u.id}
+                      id={optionId(index)}
+                      role="option"
+                      aria-selected={index === activeIndex}
+                      // Keeps focus in the input, which owns the keyboard handling.
+                      onMouseDown={(e) => e.preventDefault()}
+                      onMouseMove={() => setActiveIndex(index)}
+                      onClick={() => selectUser(u)}
+                      className={cn(
+                        "flex min-h-11 w-full cursor-pointer flex-col items-start rounded-md px-2 py-1.5 text-left text-sm",
+                        index === activeIndex && "bg-muted",
+                      )}
+                    >
+                      <span className="font-medium">{u.fullName}</span>
+                      <span className="text-muted-foreground text-xs">
+                        {u.email}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>
