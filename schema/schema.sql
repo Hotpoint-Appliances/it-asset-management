@@ -96,7 +96,7 @@ CREATE TABLE asset_conditions (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 INSERT INTO asset_conditions (name, sort_order) VALUES
-  ('good', 1), ('bad', 2), ('worse', 3);
+  ('good', 1), ('fair', 2), ('bad', 3), ('worse', 4);
 
 CREATE TABLE asset_statuses (
   id SERIAL PRIMARY KEY,
