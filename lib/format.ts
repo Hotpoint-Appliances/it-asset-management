@@ -11,6 +11,53 @@ export function formatCurrency(amount: number): string {
   return amount.toLocaleString("en-KE", { style: "currency", currency: "KES" });
 }
 
+/** Company timezone. Timestamps always display in it, so the server and browser render the same
+ * text (no hydration mismatch) and everyone reads the same time on an audit entry. */
+const DISPLAY_TIME_ZONE = "Africa/Nairobi";
+
+const DATE_ONLY = /^d{4}-d{2}-d{2}$/;
+
+const DATE_PARTS: Intl.DateTimeFormatOptions = {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+};
+
+/** The named parts of a date, for assembling the app's format by hand: locale patterns vary by
+ * ICU version (en-GB's September can be "Sept"), so en-US only supplies the pieces. */
+function dateParts(date: Date, options: Intl.DateTimeFormatOptions) {
+  const parts = new Intl.DateTimeFormat("en-US", options).formatToParts(date);
+  return (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value ?? "";
+}
+
+/** "5 Nov 2026". A date-only value ("YYYY-MM-DD", see lib/db/dates.ts) is a calendar date and is
+ * shown as written, never shifted by a timezone; a full timestamp shows its Nairobi date. */
+export function formatDate(value: string): string {
+  const dateOnly = DATE_ONLY.test(value);
+  const date = new Date(dateOnly ? `${value}T00:00:00Z` : value);
+  if (Number.isNaN(date.getTime())) return value;
+  const part = dateParts(date, {
+    ...DATE_PARTS,
+    timeZone: dateOnly ? "UTC" : DISPLAY_TIME_ZONE,
+  });
+  return `${part("day")} ${part("month")} ${part("year")}`;
+}
+
+/** "5 Nov 2026, 14:32", 24-hour Nairobi time, for values where the time of day matters. */
+export function formatDateTime(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  const part = dateParts(date, {
+    ...DATE_PARTS,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: DISPLAY_TIME_ZONE,
+  });
+  return `${part("day")} ${part("month")} ${part("year")}, ${part("hour")}:${part("minute")}`;
+}
+
 const RELATIVE_UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ["day", 86_400],
   ["hour", 3_600],
@@ -25,7 +72,7 @@ export function formatRelativeTime(
 ): string {
   const seconds = Math.round((new Date(iso).getTime() - now.getTime()) / 1000);
   const abs = Math.abs(seconds);
-  if (abs > 30 * 86_400) return new Date(iso).toLocaleDateString("en-KE");
+  if (abs > 30 * 86_400) return formatDate(iso);
   const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
   for (const [unit, size] of RELATIVE_UNITS) {
     if (abs >= size) return rtf.format(Math.round(seconds / size), unit);

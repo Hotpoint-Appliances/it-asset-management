@@ -5,6 +5,7 @@ import { Pagination } from "@/components/shared/Pagination";
 import { usePagination } from "@/lib/hooks/usePagination";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { formatLookupName } from "@/lib/badgeVariants";
+import { formatDateTime } from "@/lib/format";
 import type { AssetAuditLogEntry } from "@/types/auditLog";
 import type { Location } from "@/types/location";
 import type { Department } from "@/types/department";
@@ -120,7 +121,7 @@ export function AuditLogTimeline({
     return entries.map((entry) => ({
       entry,
       description: describe(entry, lookups),
-      performedAt: new Date(entry.performedAt).toLocaleString(),
+      performedAt: formatDateTime(entry.performedAt),
     }));
   }, [entries, locations, departments, conditions, statuses]);
   // Matches what's on screen: the description, who did it, the note and the timestamp.

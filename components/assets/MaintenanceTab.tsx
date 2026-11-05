@@ -26,7 +26,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { NOTE_REQUIRED_STATUSES } from "./StatusDialog";
 import { useUIStore } from "@/store";
 import { useSyncOnOpen } from "@/lib/hooks/useSyncOnOpen";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDate } from "@/lib/format";
 import { usePagination } from "@/lib/hooks/usePagination";
 import { Pagination } from "@/components/shared/Pagination";
 import { formatLookupName } from "@/lib/badgeVariants";
@@ -129,12 +129,7 @@ export function MaintenanceTab({
           rows={[
             ["Type", formatLookupName(maintenanceType)],
             ["Vendor", vendors.find((v) => v.id === vendorId)?.name],
-            [
-              "Scheduled",
-              // A bare YYYY-MM-DD parses as UTC midnight; pin it to local midnight.
-              scheduledDate &&
-                new Date(`${scheduledDate}T00:00`).toLocaleDateString(),
-            ],
+            ["Scheduled", scheduledDate && formatDate(scheduledDate)],
           ]}
         />
       ),
@@ -286,17 +281,14 @@ export function MaintenanceTab({
                 </div>
                 <span className="text-muted-foreground text-xs">
                   {record.scheduledDate
-                    ? new Date(record.scheduledDate).toLocaleDateString()
+                    ? formatDate(record.scheduledDate)
                     : "N/A"}
                 </span>
               </div>
               <div className="text-muted-foreground flex flex-wrap gap-x-4 text-xs">
                 {record.vendorName && <span>Vendor: {record.vendorName}</span>}
                 {record.completedDate && (
-                  <span>
-                    Completed:{" "}
-                    {new Date(record.completedDate).toLocaleDateString()}
-                  </span>
+                  <span>Completed: {formatDate(record.completedDate)}</span>
                 )}
                 {record.cost != null && (
                   <span>Cost: {formatCurrency(record.cost)}</span>

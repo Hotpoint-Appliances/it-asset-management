@@ -46,7 +46,7 @@ import {
   conditionBadgeVariant,
   formatLookupName,
 } from "@/lib/badgeVariants";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDate, formatDateTime } from "@/lib/format";
 import type { AssetWithRelations } from "@/types/asset";
 import type { AssetAttachment } from "@/types/assetAttachment";
 import type { AssetAuditLogEntry } from "@/types/auditLog";
@@ -380,7 +380,7 @@ function DisposalSummary({
   disposal: AssetDisposal;
 }) {
   const rows: [string, ReactNode][] = [
-    ["Disposal date", new Date(disposal.disposalDate).toLocaleDateString()],
+    ["Disposal date", formatDate(disposal.disposalDate)],
     ["Method", formatLookupName(disposal.disposalMethod)],
     [
       "Disposal value",
@@ -436,9 +436,7 @@ function OverviewGrid({ asset }: { asset: AssetWithRelations }) {
     ["Vendor", asset.vendorName ?? "N/A"],
     [
       "Purchase date",
-      asset.purchaseDate
-        ? new Date(asset.purchaseDate).toLocaleDateString()
-        : "N/A",
+      asset.purchaseDate ? formatDate(asset.purchaseDate) : "N/A",
     ],
     [
       "Purchase cost",
@@ -446,9 +444,7 @@ function OverviewGrid({ asset }: { asset: AssetWithRelations }) {
     ],
     [
       "Warranty expiry",
-      asset.warrantyExpiry
-        ? new Date(asset.warrantyExpiry).toLocaleDateString()
-        : "N/A",
+      asset.warrantyExpiry ? formatDate(asset.warrantyExpiry) : "N/A",
     ],
     [
       "Depreciation method",
@@ -468,8 +464,8 @@ function OverviewGrid({ asset }: { asset: AssetWithRelations }) {
     ],
     ["Owner email", asset.ownerEmail ?? "N/A"],
     ["Created by", asset.createdByName],
-    ["Created", new Date(asset.createdAt).toLocaleString()],
-    ["Last updated", new Date(asset.updatedAt).toLocaleString()],
+    ["Created", formatDateTime(asset.createdAt)],
+    ["Last updated", formatDateTime(asset.updatedAt)],
   ];
   if (asset.notes) rows.push(["Notes", asset.notes]);
 

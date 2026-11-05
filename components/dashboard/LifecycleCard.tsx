@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { LifecycleOverview } from "@/types/dashboard";
 
@@ -77,7 +78,7 @@ export function LifecycleCard({ data }: { data: LifecycleOverview }) {
                       </span>
                       <span className="text-muted-foreground block truncate text-xs">
                         {item.assetTag} · end of life{" "}
-                        {new Date(item.endOfLife).toLocaleDateString("en-KE")}
+                        {formatDate(item.endOfLife)}
                       </span>
                     </span>
                     <Badge

@@ -22,6 +22,7 @@ import { isEmailConfigured } from "@/lib/email/graphClient";
 import { sendEmail } from "@/lib/email/sendEmail";
 import { appUrl, renderNotificationEmail } from "@/lib/email/templates";
 import type { NotificationType } from "@/types/notification";
+import { formatDate } from "@/lib/format";
 
 // Notification triggers (phase-7). Two entry points:
 //  - scheduleAssetChangeNotifications(): asset_assigned / asset_transferred, called by the asset
@@ -53,15 +54,6 @@ const EMAIL_RETRY_DAYS = 3;
 const EMAIL_SETTLE_MINUTES = 10;
 /** Upper bound on assets examined per warranty run; far above any realistic fleet's 90-day set. */
 const WARRANTY_SCAN_LIMIT = 10_000;
-
-function formatDate(isoDate: string): string {
-  return new Date(`${isoDate}T00:00:00Z`).toLocaleDateString("en-KE", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-}
 
 function formatLabel(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1).replace(/_/g, " ");
