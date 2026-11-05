@@ -4,8 +4,11 @@ import { formatLookupName } from "@/lib/badgeVariants";
 import { todayIso } from "@/lib/format";
 
 export const KES_FORMAT = '"KES" #,##0.00';
-export const DATE_FORMAT = "yyyy-mm-dd";
-export const DATETIME_FORMAT = "yyyy-mm-dd hh:mm";
+/** Report cells display like the app (lib/format.ts); they stay real dates underneath. */
+export const DATE_FORMAT = "d mmm yyyy";
+export const DATETIME_FORMAT = "d mmm yyyy, hh:mm";
+/** The import template shows the format people should type, which is what it accepts as text. */
+export const ISO_DATE_FORMAT = "yyyy-mm-dd";
 
 export interface ReportColumn {
   header: string;
