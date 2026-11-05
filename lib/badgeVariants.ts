@@ -14,16 +14,22 @@ const STATUS_VARIANTS: Record<string, BadgeVariant> = {
   lost: "danger",
   stolen: "danger",
   disposed: "neutral",
+  awaiting_disposal: "neutral",
+  faulty: "warning",
+  beyond_repair: "danger",
 };
 
 const CONDITION_VARIANTS: Record<string, BadgeVariant> = {
   good: "success",
+  fair: "neutral",
   bad: "warning",
   worse: "danger",
 };
 
+/** Settings stores names as typed, so "awaiting disposal" and "awaiting_disposal" both reach here. */
 export function statusBadgeVariant(name: string): BadgeVariant {
-  return STATUS_VARIANTS[name] ?? "outline";
+  const key = name.trim().toLowerCase().replace(/\s+/g, "_");
+  return STATUS_VARIANTS[key] ?? "outline";
 }
 
 export function conditionBadgeVariant(name: string): BadgeVariant {
