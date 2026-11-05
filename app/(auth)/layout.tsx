@@ -13,7 +13,7 @@ const highlights = [
 /** The signed-out frame shared by sign-in, forgot password and reset password. */
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="bg-background grid h-dvh overflow-y-auto lg:grid-cols-2">
+    <div className="bg-background scroll-area grid h-dvh overflow-y-auto lg:grid-cols-2">
       {/* Highlights panel on the left from `lg` up, on the shell canvas so the indigo logo in its
           corner stays visible. Below `lg` it's hidden and the logo moves into the form header. */}
       <div className="bg-canvas text-foreground hidden min-h-full flex-col lg:flex">

@@ -8,7 +8,7 @@ const Table = React.forwardRef<
   // `relative` makes this scroll box the containing block of absolutely positioned descendants
   // (e.g. the action buttons' sr-only labels). Without it they escape the overflow clip and
   // widen the whole page on mobile once a table is wider than the viewport.
-  <div className="border-border relative w-full overflow-x-auto overscroll-x-contain rounded-xl border shadow-sm">
+  <div className="border-border scroll-area-thin relative w-full overflow-x-auto overscroll-x-contain rounded-xl border shadow-sm">
     <table
       ref={ref}
       className={cn("w-full caption-bottom text-sm", className)}
