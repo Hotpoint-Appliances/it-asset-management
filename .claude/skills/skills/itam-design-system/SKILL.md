@@ -91,8 +91,8 @@ decorative borders, or texture beyond what's specified below.
 
 - Every scrollable element gets a transparent-track scrollbar via one of two utility classes
   defined in `app/globals.css`: `.scroll-area` (default width, ~10px thumb) for page-level /
-  modal / layout-wrapper scrolling (`main` content area, `Dialog`/`Sheet` content, the `Table`
-  wrapper), and `.scroll-area-thin` (~6px thumb) for dropdown/select/popover content (
+  modal / layout-wrapper scrolling (`main` content area, `Dialog`/`Sheet` content), and
+  `.scroll-area-thin` (~6px thumb) for small scrollers (the `Table` wrapper,
   `DropdownMenuContent`, the `Select` viewport, `TreePicker`, `UserTypeahead`'s results panel,
   the collapsed sidebar's nav list). Never leave a scrollable container with the bare browser
   default — pick whichever of the two matches its role.
@@ -240,10 +240,11 @@ flex-col">` (not the whole `DialogContent`) so the footer's buttons stay outside
   after a mutation, or a `router.push` that only changes search params, e.g. `AssetsList`'s
   filters/pagination) doesn't get that boundary, since the segment never unmounts — use
   `useRouteLoadingRouter` (`lib/hooks/useRouteLoadingRouter.ts`, a drop-in `useRouter()`
-  replacement) instead, which pulses the top-level `RouteProgress` bar (mounted in `AppShell`)
-  for exactly as long as the refresh/navigation takes. A `<Link>` also gets this treatment by
-  rendering `LinkProgress` (`components/layout/LinkProgress.tsx`, wraps `useLinkStatus`) as one
-  of its children. Client-side fetches inside a component (not a route navigation) get their own
+  replacement) instead, which pulses the top-level `RouteProgress` bar (mounted in `Providers`)
+  for exactly as long as the refresh/navigation takes. Every actual navigation (`<Link>`,
+  `router.push`/`replace`, back/forward) drives that bar on its own through
+  `onRouterTransitionStart` in `instrumentation-client.ts`, so links need no wiring. Client-side
+  fetches inside a component (not a route navigation) get their own
   local `animate-pulse` skeleton state instead (see `UserTypeahead`'s results panel) — never a
   spinner-only page.
 
