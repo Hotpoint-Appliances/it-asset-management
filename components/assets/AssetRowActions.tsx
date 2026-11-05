@@ -61,7 +61,9 @@ export function AssetRowActions({
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
             <MoreHorizontal className="h-4 w-4" />
-            <span className="sr-only">Actions</span>
+            <span className="sr-only">
+              Actions for {asset.name}, {asset.assetTag}
+            </span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
