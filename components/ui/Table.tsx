@@ -5,15 +5,18 @@ const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
-  // `relative` makes this scroll box the containing block of absolutely positioned descendants
-  // (e.g. the action buttons' sr-only labels). Without it they escape the overflow clip and
-  // widen the whole page on mobile once a table is wider than the viewport.
-  <div className="border-border scroll-area-thin relative w-full overflow-x-auto overscroll-x-contain rounded-xl border shadow-sm">
-    <table
-      ref={ref}
-      className={cn("w-full caption-bottom text-sm", className)}
-      {...props}
-    />
+  // The outer box clips to the rounded corners and the inner one scrolls. `relative` makes the
+  // scroll box the containing block of absolutely positioned descendants (e.g. the action buttons'
+  // sr-only labels). Without it they escape the overflow clip and widen the whole page on mobile
+  // once a table is wider than the viewport.
+  <div className="border-border w-full overflow-clip rounded-xl border shadow-sm">
+    <div className="scroll-area-thin relative w-full overflow-x-auto overscroll-x-contain">
+      <table
+        ref={ref}
+        className={cn("w-full caption-bottom text-sm", className)}
+        {...props}
+      />
+    </div>
   </div>
 ));
 Table.displayName = "Table";
