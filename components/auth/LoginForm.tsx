@@ -122,46 +122,46 @@ export function LoginForm() {
               message={fields.errors.email}
             />
           </div>
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between gap-2">
+          <div className="relative flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
               <label htmlFor="password" className="text-sm font-medium">
                 Password
                 <RequiredMark />
               </label>
-              <Link
-                href="/forgot-password"
-                // Out of the tab order so Tab goes from the email straight to the password.
-                tabIndex={-1}
-                className="text-primary text-sm font-medium underline-offset-4 hover:underline"
-              >
-                Forgot password?
-              </Link>
+              <PasswordInput
+                id="password"
+                name="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  fields.clear("password");
+                }}
+                {...fields.invalid("password")}
+              />
+              <FieldError
+                id={fields.errorId("password")}
+                message={fields.errors.password}
+              />
             </div>
-            <PasswordInput
-              id="password"
-              name="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                fields.clear("password");
-              }}
-              {...fields.invalid("password")}
-            />
-            <FieldError
-              id={fields.errorId("password")}
-              message={fields.errors.password}
-            />
+            {error && (
+              <p role="alert" className="text-destructive text-sm">
+                {error}
+              </p>
+            )}
+            <Button type="submit" loading={submitting} className="mt-1">
+              {submitting ? "Signing in…" : "Sign in"}
+            </Button>
+            {/* After the button in the markup so Tab goes from the password to Sign in, then here.
+                Positioned back beside the Password label, at the top of this wrapper. */}
+            <Link
+              href="/forgot-password"
+              className="text-primary focus-visible:ring-ring absolute top-0 right-0 rounded text-sm font-medium underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
+            >
+              Forgot password?
+            </Link>
           </div>
-          {error && (
-            <p role="alert" className="text-destructive text-sm">
-              {error}
-            </p>
-          )}
-          <Button type="submit" loading={submitting} className="mt-1">
-            {submitting ? "Signing in…" : "Sign in"}
-          </Button>
         </form>
       </div>
     </div>
