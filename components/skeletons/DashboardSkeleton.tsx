@@ -58,8 +58,8 @@ function StatTileSkeleton({
 }) {
   return (
     <Card className="h-full">
-      <CardContent className="flex items-center justify-between gap-3 p-5">
-        <div className="min-w-0">
+      <CardContent className="flex h-full items-center justify-between gap-3 p-5">
+        <div className="flex min-w-0 flex-col self-stretch">
           {label ? (
             <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
               {label}
@@ -67,7 +67,9 @@ function StatTileSkeleton({
           ) : (
             <Skeleton className="my-0.5 h-3 w-36" />
           )}
-          <Skeleton className="mt-1 h-9 w-16" />
+          <div className="mt-auto pt-1">
+            <Skeleton className="h-9 w-16" />
+          </div>
         </div>
         <div className="bg-muted text-muted-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
           <Icon className="h-5 w-5" />
