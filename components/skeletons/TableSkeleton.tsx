@@ -41,8 +41,8 @@ export function TableSkeleton({
             <TableHead
               key={col.header}
               className={cn(
-                col.cell === "actions" && "text-right",
-                col.sticky && stickyEndHeadClass,
+                col.cell === "actions" && !col.sticky && "text-right",
+                col.sticky && cn(stickyEndHeadClass, "text-center"),
               )}
             >
               {col.header}
@@ -82,7 +82,12 @@ function CellSkeleton({
       return <Skeleton className="h-5.5 w-16 rounded-full" />;
     case "actions":
       return (
-        <div className="flex justify-end">
+        <div
+          className={cn(
+            "flex",
+            column.sticky ? "justify-center" : "justify-end",
+          )}
+        >
           {Array.from({ length: column.actions ?? 1 }).map((_, i) => (
             <span
               key={i}

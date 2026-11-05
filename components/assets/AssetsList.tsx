@@ -343,7 +343,7 @@ export function AssetsList({
                   sortableHead("department", "Department")}
                 {isVisible("owner") && sortableHead("owner", "Owner")}
                 {isVisible("email") && sortableHead("email", "Owner email")}
-                <TableHead className={cn(stickyEndHeadClass, "text-right")}>
+                <TableHead className={cn(stickyEndHeadClass, "text-center")}>
                   Actions
                 </TableHead>
               </TableRow>
@@ -406,7 +406,7 @@ export function AssetsList({
                       {asset.assignedUserEmail ?? asset.ownerEmail ?? "N/A"}
                     </TableCell>
                   )}
-                  <TableCell className={cn(stickyEndCellClass, "text-right")}>
+                  <TableCell className={cn(stickyEndCellClass, "text-center")}>
                     <AssetRowActions
                       asset={asset}
                       canManage={canManage}
