@@ -16,8 +16,8 @@ const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
 /** The rounded box clips and an inner element scrolls, so hover rows are cut by the corners instead
  * of running into them; the scroller's track inset keeps the thumb clear of them. `customLayout`
  * skips that inner element, for menus that pin a header or footer around their own scroller
- * (`scroll-area-thin min-h-0 flex-1 overflow-y-auto`, plus `[--scrollbar-inset:0.5rem]` when it
- * reaches the box's top or bottom edge). */
+ * (`scroll-area-thin min-h-0 flex-1 overflow-y-auto [--scrollbar-inset:0.5rem]`; keep the inset
+ * even between a pinned header and footer, so the thumb doesn't run into the separators). */
 function DropdownMenuContent({
   className,
   sideOffset = 4,

@@ -38,7 +38,7 @@ export function AssetColumnsMenu({
           <DropdownMenuLabel>Visible columns</DropdownMenuLabel>
           <DropdownMenuSeparator className="mb-0" />
         </div>
-        <div className="scroll-area-thin min-h-0 flex-1 overflow-y-auto p-1">
+        <div className="scroll-area-thin min-h-0 flex-1 overflow-y-auto p-1 [--scrollbar-inset:0.5rem]">
           {ASSET_COLUMNS.map((column) => (
             <DropdownMenuCheckboxItem
               key={column.key}

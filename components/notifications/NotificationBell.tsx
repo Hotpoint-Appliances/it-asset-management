@@ -87,7 +87,7 @@ export function NotificationBell() {
             You&apos;re all caught up.
           </div>
         ) : (
-          <div className="scroll-area-thin -mx-1 min-h-0 flex-1 overflow-y-auto px-1">
+          <div className="scroll-area-thin -mx-1 min-h-0 flex-1 overflow-y-auto px-1 [--scrollbar-inset:0.5rem]">
             {items.map((n) => (
               <DropdownMenuItem
                 key={n.id}
