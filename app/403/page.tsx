@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { StandalonePage } from "@/components/shared/StandalonePage";
 import { StatusPage } from "@/components/shared/StatusPage";
 
 export const metadata: Metadata = {
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function ForbiddenPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <StandalonePage>
       <StatusPage
         icon={ShieldAlert}
         iconClassName="text-destructive"
@@ -23,6 +24,6 @@ export default function ForbiddenPage() {
           </Button>
         }
       />
-    </div>
+    </StandalonePage>
   );
 }

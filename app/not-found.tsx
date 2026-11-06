@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { CompassIcon } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
+import { StandalonePage } from "@/components/shared/StandalonePage";
 import { StatusPage } from "@/components/shared/StatusPage";
 import { getSession } from "@/lib/auth/session";
 
@@ -34,9 +35,5 @@ export default async function NotFound() {
     );
   }
 
-  return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      {content}
-    </div>
-  );
+  return <StandalonePage>{content}</StandalonePage>;
 }
