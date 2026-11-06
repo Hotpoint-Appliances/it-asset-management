@@ -192,7 +192,19 @@ html {
    with scrollbar-color or scrollbar-width set, and scrollbar-color is inherited.
    So the standard properties are for browsers without the pseudo-elements only
    (Firefox), and must not be set on an ancestor of these elements. Touch screens
-   keep their native auto-hiding overlay scrollbars. */
+   keep their native auto-hiding overlay scrollbars.
+   - .scroll-native is for the page scroller of public pages (sign-in, 403, 404,
+     error): the browser's own scrollbar, arrow buttons included, tinted with the
+     thumb token on a transparent track. It uses scrollbar-color, so it resets
+     that on its children: otherwise it would inherit and switch off the
+     pseudo-element styling of any .scroll-area(-thin) inside. */
+.scroll-native {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+.scroll-native > * {
+  scrollbar-color: auto;
+}
+
 @supports not selector(::-webkit-scrollbar) {
   .scroll-area {
     scrollbar-color: var(--scrollbar-thumb) transparent;

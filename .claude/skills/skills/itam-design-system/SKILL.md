@@ -102,18 +102,21 @@ decorative borders, or texture beyond what's specified below.
   `.scroll-area-thin` (~6px thumb) for small scrollers (the `Table` wrapper,
   `DropdownMenuContent`, the `Select` viewport, `TreePicker`, `UserTypeahead`'s results panel,
   the collapsed sidebar's nav list). Never leave a scrollable container with the bare browser
-  default — pick whichever of the two matches its role. The one exception is the signed-out
-  `(auth)` layout's page scroller (`/login`, `/forgot-password`, `/reset-password`): public pages
-  deliberately keep the browser's native scrollbar (arrow buttons in Chromium), themed by the
-  `color-scheme` next-themes sets on `<html>`. Small scrollers inside them (menus, selects) still
-  use `.scroll-area-thin`.
+  default — pick whichever of the two matches its role. The one exception is the page scroller of
+  public pages (the `(auth)` layout, and `StandalonePage` for `/403`, the signed-out 404 and the
+  error boundaries): they use `.scroll-native`, the browser's own scrollbar with its arrow buttons,
+  tinted via `scrollbar-color` with the `--scrollbar-thumb` token on a transparent track. Don't
+  style it with `::-webkit-scrollbar*` — that drops Chromium's arrow buttons. `.scroll-native`
+  resets `scrollbar-color` on its children so inner `.scroll-area(-thin)` scrollers keep theirs.
 - The dashboard shell (`AppShell`) scrolls internally (see App shell below), so the document
   itself never scrolls behind an open `Dialog`/`Select`/`DropdownMenu` there — Radix's scroll
   lock (`body[data-scroll-locked]`) has nothing to shift. Do **not** reach for
   `scrollbar-gutter: stable` or `html { overflow-y: scroll }` to defend against that shift again;
   those were a workaround for a `position: sticky` app shell (see below) and caused their own bugs
   (a permanently visible dead scrollbar strip on short pages like `/login`). `html` is
-  `overflow: hidden`; the auth layout scrolls inside its own `h-dvh` container instead.
+  `overflow: hidden`, so every page scrolls inside its own `h-dvh` container: the shell's scroll
+  area, the `(auth)` layout, or `StandalonePage` for anything else outside the shell. A bare
+  `min-h-screen` page can't scroll at all.
 
 ## Responsive design (build for every screen size, not retrofitted later)
 
@@ -165,7 +168,7 @@ sidebar/drawer switch below; don't reach for it elsewhere. (Confirmed in Phase 8
   the same shift on any other in-flow element. It's desktop-only (`hidden nav:flex`); below `nav`
   the mobile `Sheet` drawer (triggered from `Topbar`) is the nav, unchanged by any of this.
   Pages outside the shell (the `(auth)` pages, `/403`, the signed-out 404) are unaffected; the
-  `(auth)` pages keep the browser's native scrollbar.
+  use `.scroll-native` (see Scrollbars).
   - **Inset panel** (from `nav` up only): the shell row is `bg-canvas` (`--canvas`: light
     `#f4f4f5`, dark `#000`), the desktop sidebar sits directly on it with no border/divider and no
     background of its own, and the right column (`Topbar` + scroll area + `Footer`) is a raised
