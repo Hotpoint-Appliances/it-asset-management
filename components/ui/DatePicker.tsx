@@ -78,6 +78,23 @@ function daysIn(year: number, month: number): number {
 /** The popover's gap from its trigger plus the room kept clear at the window edge. */
 const POPOVER_MARGIN = 14;
 
+/** The visible vertical band the popover can occupy: the nearest ancestor that clips vertical
+ * overflow (the shell's scroll area under the Topbar, a Dialog body), intersected with the
+ * window. Measuring against the window alone counts the Topbar's height as free room above. */
+function clipBounds(el: HTMLElement): { top: number; bottom: number } {
+  let top = 0;
+  let bottom = window.innerHeight;
+  for (let node = el.parentElement; node; node = node.parentElement) {
+    if (getComputedStyle(node).overflowY !== "visible") {
+      const rect = node.getBoundingClientRect();
+      top = Math.max(top, rect.top);
+      bottom = Math.min(bottom, rect.bottom);
+      break;
+    }
+  }
+  return { top, bottom };
+}
+
 function formatDisplay(ymd: YMD): string {
   return `${ymd.day} ${MONTHS[ymd.month].slice(0, 3)} ${ymd.year}`;
 }
@@ -203,13 +220,15 @@ export function DatePicker({
   }, [open]);
 
   // Below the trigger when it fits, otherwise whichever side has more room, scrolling inside
-  // whatever height that leaves so the whole calendar stays reachable in a short window.
+  // whatever height that leaves so the whole calendar stays reachable in a short window. Room is
+  // measured inside the clipping ancestor, so it never flips up under the Topbar.
   React.useLayoutEffect(() => {
     if (!open || !popoverRef.current || !rootRef.current) return;
     const rootRect = rootRef.current.getBoundingClientRect();
+    const bounds = clipBounds(rootRef.current);
     const height = popoverRef.current.scrollHeight;
-    const spaceBelow = window.innerHeight - rootRect.bottom - POPOVER_MARGIN;
-    const spaceAbove = rootRect.top - POPOVER_MARGIN;
+    const spaceBelow = bounds.bottom - rootRect.bottom - POPOVER_MARGIN;
+    const spaceAbove = rootRect.top - bounds.top - POPOVER_MARGIN;
     const up = spaceBelow < height && spaceAbove > spaceBelow;
     setOpenUp(up);
     setMaxHeight(up ? spaceAbove : spaceBelow);
