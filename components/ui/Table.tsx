@@ -10,7 +10,7 @@ const Table = React.forwardRef<
   // sr-only labels). Without it they escape the overflow clip and widen the whole page on mobile
   // once a table is wider than the viewport.
   <div className="border-border w-full overflow-clip rounded-xl border shadow-sm">
-    <div className="scroll-area-thin relative w-full overflow-x-auto overscroll-x-contain">
+    <div className="scroll-area-thin relative w-full overflow-x-auto overscroll-x-contain [--scrollbar-inset:0.75rem]">
       <table
         ref={ref}
         className={cn("w-full caption-bottom text-sm", className)}

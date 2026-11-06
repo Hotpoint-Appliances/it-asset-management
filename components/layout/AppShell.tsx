@@ -24,7 +24,7 @@ export function AppShell({
             Select's hidden native <select>). Without it they resolve against the viewport, overflow
             <html>, and Next's scrollIntoView on navigation scrolls <html> itself, pushing the
             Topbar off-screen and leaving a gap at the bottom. */}
-        <ShellScrollArea className="scroll-area relative flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto overscroll-contain print:h-auto print:overflow-visible">
+        <ShellScrollArea className="scroll-area shell-scroller relative flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto overscroll-contain print:h-auto print:overflow-visible">
           <main className="mx-auto w-full max-w-7xl min-w-0 flex-1 overflow-x-clip p-4 sm:p-6 print:max-w-none print:p-0">
             {children}
           </main>

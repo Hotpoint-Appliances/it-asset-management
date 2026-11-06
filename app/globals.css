@@ -205,6 +205,36 @@ html {
   scrollbar-color: auto;
 }
 
+/* Track inset at both ends of the scroll axis, so the thumb stops short of
+   rounded corners: Chromium clips a rounded scroller's bar to its radius, and
+   a square scroller inside a rounded box that clips it (menus, dialogs,
+   tables) runs into the box's curve. The scrollbar pseudo-elements read it by
+   inheriting from their scroller, so it must inherit; every element resets it
+   instead, so a rounded box doesn't inset the scrollers nested in it. (An
+   @property with inherits: false would leave the pseudo-elements at 0.) The
+   reset is in the base layer so utilities override it. Scrollers rounded
+   with the classes below get it automatically; one inside a clipping rounded
+   box sets it to the box's radius, e.g. [--scrollbar-inset:0.5rem] in a
+   rounded-lg menu. */
+@layer base {
+  * {
+    --scrollbar-inset: 0px;
+  }
+}
+
+.scroll-area-thin.rounded-lg,
+.scroll-area .rounded-lg {
+  --scrollbar-inset: 0.5rem;
+}
+.scroll-area-thin.rounded-xl,
+.scroll-area .rounded-xl {
+  --scrollbar-inset: 0.75rem;
+}
+.scroll-area-thin.rounded-2xl,
+.scroll-area .rounded-2xl {
+  --scrollbar-inset: 1rem;
+}
+
 @supports not selector(::-webkit-scrollbar) {
   .scroll-area {
     scrollbar-color: var(--scrollbar-thumb) transparent;
@@ -278,6 +308,24 @@ html {
     .scroll-area *::-webkit-scrollbar-corner,
     .scroll-area-thin::-webkit-scrollbar-corner {
       background: transparent;
+    }
+    .scroll-area::-webkit-scrollbar-track:vertical,
+    .scroll-area *::-webkit-scrollbar-track:vertical,
+    .scroll-area-thin::-webkit-scrollbar-track:vertical {
+      margin-block: var(--scrollbar-inset);
+    }
+    .scroll-area::-webkit-scrollbar-track:horizontal,
+    .scroll-area *::-webkit-scrollbar-track:horizontal,
+    .scroll-area-thin::-webkit-scrollbar-track:horizontal {
+      margin-inline: var(--scrollbar-inset);
+    }
+    /* The app shell's scroller (AppShell): from the nav breakpoint up, where
+       the topbar sits above it in the rounded panel, inset at the top only;
+       at the bottom it deliberately runs into the panel's clipped corners. */
+    @media (width >= 1200px) {
+      .shell-scroller::-webkit-scrollbar-track:vertical {
+        margin-block: 0.75rem 0;
+      }
     }
 
     .scroll-area::-webkit-scrollbar-button,

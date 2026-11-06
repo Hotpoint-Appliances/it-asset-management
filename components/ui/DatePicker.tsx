@@ -395,7 +395,7 @@ export function DatePicker({
           )}
           style={{ maxHeight }}
         >
-          <div className="scroll-area-thin min-h-0 flex-1 overflow-y-auto p-3">
+          <div className="scroll-area-thin min-h-0 flex-1 overflow-y-auto p-3 [--scrollbar-inset:0.75rem]">
             <div className="mb-2 flex items-center gap-1">
               <button
                 type="button"

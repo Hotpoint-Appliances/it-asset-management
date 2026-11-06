@@ -88,7 +88,7 @@ function DialogBody({
   return (
     <div
       className={cn(
-        "scroll-area flex min-h-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto overscroll-contain px-4 py-4 sm:px-6",
+        "scroll-area flex min-h-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:[--scrollbar-inset:0.75rem]",
         className,
       )}
       {...props}

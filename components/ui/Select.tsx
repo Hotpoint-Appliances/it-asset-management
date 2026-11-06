@@ -240,7 +240,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
             )}
             <SelectPrimitive.Viewport
               className={cn(
-                "scroll-area-thin overflow-y-auto p-1",
+                "scroll-area-thin overflow-y-auto p-1 [--scrollbar-inset:0.5rem]",
                 searchable
                   ? "max-h-[min(21rem,calc(var(--radix-select-content-available-height)-3rem))]"
                   : "max-h-[min(24rem,var(--radix-select-content-available-height))]",

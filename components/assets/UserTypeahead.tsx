@@ -255,7 +255,7 @@ export function UserTypeahead({
             }}
             className="bg-card border-border pointer-events-auto fixed z-[60] flex flex-col overflow-clip rounded-lg border shadow-md"
           >
-            <div className="scroll-area-thin min-h-0 flex-1 overflow-y-auto p-1">
+            <div className="scroll-area-thin min-h-0 flex-1 overflow-y-auto p-1 [--scrollbar-inset:0.5rem]">
               {loadingUsers ? (
                 <div className="space-y-1 p-1">
                   {Array.from({ length: 3 }).map((_, i) => (

@@ -207,7 +207,7 @@ export function QuickActions({ className }: { className?: string }) {
               Esc
             </kbd>
           </div>
-          <div className="scroll-area-thin min-h-0 flex-1 overflow-y-auto p-1.5">
+          <div className="scroll-area-thin min-h-0 flex-1 overflow-y-auto p-1.5 [--scrollbar-inset:0.75rem]">
             {visible.length === 0 ? (
               <p className="text-muted-foreground px-3 py-6 text-center text-sm">
                 No matching actions
