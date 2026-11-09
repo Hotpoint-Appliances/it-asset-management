@@ -89,21 +89,34 @@ decorative borders, or texture beyond what's specified below.
 
 ## Scrollbars
 
+- Rounded boxes clip and an inner element scrolls: `overflow-clip` plus a radius on the outer box,
+  the `overflow-*-auto` on a child, so scrollbars and hover rows are cut by the corners. Use
+  `overflow-clip` rather than `overflow-hidden`: it can't be scrolled by focus or `scrollIntoView`
+  and doesn't break `position: sticky`. `Card` clips by default, so a card holding something that
+  extends past its edge (`DatePicker`'s inline calendar, see `ReportCard`) adds `overflow-visible`.
+  `DropdownMenuContent` adds the inner scroller itself; pass `customLayout` to pin a header or footer
+  around your own.
 - Every scrollable element gets a transparent-track scrollbar via one of two utility classes
   defined in `app/globals.css`: `.scroll-area` (default width, ~10px thumb) for page-level /
-  modal / layout-wrapper scrolling (`main` content area, `Dialog`/`Sheet` content, the `Table`
-  wrapper), and `.scroll-area-thin` (~6px thumb) for dropdown/select/popover content (
+  modal / layout-wrapper scrolling (`main` content area, `Dialog`/`Sheet` content), and
+  `.scroll-area-thin` (~6px thumb) for small scrollers (the `Table` wrapper,
   `DropdownMenuContent`, the `Select` viewport, `TreePicker`, `UserTypeahead`'s results panel,
   the collapsed sidebar's nav list). Never leave a scrollable container with the bare browser
-  default — pick whichever of the two matches its role.
+  default — pick whichever of the two matches its role. The one exception is the page scroller of
+  public pages (the `(auth)` layout, and `StandalonePage` for `/403`, the signed-out 404 and the
+  error boundaries): they use `.scroll-native`, the browser's own scrollbar with its arrow buttons,
+  tinted via `scrollbar-color` with the `--scrollbar-thumb` token on a transparent track. Don't
+  style it with `::-webkit-scrollbar*` — that drops Chromium's arrow buttons. `.scroll-native`
+  resets `scrollbar-color` on its children so inner `.scroll-area(-thin)` scrollers keep theirs.
 - The dashboard shell (`AppShell`) scrolls internally (see App shell below), so the document
   itself never scrolls behind an open `Dialog`/`Select`/`DropdownMenu` there — Radix's scroll
   lock (`body[data-scroll-locked]`) has nothing to shift. Do **not** reach for
   `scrollbar-gutter: stable` or `html { overflow-y: scroll }` to defend against that shift again;
   those were a workaround for a `position: sticky` app shell (see below) and caused their own bugs
-  (a permanently visible dead scrollbar strip on short pages like `/login`). Only pages that
-  genuinely scroll the document (`/login`, `/403`, the 404 page) rely on the browser's native
-  scrollbar, styled via the plain `html::-webkit-scrollbar*` rules in `globals.css`.
+  (a permanently visible dead scrollbar strip on short pages like `/login`). `html` is
+  `overflow: hidden`, so every page scrolls inside its own `h-dvh` container: the shell's scroll
+  area, the `(auth)` layout, or `StandalonePage` for anything else outside the shell. A bare
+  `min-h-screen` page can't scroll at all.
 
 ## Responsive design (build for every screen size, not retrofitted later)
 
@@ -154,8 +167,8 @@ sidebar/drawer switch below; don't reach for it elsewhere. (Confirmed in Phase 8
   syncing a content-column margin/padding to the collapsed/expanded width, and does nothing for
   the same shift on any other in-flow element. It's desktop-only (`hidden nav:flex`); below `nav`
   the mobile `Sheet` drawer (triggered from `Topbar`) is the nav, unchanged by any of this.
-  Non-dashboard document-scrolling pages (`/login`, `/403`, the 404 page) are unaffected and keep
-  the browser's native scrollbar.
+  Pages outside the shell (the `(auth)` pages, `/403`, the signed-out 404) are unaffected; the
+  use `.scroll-native` (see Scrollbars).
   - **Inset panel** (from `nav` up only): the shell row is `bg-canvas` (`--canvas`: light
     `#f4f4f5`, dark `#000`), the desktop sidebar sits directly on it with no border/divider and no
     background of its own, and the right column (`Topbar` + scroll area + `Footer`) is a raised
@@ -240,10 +253,11 @@ flex-col">` (not the whole `DialogContent`) so the footer's buttons stay outside
   after a mutation, or a `router.push` that only changes search params, e.g. `AssetsList`'s
   filters/pagination) doesn't get that boundary, since the segment never unmounts — use
   `useRouteLoadingRouter` (`lib/hooks/useRouteLoadingRouter.ts`, a drop-in `useRouter()`
-  replacement) instead, which pulses the top-level `RouteProgress` bar (mounted in `AppShell`)
-  for exactly as long as the refresh/navigation takes. A `<Link>` also gets this treatment by
-  rendering `LinkProgress` (`components/layout/LinkProgress.tsx`, wraps `useLinkStatus`) as one
-  of its children. Client-side fetches inside a component (not a route navigation) get their own
+  replacement) instead, which pulses the top-level `RouteProgress` bar (mounted in `Providers`)
+  for exactly as long as the refresh/navigation takes. Every actual navigation (`<Link>`,
+  `router.push`/`replace`, back/forward) drives that bar on its own through
+  `onRouterTransitionStart` in `instrumentation-client.ts`, so links need no wiring. Client-side
+  fetches inside a component (not a route navigation) get their own
   local `animate-pulse` skeleton state instead (see `UserTypeahead`'s results panel) — never a
   spinner-only page.
 

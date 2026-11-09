@@ -39,6 +39,7 @@
 
   --scrollbar-thumb: rgba(0, 0, 0, 0.35);
   --scrollbar-thumb-hover: rgba(0, 0, 0, 0.5);
+  --scrollbar-thumb-active: rgba(0, 0, 0, 0.65);
 
   /* Toast surface is intentionally inverted from the app theme (dark-on-light
      here) so it pops against the page instead of blending into it. Values
@@ -89,6 +90,7 @@
 
     --scrollbar-thumb: rgba(255, 255, 255, 0.32);
     --scrollbar-thumb-hover: rgba(255, 255, 255, 0.48);
+    --scrollbar-thumb-active: rgba(255, 255, 255, 0.64);
 
     /* Inverted the other way in dark mode: light-on-dark, mirroring the light
        theme's card/foreground tokens above. */
@@ -167,11 +169,9 @@ body {
   color: var(--foreground);
 }
 
-/* Styled scrollbar for document-level scrolling pages (login, 403, 404),
-   the dashboard shell scrolls internally via `.scroll-area` instead, so a
-   Radix scroll-lock on `body` never touches these pages' own scrollport. */
+/* The root never scrolls: the shell and auth layouts scroll inside their own
+   containers, so a Radix scroll-lock on `body` never touches those scrollports. */
 html {
-  scrollbar-color: var(--scrollbar-thumb) transparent;
   overflow: hidden;
   /* `overflow: hidden` alone doesn't stop touch-driven rubber-band/bounce
      scrolling on mobile browsers: nested `overflow-x/y: auto` containers
@@ -181,64 +181,159 @@ html {
      container that contributes to it. */
   overscroll-behavior: none;
 }
-html::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-html::-webkit-scrollbar-track {
-  background: transparent;
-}
-html::-webkit-scrollbar-thumb {
-  background-color: var(--scrollbar-thumb);
-  border-radius: 9999px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-html::-webkit-scrollbar-thumb:hover {
-  background-color: var(--scrollbar-thumb-hover);
-}
 
-/* Transparent-track scrollbar used across the app. Apply `.scroll-area` to
-   any scrollable element; `.scroll-area-thin` additionally narrows it for
-   dropdown/select/popover content. */
-.scroll-area {
-  scrollbar-width: thin;
+/* Scrollbars
+   - .scroll-area styles itself and every scroller inside it: no arrow buttons
+     and a 10px pill thumb flush against the scroller's edge in a transparent
+     track. On the page scrollers and on dialog and sheet panels.
+   - .scroll-area-thin is the 6px variant for small scrollers (dropdowns, menus,
+     tables), inside that scope or not. It comes later so it wins inside it.
+   Chromium 121+ ignores the ::-webkit-scrollbar pseudo-elements on any element
+   with scrollbar-color or scrollbar-width set, and scrollbar-color is inherited.
+   So the standard properties are for browsers without the pseudo-elements only
+   (Firefox), and must not be set on an ancestor of these elements. Touch screens
+   keep their native auto-hiding overlay scrollbars.
+   - .scroll-native is for the page scroller of public pages (sign-in, 403, 404,
+     error): the browser's own scrollbar, arrow buttons included, tinted with the
+     thumb token on a transparent track. It uses scrollbar-color, so it resets
+     that on its children: otherwise it would inherit and switch off the
+     pseudo-element styling of any .scroll-area(-thin) inside. */
+.scroll-native {
   scrollbar-color: var(--scrollbar-thumb) transparent;
 }
-.scroll-area::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-.scroll-area::-webkit-scrollbar-track {
-  background: transparent;
-}
-.scroll-area::-webkit-scrollbar-thumb {
-  background-color: var(--scrollbar-thumb);
-  border-radius: 9999px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-.scroll-area::-webkit-scrollbar-thumb:hover {
-  background-color: var(--scrollbar-thumb-hover);
+.scroll-native > * {
+  scrollbar-color: auto;
 }
 
-.scroll-area-thin {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) transparent;
+/* Track inset at both ends of the scroll axis, so the thumb stops short of
+   rounded corners: Chromium clips a rounded scroller's bar to its radius, and
+   a square scroller inside a rounded box that clips it (menus, dialogs,
+   tables) runs into the box's curve. The scrollbar pseudo-elements read it by
+   inheriting from their scroller, so it must inherit; every element resets it
+   instead, so a rounded box doesn't inset the scrollers nested in it. (An
+   @property with inherits: false would leave the pseudo-elements at 0.) The
+   reset is in the base layer so utilities override it. Scrollers rounded
+   with the classes below get it automatically; one inside a clipping rounded
+   box sets it to the box's radius, e.g. [--scrollbar-inset:0.5rem] in a
+   rounded-lg menu. */
+@layer base {
+  * {
+    --scrollbar-inset: 0px;
+  }
 }
-.scroll-area-thin::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+
+.scroll-area-thin.rounded-lg,
+.scroll-area .rounded-lg {
+  --scrollbar-inset: 0.5rem;
 }
-.scroll-area-thin::-webkit-scrollbar-track {
-  background: transparent;
+.scroll-area-thin.rounded-xl,
+.scroll-area .rounded-xl {
+  --scrollbar-inset: 0.75rem;
 }
-.scroll-area-thin::-webkit-scrollbar-thumb {
-  background-color: var(--scrollbar-thumb);
-  border-radius: 9999px;
+.scroll-area-thin.rounded-2xl,
+.scroll-area .rounded-2xl {
+  --scrollbar-inset: 1rem;
 }
-.scroll-area-thin::-webkit-scrollbar-thumb:hover {
-  background-color: var(--scrollbar-thumb-hover);
+
+@supports not selector(::-webkit-scrollbar) {
+  .scroll-area {
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+  .scroll-area-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+}
+
+@supports selector(::-webkit-scrollbar) {
+  @media (hover: hover) and (pointer: fine) {
+    .scroll-area::-webkit-scrollbar,
+    .scroll-area *::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+      background: transparent;
+    }
+    .scroll-area-thin::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+      background: transparent;
+    }
+
+    .scroll-area::-webkit-scrollbar-thumb,
+    .scroll-area *::-webkit-scrollbar-thumb,
+    .scroll-area-thin::-webkit-scrollbar-thumb {
+      background-color: var(--scrollbar-thumb);
+      background-clip: padding-box;
+      border: 0 solid transparent;
+      border-radius: 999px;
+    }
+    /* Inset from the content side only, so the thumb sits flush against the
+       scroller's edge. The painted (padding-box) corners are the outer radii
+       minus the border, so a one-sided border would make uneven, pinched ends;
+       the inset side's radii are 2px larger along the border so the visible
+       thumb ends in a true semicircle. */
+    .scroll-area::-webkit-scrollbar-thumb:vertical,
+    .scroll-area *::-webkit-scrollbar-thumb:vertical {
+      border-left-width: 2px;
+      border-radius: 6px 4px 4px 6px / 4px;
+    }
+    .scroll-area::-webkit-scrollbar-thumb:horizontal,
+    .scroll-area *::-webkit-scrollbar-thumb:horizontal {
+      border-top-width: 2px;
+      border-radius: 4px / 6px 6px 4px 4px;
+    }
+    .scroll-area-thin::-webkit-scrollbar-thumb:vertical {
+      border-left-width: 2px;
+      border-radius: 4px 2px 2px 4px / 2px;
+    }
+    .scroll-area-thin::-webkit-scrollbar-thumb:horizontal {
+      border-top-width: 2px;
+      border-radius: 2px / 4px 4px 2px 2px;
+    }
+    .scroll-area::-webkit-scrollbar-thumb:hover,
+    .scroll-area *::-webkit-scrollbar-thumb:hover,
+    .scroll-area-thin::-webkit-scrollbar-thumb:hover {
+      background-color: var(--scrollbar-thumb-hover);
+    }
+    .scroll-area::-webkit-scrollbar-thumb:active,
+    .scroll-area *::-webkit-scrollbar-thumb:active,
+    .scroll-area-thin::-webkit-scrollbar-thumb:active {
+      background-color: var(--scrollbar-thumb-active);
+    }
+
+    .scroll-area::-webkit-scrollbar-track,
+    .scroll-area *::-webkit-scrollbar-track,
+    .scroll-area-thin::-webkit-scrollbar-track,
+    .scroll-area::-webkit-scrollbar-corner,
+    .scroll-area *::-webkit-scrollbar-corner,
+    .scroll-area-thin::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+    .scroll-area::-webkit-scrollbar-track:vertical,
+    .scroll-area *::-webkit-scrollbar-track:vertical,
+    .scroll-area-thin::-webkit-scrollbar-track:vertical {
+      margin-block: var(--scrollbar-inset);
+    }
+    .scroll-area::-webkit-scrollbar-track:horizontal,
+    .scroll-area *::-webkit-scrollbar-track:horizontal,
+    .scroll-area-thin::-webkit-scrollbar-track:horizontal {
+      margin-inline: var(--scrollbar-inset);
+    }
+    /* The app shell's scroller (AppShell): from the nav breakpoint up, where
+       the topbar sits above it in the rounded panel, inset at the top only;
+       at the bottom it deliberately runs into the panel's clipped corners. */
+    @media (width >= 1200px) {
+      .shell-scroller::-webkit-scrollbar-track:vertical {
+        margin-block: 0.75rem 0;
+      }
+    }
+
+    .scroll-area::-webkit-scrollbar-button,
+    .scroll-area *::-webkit-scrollbar-button,
+    .scroll-area-thin::-webkit-scrollbar-button {
+      display: none;
+    }
+  }
 }
 
 /* Enter/exit animations for Radix primitives (Dialog, Sheet, DropdownMenu,
@@ -378,6 +473,17 @@ html::-webkit-scrollbar-thumb:hover {
   .group:hover &,
   .group:focus-within & {
     animation-play-state: paused;
+  }
+}
+/* Bottom corner, except on phones with a dialog open: dialogs are full-screen there with their
+   actions along the bottom, so the toasts move out of the way to the top. */
+.toast-layer {
+  bottom: max(1rem, env(safe-area-inset-bottom));
+}
+@media (width < 40rem) {
+  body:has([role="dialog"][data-state="open"]) .toast-layer {
+    top: max(1rem, env(safe-area-inset-top));
+    bottom: auto;
   }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -1,6 +1,9 @@
 import {
   ArrowRightLeft,
   Bell,
+  FileCheck,
+  FileClock,
+  FileWarning,
   ShieldAlert,
   UserCheck,
   Wrench,
@@ -15,6 +18,9 @@ const TYPE_ICONS: Record<NotificationType, LucideIcon> = {
   asset_transferred: ArrowRightLeft,
   maintenance_due: Wrench,
   warranty_expiring: ShieldAlert,
+  issue_form_acknowledged: FileCheck,
+  issue_form_disputed: FileWarning,
+  issue_form_expired: FileClock,
 };
 
 /** Presentational body shared by the bell dropdown and the /notifications page; the caller

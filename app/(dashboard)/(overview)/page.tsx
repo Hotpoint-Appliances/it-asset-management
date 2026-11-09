@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
-import { Boxes, CheckCircle2, Wrench, ShieldAlert } from "lucide-react";
+import {
+  Boxes,
+  CheckCircle2,
+  Wrench,
+  TriangleAlert,
+  ShieldAlert,
+} from "lucide-react";
+import { statusKey } from "@/lib/badgeVariants";
 import { requireSession } from "@/lib/auth/session";
 import {
   getFleetOverview,
@@ -41,6 +48,8 @@ const STATUS_COLOR: Record<string, string> = {
   stolen: "var(--destructive)",
   disposed: "color-mix(in oklab, var(--muted-foreground) 40%, transparent)",
 };
+/** Broken assets nobody is repairing yet, kept apart from the in-repair count. */
+const NEEDS_ATTENTION_STATUSES = new Set(["faulty", "beyond_repair"]);
 const ACCENT_SHADES = [100, 60, 35].map(
   (pct) => `color-mix(in oklab, var(--primary) ${pct}%, transparent)`,
 );
@@ -62,6 +71,13 @@ export default async function DashboardPage() {
 
   const inRepair =
     overview.byStatus.find((s) => s.name === "in_repair")?.count ?? 0;
+  const needsAttentionStatuses = overview.byStatus.filter((s) =>
+    NEEDS_ATTENTION_STATUSES.has(statusKey(s.name)),
+  );
+  const needsAttention = needsAttentionStatuses.reduce(
+    (sum, s) => sum + s.count,
+    0,
+  );
   let otherStatuses = 0;
   const statusSlices: DonutItem[] = overview.byStatus.map((s) => ({
     ...s,
@@ -97,7 +113,7 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <StatTile
           label="Total assets"
           value={overview.total}
@@ -114,6 +130,17 @@ export default async function DashboardPage() {
           value={inRepair}
           icon={Wrench}
           tone={inRepair > 0 ? "warning" : "default"}
+        />
+        <StatTile
+          label="Needs attention"
+          value={needsAttention}
+          icon={TriangleAlert}
+          href={
+            needsAttentionStatuses.length
+              ? `/assets?statusId=${needsAttentionStatuses.map((s) => s.id).join(",")}`
+              : undefined
+          }
+          tone={needsAttention > 0 ? "warning" : "default"}
         />
         <StatTile
           label={`Warranty ≤ ${windows[0]}d`}

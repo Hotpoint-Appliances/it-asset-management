@@ -1,9 +1,17 @@
 import { getGraphAccessToken } from "./graphClient";
 
+export interface EmailAttachment {
+  name: string;
+  contentType: string;
+  content: Buffer;
+}
+
 export interface EmailMessage {
   to: string;
+  cc?: string[];
   subject: string;
   html: string;
+  attachments?: EmailAttachment[];
 }
 
 const SEND_TIMEOUT_MS = 15_000;
@@ -13,8 +21,10 @@ const SEND_TIMEOUT_MS = 15_000;
  * lib/notifications/triggers.ts), nothing here should ever sit inside an asset transaction. */
 export async function sendEmail({
   to,
+  cc = [],
   subject,
   html,
+  attachments = [],
 }: EmailMessage): Promise<void> {
   const token = await getGraphAccessToken();
   const from = process.env.NOTIFICATION_FROM_EMAIL!;
@@ -31,6 +41,13 @@ export async function sendEmail({
           subject,
           body: { contentType: "HTML", content: html },
           toRecipients: [{ emailAddress: { address: to } }],
+          ccRecipients: cc.map((address) => ({ emailAddress: { address } })),
+          attachments: attachments.map((a) => ({
+            "@odata.type": "#microsoft.graph.fileAttachment",
+            name: a.name,
+            contentType: a.contentType,
+            contentBytes: a.content.toString("base64"),
+          })),
         },
         saveToSentItems: false,
       }),

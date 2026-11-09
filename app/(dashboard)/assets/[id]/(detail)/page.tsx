@@ -13,6 +13,7 @@ import { listAssetConditions } from "@/lib/db/assetConditions";
 import { listAssetStatuses } from "@/lib/db/assetStatuses";
 import { listAccessories } from "@/lib/db/accessories";
 import { listAssetAccessories } from "@/lib/db/assetAccessories";
+import { listIssueFormsForAsset } from "@/lib/db/issueForms";
 import { AssetDetail } from "@/components/assets/AssetDetail";
 
 export async function generateMetadata({
@@ -40,6 +41,9 @@ export default async function AssetDetailPage({
   const asset = await getAssetForPage(id, session);
   if (!asset) notFound();
 
+  const canManage =
+    session.roleName === "admin" || session.roleName === "asset_manager";
+
   const [
     attachments,
     auditLog,
@@ -52,6 +56,7 @@ export default async function AssetDetailPage({
     statuses,
     accessories,
     accessoryCatalog,
+    issueForms,
   ] = await Promise.all([
     listAssetAttachments(id),
     listAuditLogForAsset(id),
@@ -66,6 +71,7 @@ export default async function AssetDetailPage({
     listAssetStatuses(),
     listAssetAccessories(id),
     listAccessories({ activeOnly: true }),
+    canManage ? listIssueFormsForAsset(id) : Promise.resolve([]),
   ]);
 
   return (
@@ -77,9 +83,8 @@ export default async function AssetDetailPage({
       auditLog={auditLog}
       maintenance={maintenance}
       disposal={disposal}
-      canManage={
-        session.roleName === "admin" || session.roleName === "asset_manager"
-      }
+      issueForms={issueForms}
+      canManage={canManage}
       isAdmin={session.roleName === "admin"}
       locations={locations}
       departments={departments.items}

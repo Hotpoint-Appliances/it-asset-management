@@ -1,6 +1,8 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
+/** Clips to its rounded corners. A card holding something that must extend past its edges, like
+ * `DatePicker`'s inline calendar, opts out with `overflow-visible`. */
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -8,7 +10,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "border-border bg-card text-card-foreground rounded-xl border shadow-sm",
+      "border-border bg-card text-card-foreground overflow-clip rounded-xl border shadow-sm",
       className,
     )}
     {...props}

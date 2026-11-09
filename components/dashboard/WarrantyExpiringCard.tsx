@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ShieldAlert } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { WarrantyExpiringItem } from "@/types/dashboard";
 
@@ -68,9 +69,7 @@ export function WarrantyExpiringCard({
                     </span>
                     <span className="text-muted-foreground block truncate text-xs">
                       {item.assetTag} · {item.departmentName} ·{" "}
-                      {new Date(item.warrantyExpiry).toLocaleDateString(
-                        "en-KE",
-                      )}
+                      {formatDate(item.warrantyExpiry)}
                     </span>
                   </span>
                   <Badge

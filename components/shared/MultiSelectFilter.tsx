@@ -102,7 +102,8 @@ export function MultiSelectFilter({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className="flex max-h-72 flex-col overflow-hidden p-0"
+        customLayout
+        className="max-h-72"
         onFocus={searchable ? handleContentFocus : undefined}
         onKeyDown={searchable ? handleContentKeyDown : undefined}
       >
@@ -124,7 +125,7 @@ export function MultiSelectFilter({
         </div>
         <div
           ref={listRef}
-          className="scroll-area-thin min-h-0 flex-1 overflow-y-auto p-1"
+          className="scroll-area-thin min-h-0 flex-1 overflow-y-auto p-1 [--scrollbar-inset:0.5rem]"
         >
           {options.length === 0 && (
             <p className="text-muted-foreground px-2 py-1.5 text-sm">

@@ -53,8 +53,8 @@ export function Topbar({
     return () => mql.removeEventListener("change", onChange);
   }, [setMobileNavOpen]);
 
-  // The drawer stays open while a nav link's navigation is pending, so that link's LinkProgress
-  // stays mounted and keeps RouteProgress running. It closes once the new page has rendered.
+  // The drawer stays open while a nav link's navigation is pending and closes once the new page
+  // has rendered.
   React.useEffect(() => {
     setMobileNavOpen(false);
   }, [pathname, setMobileNavOpen]);

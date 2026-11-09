@@ -4,47 +4,52 @@ import * as React from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useUIStore } from "@/store";
 
-/** Thin progress bar pinned to the top of the app shell, driven by `routeLoading` (a counter, see
- * `store/index.ts`). Two things push it: `LinkProgress` (mounted inside a `<Link>`, via Next's
- * `useLinkStatus`) and `useRouteLoadingRouter` (a `useRouter()` drop-in for programmatic
- * push/replace/refresh). The pathname/search-param watcher below is a safety net only, if a
- * route actually finished changing, the counter must not stay stuck above zero because some
- * caller's start wasn't matched by an end. */
+/** Routes that arrive faster than this never show the line, so quick navigations don't flash. */
+const SHOW_DELAY_MS = 150;
+
+/** Thin progress bar pinned to the top of the page. Two signals drive it: `navigating`, set for
+ * every navigation by `onRouterTransitionStart` (instrumentation-client.ts) and cleared here once
+ * the new URL has rendered; and `routeLoading`, a counter from `useRouteLoadingRouter` that covers
+ * what isn't a navigation, like `router.refresh()` after a mutation. The watcher below also zeroes
+ * the counter, so a start without a matching end can't leave the line stuck. */
 export function RouteProgress() {
   const routeLoading = useUIStore((s) => s.routeLoading);
+  const navigating = useUIStore((s) => s.navigating);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [visible, setVisible] = React.useState(false);
   const [width, setWidth] = React.useState(0);
 
+  const active = routeLoading > 0 || navigating;
   const routeKey = `${pathname}?${searchParams.toString()}`;
 
   React.useEffect(() => {
+    useUIStore.getState().endNavigation();
     useUIStore.setState({ routeLoading: 0 });
   }, [routeKey]);
 
-  // Adjusting state during render (React-documented pattern, and the same one
-  // `useSyncOnOpen` uses) for the start/complete edges, so the effect below only ever
-  // schedules timers, it never calls setState synchronously in its own body, just from
-  // timer callbacks that fire later. A ref can't stand in for `prevLoading` here since
-  // reading/writing a ref during render is itself disallowed.
-  const [prevLoading, setPrevLoading] = React.useState(0);
-  if (routeLoading !== prevLoading) {
-    setPrevLoading(routeLoading);
-    if (routeLoading > 0 && prevLoading === 0) {
-      setVisible(true);
-      setWidth(15);
-    } else if (routeLoading === 0 && prevLoading > 0) {
-      setWidth(100);
-    }
+  // Adjusting state during render (React-documented pattern, and the same one `useSyncOnOpen`
+  // uses) for the start/complete edges, so the effect below only ever schedules timers. A ref
+  // can't stand in for `prevActive` here since reading/writing a ref during render is disallowed.
+  const [prevActive, setPrevActive] = React.useState(false);
+  if (active !== prevActive) {
+    setPrevActive(active);
+    if (visible) setWidth(active ? 15 : 100);
   }
 
   React.useEffect(() => {
-    if (routeLoading > 0) {
+    if (active) {
+      const show = setTimeout(() => {
+        setVisible(true);
+        setWidth((w) => w || 15);
+      }, SHOW_DELAY_MS);
       const grow = setInterval(() => {
-        setWidth((w) => (w < 85 ? w + (85 - w) * 0.15 : w));
+        setWidth((w) => (w > 0 && w < 85 ? w + (85 - w) * 0.15 : w));
       }, 200);
-      return () => clearInterval(grow);
+      return () => {
+        clearTimeout(show);
+        clearInterval(grow);
+      };
     }
 
     if (visible) {
@@ -54,7 +59,7 @@ export function RouteProgress() {
       }, 200);
       return () => clearTimeout(hide);
     }
-  }, [routeLoading, visible]);
+  }, [active, visible]);
 
   if (!visible) return null;
 

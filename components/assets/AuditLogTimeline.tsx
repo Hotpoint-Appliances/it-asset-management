@@ -5,6 +5,7 @@ import { Pagination } from "@/components/shared/Pagination";
 import { usePagination } from "@/lib/hooks/usePagination";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { formatLookupName } from "@/lib/badgeVariants";
+import { formatDateTime } from "@/lib/format";
 import type { AssetAuditLogEntry } from "@/types/auditLog";
 import type { Location } from "@/types/location";
 import type { Department } from "@/types/department";
@@ -26,7 +27,21 @@ export const ACTION_LABELS: Record<string, string> = {
   accessory_added: "Accessory added",
   accessory_removed: "Accessory removed",
   accessory_updated: "Accessory updated",
+  issue_form_sent: "Issue form sent",
+  issue_form_resent: "Issue form re-sent",
+  issue_form_voided: "Issue form voided",
+  issue_form_expired: "Issue form expired",
+  issue_form_acknowledged: "Issue form acknowledged",
+  issue_form_disputed: "Issue form disputed",
 };
+
+/** Done by the recipient or the system, so the row's required performed_by (the person who
+ * triggered the form) isn't who acted. The note says who did. */
+const NO_ACTOR_ACTIONS = [
+  "issue_form_expired",
+  "issue_form_acknowledged",
+  "issue_form_disputed",
+];
 
 /** Which lookup table (if any) a tracked field's old_value/new_value is an id into, resolved
  * against the id->name maps built below so the timeline shows "Warehouse A", not "5". */
@@ -75,6 +90,7 @@ function describe(entry: AssetAuditLogEntry, lookups: AuditLookups): string {
       return `${label}: ${entry.oldValue} → ${entry.newValue}`;
     return `${label}: ${entry.newValue ?? entry.oldValue}`;
   }
+  if (entry.fieldName === "issue_form") return `${label}: ${entry.newValue}`;
   const field = entry.fieldName.replace(/_id$/, "").replace(/_/g, " ");
   const oldValue = formatValue(
     entry.fieldName,
@@ -120,7 +136,7 @@ export function AuditLogTimeline({
     return entries.map((entry) => ({
       entry,
       description: describe(entry, lookups),
-      performedAt: new Date(entry.performedAt).toLocaleString(),
+      performedAt: formatDateTime(entry.performedAt),
     }));
   }, [entries, locations, departments, conditions, statuses]);
   // Matches what's on screen: the description, who did it, the note and the timestamp.
@@ -179,9 +195,11 @@ export function AuditLogTimeline({
                   {performedAt}
                 </span>
               </div>
-              <span className="text-muted-foreground text-xs">
-                by {entry.performedByName}
-              </span>
+              {!NO_ACTOR_ACTIONS.includes(entry.actionType) && (
+                <span className="text-muted-foreground text-xs">
+                  by {entry.performedByName}
+                </span>
+              )}
               {entry.note && <p className="text-sm">{entry.note}</p>}
             </li>
           ))}

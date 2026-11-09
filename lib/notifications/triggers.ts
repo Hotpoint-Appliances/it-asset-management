@@ -21,7 +21,12 @@ import {
 import { isEmailConfigured } from "@/lib/email/graphClient";
 import { sendEmail } from "@/lib/email/sendEmail";
 import { appUrl, renderNotificationEmail } from "@/lib/email/templates";
+import {
+  runIssueFormChecks,
+  type IssueFormCheckSummary,
+} from "@/lib/issueForms/notify";
 import type { NotificationType } from "@/types/notification";
+import { formatDate } from "@/lib/format";
 
 // Notification triggers (phase-7). Two entry points:
 //  - scheduleAssetChangeNotifications(): asset_assigned / asset_transferred, called by the asset
@@ -46,6 +51,7 @@ const SYSTEM_REQUESTER: AssetRequester = {
 const SCHEDULED_TYPES: NotificationType[] = [
   "warranty_expiring",
   "maintenance_due",
+  "issue_form_expired",
 ];
 /** How far back the scheduled run retries unsent emails; older ones are left in-app only. */
 const EMAIL_RETRY_DAYS = 3;
@@ -53,15 +59,6 @@ const EMAIL_RETRY_DAYS = 3;
 const EMAIL_SETTLE_MINUTES = 10;
 /** Upper bound on assets examined per warranty run; far above any realistic fleet's 90-day set. */
 const WARRANTY_SCAN_LIMIT = 10_000;
-
-function formatDate(isoDate: string): string {
-  return new Date(`${isoDate}T00:00:00Z`).toLocaleDateString("en-KE", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-}
 
 function formatLabel(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1).replace(/_/g, " ");
@@ -318,6 +315,7 @@ export async function runMaintenanceDueCheck(
 export interface ScheduledRunSummary {
   warrantyExpiring: CheckSummary;
   maintenanceDue: CheckSummary;
+  issueForms: IssueFormCheckSummary;
   email: EmailSummary;
 }
 
@@ -328,6 +326,7 @@ export async function runScheduledChecks(): Promise<ScheduledRunSummary> {
   const recipients = await listAlertRecipients();
   const warrantyExpiring = await runWarrantyExpiringCheck(recipients);
   const maintenanceDue = await runMaintenanceDueCheck(recipients);
+  const issueForms = await runIssueFormChecks();
   const email = await deliverPendingEmails(
     await listPendingEmails({
       withinDays: EMAIL_RETRY_DAYS,
@@ -335,5 +334,5 @@ export async function runScheduledChecks(): Promise<ScheduledRunSummary> {
       immediateTypes: SCHEDULED_TYPES,
     }),
   );
-  return { warrantyExpiring, maintenanceDue, email };
+  return { warrantyExpiring, maintenanceDue, issueForms, email };
 }

@@ -96,7 +96,7 @@ CREATE TABLE asset_conditions (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 INSERT INTO asset_conditions (name, sort_order) VALUES
-  ('good', 1), ('bad', 2), ('worse', 3);
+  ('good', 1), ('fair', 2), ('bad', 3), ('worse', 4);
 
 CREATE TABLE asset_statuses (
   id SERIAL PRIMARY KEY,
@@ -106,7 +106,8 @@ CREATE TABLE asset_statuses (
 );
 INSERT INTO asset_statuses (name, sort_order) VALUES
   ('active', 1), ('in_storage', 2), ('reserved', 3), ('in_repair', 4),
-  ('lost', 5), ('stolen', 6), ('disposed', 7);
+  ('lost', 5), ('stolen', 6), ('disposed', 7),
+  ('awaiting_disposal', 8), ('faulty', 9), ('beyond_repair', 10);
 
 -- ============================================================
 -- Users
@@ -300,6 +301,73 @@ CREATE TABLE asset_disposals (
   attachment_path VARCHAR(500),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- ============================================================
+-- Equipment issue forms: see migrations/007 and lib/db/issueForms.ts
+--   Everything printed is frozen when triggered. At most one open form per asset.
+-- ============================================================
+CREATE SEQUENCE equipment_issue_form_number_seq;
+
+CREATE TABLE equipment_issue_forms (
+  id UUID PRIMARY KEY,
+  form_number BIGINT UNIQUE NOT NULL DEFAULT nextval('equipment_issue_form_number_seq'), -- printed as EIF-000001
+  asset_id UUID NOT NULL REFERENCES assets(id) ON DELETE RESTRICT, -- signed forms are never deleted
+  status VARCHAR(20) NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending', 'acknowledged', 'disputed', 'voided', 'superseded', 'expired')),
+
+  -- Frozen when triggered
+  issue_date DATE NOT NULL,
+  equipment_type VARCHAR(150) NOT NULL,
+  make VARCHAR(100) NOT NULL,
+  model VARCHAR(200) NOT NULL,
+  serial_number VARCHAR(100) NOT NULL,
+  finance_asset_no VARCHAR(50) NOT NULL, -- the asset tag
+  physical_condition VARCHAR(50) NOT NULL,
+  condition_comment TEXT,
+  accessories JSONB NOT NULL DEFAULT '[]', -- [{ name, quantity, notes }]
+  department VARCHAR(150) NOT NULL,
+  location VARCHAR(150) NOT NULL,
+  issued_to_name VARCHAR(150) NOT NULL,
+  issued_to_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  recipient_email VARCHAR(150) NOT NULL,
+  payroll_number VARCHAR(50) NOT NULL,
+  approved_by_name VARCHAR(255) NOT NULL, -- a HOD from the requisitions app
+  approved_by_email VARCHAR(255) NOT NULL,
+  remarks TEXT,
+  reissue_reason VARCHAR(200),
+  disclaimer JSONB NOT NULL, -- the paragraphs the recipient agreed to
+  content_hash CHAR(64) NOT NULL, -- hex SHA-256 of the frozen fields, printed on the PDF
+
+  -- The emailed link
+  token_hash CHAR(64) UNIQUE NOT NULL,
+  token_nonce CHAR(32) NOT NULL, -- with the app secret, re-derives the link for reminders
+  expires_at TIMESTAMPTZ NOT NULL,
+  last_sent_at TIMESTAMPTZ,
+  email_status VARCHAR(10) NOT NULL DEFAULT 'pending' CHECK (email_status IN ('pending', 'sent', 'failed')),
+  reminder_count INT NOT NULL DEFAULT 0,
+
+  -- Outcome
+  acknowledged_at TIMESTAMPTZ,
+  acknowledged_name VARCHAR(150),
+  acknowledged_ip VARCHAR(64),
+  acknowledged_user_agent VARCHAR(500),
+  disputed_at TIMESTAMPTZ,
+  dispute_reason TEXT,
+  voided_at TIMESTAMPTZ,
+  voided_by UUID REFERENCES users(id),
+  void_reason VARCHAR(500),
+  superseded_by UUID REFERENCES equipment_issue_forms(id),
+
+  created_by UUID NOT NULL REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TRIGGER trg_equipment_issue_forms_updated_at BEFORE UPDATE ON equipment_issue_forms
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+CREATE INDEX idx_issue_forms_asset ON equipment_issue_forms(asset_id, created_at DESC);
+CREATE INDEX idx_issue_forms_pending ON equipment_issue_forms(expires_at) WHERE status = 'pending';
+CREATE UNIQUE INDEX uq_issue_forms_open_per_asset
+  ON equipment_issue_forms(asset_id) WHERE status IN ('pending', 'disputed');
 
 -- ============================================================
 -- Notifications (in-app + email-sent tracking via MSAL/Graph)

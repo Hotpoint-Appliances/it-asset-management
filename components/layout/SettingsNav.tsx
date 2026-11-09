@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LinkProgress } from "./LinkProgress";
 import { settingsSections } from "./settings-sections";
 
 export function SettingsNav() {
@@ -26,7 +25,6 @@ export function SettingsNav() {
             )}
           >
             {item.label}
-            <LinkProgress />
           </Link>
         );
       })}

@@ -5,15 +5,18 @@ const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
-  // `relative` makes this scroll box the containing block of absolutely positioned descendants
-  // (e.g. the action buttons' sr-only labels). Without it they escape the overflow clip and
-  // widen the whole page on mobile once a table is wider than the viewport.
-  <div className="border-border relative w-full overflow-x-auto overscroll-x-contain rounded-xl border shadow-sm">
-    <table
-      ref={ref}
-      className={cn("w-full caption-bottom text-sm", className)}
-      {...props}
-    />
+  // The outer box clips to the rounded corners and the inner one scrolls. `relative` makes the
+  // scroll box the containing block of absolutely positioned descendants (e.g. the action buttons'
+  // sr-only labels). Without it they escape the overflow clip and widen the whole page on mobile
+  // once a table is wider than the viewport.
+  <div className="border-border w-full overflow-clip rounded-xl border shadow-sm">
+    <div className="scroll-area-thin relative w-full overflow-x-auto overscroll-x-contain [--scrollbar-inset:0.75rem]">
+      <table
+        ref={ref}
+        className={cn("w-full caption-bottom text-sm", className)}
+        {...props}
+      />
+    </div>
   </div>
 ));
 Table.displayName = "Table";
@@ -86,5 +89,20 @@ const TableCell = React.forwardRef<
   />
 ));
 TableCell.displayName = "TableCell";
+
+/** Pins a table's last column to the right edge while the rest scrolls under it. It needs opaque
+ * backgrounds matching the translucent header and row hover tints, and the divider is a pseudo
+ * element because a collapsed table's borders don't travel with a sticky cell. The row needs
+ * `group/row` for the hover tint. */
+const stickyEndClass =
+  "before:bg-border sticky right-0 z-10 before:absolute before:inset-y-0 before:left-0 before:w-px";
+export const stickyEndHeadClass = cn(
+  stickyEndClass,
+  "bg-[color-mix(in_srgb,var(--muted)_50%,var(--background))]",
+);
+export const stickyEndCellClass = cn(
+  stickyEndClass,
+  "bg-background group-hover/row:bg-[color-mix(in_srgb,var(--muted)_50%,var(--background))] transition-colors",
+);
 
 export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell };

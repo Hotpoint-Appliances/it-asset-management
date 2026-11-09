@@ -10,6 +10,7 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
 import type { AssetAttachment } from "@/types/assetAttachment";
+import { formatDate } from "@/lib/format";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -147,7 +148,7 @@ export function AssetAttachments({
               <div className="flex shrink-0 items-center gap-3">
                 <span className="text-muted-foreground text-xs">
                   {attachment.uploadedByName} ·{" "}
-                  {new Date(attachment.uploadedAt).toLocaleDateString()}
+                  {formatDate(attachment.uploadedAt)}
                 </span>
                 {canManage && (
                   <Button

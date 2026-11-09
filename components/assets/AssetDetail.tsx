@@ -14,6 +14,7 @@ import {
   ChevronDown,
   ArrowRightLeft,
   Repeat,
+  FileSignature,
   Trash2,
   AlertOctagon,
   BroomSparkles,
@@ -40,13 +41,16 @@ import { DisposalDialog } from "./DisposalDialog";
 import { AuditLogTimeline } from "./AuditLogTimeline";
 import { MaintenanceTab } from "./MaintenanceTab";
 import { AccessoriesTab } from "./AccessoriesTab";
+import { IssueFormDialog } from "./IssueFormDialog";
+import { IssueFormsTab } from "./IssueFormsTab";
+import { canIssueForm } from "@/lib/issueForms/rules";
 import { useUIStore } from "@/store";
 import {
   statusBadgeVariant,
   conditionBadgeVariant,
   formatLookupName,
 } from "@/lib/badgeVariants";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDate, formatDateTime } from "@/lib/format";
 import type { AssetWithRelations } from "@/types/asset";
 import type { AssetAttachment } from "@/types/assetAttachment";
 import type { AssetAuditLogEntry } from "@/types/auditLog";
@@ -58,6 +62,7 @@ import type { Vendor } from "@/types/vendor";
 import type { AssetCondition } from "@/types/assetCondition";
 import type { AssetStatus } from "@/types/assetStatus";
 import type { Accessory, AssetAccessory } from "@/types/accessory";
+import type { IssueForm } from "@/types/issueForm";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -66,7 +71,7 @@ function errorMessage(err: unknown): string {
 }
 
 type ActiveDialog =
-  "transfer" | "condition" | "status" | "dispose" | "delete" | null;
+  "transfer" | "condition" | "status" | "dispose" | "delete" | "issue" | null;
 
 export function AssetDetail({
   asset,
@@ -76,6 +81,7 @@ export function AssetDetail({
   auditLog,
   maintenance,
   disposal,
+  issueForms,
   canManage,
   isAdmin,
   locations,
@@ -93,6 +99,8 @@ export function AssetDetail({
   maintenance: AssetMaintenance[];
   /** Present only for a disposed asset. */
   disposal: AssetDisposal | null;
+  /** Empty unless `canManage`: forms carry payroll numbers. */
+  issueForms: IssueForm[];
   canManage: boolean;
   isAdmin: boolean;
   locations: Location[];
@@ -180,6 +188,14 @@ export function AssetDetail({
                     <DropdownMenuContent align="end">
                       {hasLifecycleActions && (
                         <>
+                          {canIssueForm(asset.statusName) && (
+                            <DropdownMenuItem
+                              onSelect={() => setActiveDialog("issue")}
+                            >
+                              <FileSignature className="h-4 w-4" />
+                              Issue form
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem
                             onSelect={() => setActiveDialog("transfer")}
                           >
@@ -259,6 +275,9 @@ export function AssetDetail({
           <TabsTrigger value="audit">Audit Log</TabsTrigger>
           <TabsTrigger value="attachments">Attachments</TabsTrigger>
           <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
+          {canManage && (
+            <TabsTrigger value="issue-forms">Issue Forms</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="overview">
@@ -315,10 +334,20 @@ export function AssetDetail({
             canManage={canManage && !isDisposed}
           />
         </TabsContent>
+        {canManage && (
+          <TabsContent value="issue-forms">
+            <IssueFormsTab assetId={asset.id} forms={issueForms} />
+          </TabsContent>
+        )}
       </Tabs>
 
       {hasLifecycleActions && (
         <>
+          <IssueFormDialog
+            assetId={asset.id}
+            open={activeDialog === "issue"}
+            onOpenChange={(open) => setActiveDialog(open ? "issue" : null)}
+          />
           <TransferDialog
             asset={asset}
             locations={locations}
@@ -380,7 +409,7 @@ function DisposalSummary({
   disposal: AssetDisposal;
 }) {
   const rows: [string, ReactNode][] = [
-    ["Disposal date", new Date(disposal.disposalDate).toLocaleDateString()],
+    ["Disposal date", formatDate(disposal.disposalDate)],
     ["Method", formatLookupName(disposal.disposalMethod)],
     [
       "Disposal value",
@@ -436,9 +465,7 @@ function OverviewGrid({ asset }: { asset: AssetWithRelations }) {
     ["Vendor", asset.vendorName ?? "N/A"],
     [
       "Purchase date",
-      asset.purchaseDate
-        ? new Date(asset.purchaseDate).toLocaleDateString()
-        : "N/A",
+      asset.purchaseDate ? formatDate(asset.purchaseDate) : "N/A",
     ],
     [
       "Purchase cost",
@@ -446,9 +473,7 @@ function OverviewGrid({ asset }: { asset: AssetWithRelations }) {
     ],
     [
       "Warranty expiry",
-      asset.warrantyExpiry
-        ? new Date(asset.warrantyExpiry).toLocaleDateString()
-        : "N/A",
+      asset.warrantyExpiry ? formatDate(asset.warrantyExpiry) : "N/A",
     ],
     [
       "Depreciation method",
@@ -468,8 +493,8 @@ function OverviewGrid({ asset }: { asset: AssetWithRelations }) {
     ],
     ["Owner email", asset.ownerEmail ?? "N/A"],
     ["Created by", asset.createdByName],
-    ["Created", new Date(asset.createdAt).toLocaleString()],
-    ["Last updated", new Date(asset.updatedAt).toLocaleString()],
+    ["Created", formatDateTime(asset.createdAt)],
+    ["Last updated", formatDateTime(asset.updatedAt)],
   ];
   if (asset.notes) rows.push(["Notes", asset.notes]);
 

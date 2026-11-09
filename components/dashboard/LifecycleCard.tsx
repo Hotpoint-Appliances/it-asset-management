@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { LifecycleOverview } from "@/types/dashboard";
 
@@ -41,7 +42,7 @@ export function LifecycleCard({ data }: { data: LifecycleOverview }) {
                 className="grid grid-cols-[minmax(0,9rem)_1fr_2.5rem] items-center gap-3 text-sm"
               >
                 <span className="truncate">{band.label}</span>
-                <div className="bg-muted h-2.5 overflow-hidden rounded-full">
+                <div className="bg-muted h-2.5 overflow-clip rounded-full">
                   <div
                     className="bg-primary h-full rounded-full"
                     style={{ width: `${(band.count / max) * 100}%` }}
@@ -77,7 +78,7 @@ export function LifecycleCard({ data }: { data: LifecycleOverview }) {
                       </span>
                       <span className="text-muted-foreground block truncate text-xs">
                         {item.assetTag} · end of life{" "}
-                        {new Date(item.endOfLife).toLocaleDateString("en-KE")}
+                        {formatDate(item.endOfLife)}
                       </span>
                     </span>
                     <Badge
@@ -109,11 +110,13 @@ function Figure({
   tone: "default" | "warning" | "danger";
 }) {
   return (
-    <div className="bg-muted/50 rounded-lg px-3 py-2.5">
+    // The number is pinned to the bottom of the box, so the pair keeps its numbers level when one
+    // label wraps to two lines and the other does not.
+    <div className="bg-muted/50 flex flex-col rounded-lg px-3 py-2.5">
       <p className="text-muted-foreground text-xs">{label}</p>
       <p
         className={cn(
-          "mt-0.5 text-2xl font-semibold tabular-nums",
+          "mt-auto pt-0.5 text-2xl font-semibold tabular-nums",
           tone === "warning" && "text-warning",
           tone === "danger" && "text-destructive",
         )}

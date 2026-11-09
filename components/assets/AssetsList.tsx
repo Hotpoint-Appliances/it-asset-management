@@ -24,12 +24,15 @@ import {
   TableRow,
   TableHead,
   TableCell,
+  stickyEndHeadClass,
+  stickyEndCellClass,
 } from "@/components/ui/Table";
 import { DownloadButton } from "@/components/shared/DownloadButton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { MultiSelectFilter } from "@/components/shared/MultiSelectFilter";
+import { AssetColumnsMenu } from "./AssetColumnsMenu";
 import { AssetRowActions } from "./AssetRowActions";
-import { LinkProgress } from "@/components/layout/LinkProgress";
+import { useAssetColumns } from "@/lib/hooks/useAssetColumns";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import { cn } from "@/lib/utils";
 import {
@@ -85,7 +88,16 @@ export function AssetsList({
   const router = useRouteLoadingRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [search, setSearch] = React.useState(searchParams.get("search") ?? "");
+  const urlSearch = searchParams.get("search") ?? "";
+  const [search, setSearch] = React.useState(urlSearch);
+  // Back/forward and links change the URL without remounting this page, so the box follows it.
+  const [prevUrlSearch, setPrevUrlSearch] = React.useState(urlSearch);
+  if (urlSearch !== prevUrlSearch) {
+    setPrevUrlSearch(urlSearch);
+    setSearch(urlSearch);
+  }
+  const columns = useAssetColumns();
+  const { isVisible } = columns;
 
   function currentValues(key: string): string[] {
     return searchParams.getAll(key);
@@ -201,7 +213,6 @@ export function AssetsList({
               <Link href="/assets/import" aria-label="Import assets">
                 <Upload className="h-4 w-4" />
                 <span className="hidden sm:inline">Import</span>
-                <LinkProgress />
               </Link>
             </Button>
           )}
@@ -210,7 +221,6 @@ export function AssetsList({
               <Link href="/assets/new">
                 <Plus className="h-4 w-4" />
                 New Asset
-                <LinkProgress />
               </Link>
             </Button>
           )}
@@ -224,7 +234,7 @@ export function AssetsList({
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by tag, name, or serial number…"
+              placeholder="Search by tag, name, serial number, owner or email…"
               className="pl-9"
             />
           </div>
@@ -290,6 +300,7 @@ export function AssetsList({
               Clear filters
             </Button>
           )}
+          <AssetColumnsMenu columns={columns} />
         </div>
       </div>
 
@@ -322,13 +333,19 @@ export function AssetsList({
               <TableRow>
                 {sortableHead("tag", "Tag")}
                 {sortableHead("name", "Name")}
-                {sortableHead("category", "Category")}
-                {sortableHead("status", "Status")}
-                {sortableHead("condition", "Condition")}
-                {sortableHead("location", "Location")}
-                {sortableHead("department", "Department")}
-                {sortableHead("owner", "Owner")}
-                <TableHead className="text-right">Actions</TableHead>
+                {isVisible("serial") && sortableHead("serial", "Serial number")}
+                {isVisible("category") && sortableHead("category", "Category")}
+                {isVisible("status") && sortableHead("status", "Status")}
+                {isVisible("condition") &&
+                  sortableHead("condition", "Condition")}
+                {isVisible("location") && sortableHead("location", "Location")}
+                {isVisible("department") &&
+                  sortableHead("department", "Department")}
+                {isVisible("owner") && sortableHead("owner", "Owner")}
+                {isVisible("email") && sortableHead("email", "Owner email")}
+                <TableHead className={cn(stickyEndHeadClass, "text-center")}>
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -337,7 +354,7 @@ export function AssetsList({
                 // (a real anchor, so ctrl/middle-click, prefetch and keyboard focus all work),
                 // not a row onClick, which would also fire for clicks inside the actions menu's
                 // portaled dialogs since React bubbles events through portals.
-                <TableRow key={asset.id} className="relative">
+                <TableRow key={asset.id} className="group/row relative">
                   <TableCell className="font-mono text-xs font-medium">
                     {asset.assetTag}
                   </TableCell>
@@ -347,26 +364,49 @@ export function AssetsList({
                       className="focus-visible:after:ring-ring after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-inset"
                     >
                       {asset.name}
-                      <LinkProgress />
                     </Link>
                   </TableCell>
-                  <TableCell>{asset.categoryName}</TableCell>
-                  <TableCell>
-                    <Badge variant={statusBadgeVariant(asset.statusName)}>
-                      {formatLookupName(asset.statusName)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={conditionBadgeVariant(asset.conditionName)}>
-                      {formatLookupName(asset.conditionName)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{asset.locationName}</TableCell>
-                  <TableCell>{asset.departmentName}</TableCell>
-                  <TableCell>
-                    {asset.assignedUserName ?? asset.ownerName ?? "N/A"}
-                  </TableCell>
-                  <TableCell className="relative z-10 text-right">
+                  {isVisible("serial") && (
+                    <TableCell className="font-mono text-xs">
+                      {asset.serialNumber}
+                    </TableCell>
+                  )}
+                  {isVisible("category") && (
+                    <TableCell>{asset.categoryName}</TableCell>
+                  )}
+                  {isVisible("status") && (
+                    <TableCell>
+                      <Badge variant={statusBadgeVariant(asset.statusName)}>
+                        {formatLookupName(asset.statusName)}
+                      </Badge>
+                    </TableCell>
+                  )}
+                  {isVisible("condition") && (
+                    <TableCell>
+                      <Badge
+                        variant={conditionBadgeVariant(asset.conditionName)}
+                      >
+                        {formatLookupName(asset.conditionName)}
+                      </Badge>
+                    </TableCell>
+                  )}
+                  {isVisible("location") && (
+                    <TableCell>{asset.locationName}</TableCell>
+                  )}
+                  {isVisible("department") && (
+                    <TableCell>{asset.departmentName}</TableCell>
+                  )}
+                  {isVisible("owner") && (
+                    <TableCell>
+                      {asset.assignedUserName ?? asset.ownerName ?? "N/A"}
+                    </TableCell>
+                  )}
+                  {isVisible("email") && (
+                    <TableCell>
+                      {asset.assignedUserEmail ?? asset.ownerEmail ?? "N/A"}
+                    </TableCell>
+                  )}
+                  <TableCell className={cn(stickyEndCellClass, "text-center")}>
                     <AssetRowActions
                       asset={asset}
                       canManage={canManage}
@@ -473,7 +513,7 @@ function SortableHead({
         onClick={onSort}
         aria-label={`${label}, ${next}`}
         className={cn(
-          "hover:text-foreground focus-visible:ring-ring -mx-2 inline-flex min-h-11 items-center gap-1 rounded-md px-2 whitespace-nowrap focus-visible:ring-2 focus-visible:outline-none",
+          "hover:text-foreground focus-visible:ring-ring -mx-2 inline-flex min-h-11 items-center gap-1 rounded-md px-2 tracking-wide whitespace-nowrap uppercase focus-visible:ring-2 focus-visible:outline-none",
           direction && "text-foreground",
         )}
       >

@@ -23,7 +23,8 @@ export function ReportCard({
   disabled?: boolean;
 }) {
   return (
-    <Card className="flex flex-col">
+    // Not clipped: the audit trail card's date fields open an inline calendar past the card's edge.
+    <Card className="flex flex-col overflow-visible">
       <CardHeader className="flex flex-row items-start gap-3 pb-3">
         <div className="bg-muted text-muted-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
           <Icon className="h-5 w-5" />

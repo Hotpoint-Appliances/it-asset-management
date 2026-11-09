@@ -5,6 +5,7 @@ import {
   SELECT_COLUMNS as ASSET_SELECT_COLUMNS,
   type AssetRow,
 } from "./assets";
+import { voidOpenIssueForm } from "./issueForms";
 import type { Asset } from "@/types/asset";
 import type { AssetDisposal, DisposalInput } from "@/types/disposal";
 
@@ -106,6 +107,13 @@ export async function disposeAsset(
         input.notes,
         approvedBy,
       ],
+    );
+
+    await voidOpenIssueForm(
+      client,
+      assetId,
+      "The asset was disposed.",
+      approvedBy,
     );
 
     const asset: Asset = mapAsset(assetUpdateResult.rows[0]);

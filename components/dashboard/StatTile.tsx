@@ -22,12 +22,14 @@ export function StatTile({
     <Card
       className={cn("h-full transition-colors", href && "hover:bg-muted/50")}
     >
-      <CardContent className="flex items-center justify-between gap-3 p-5">
-        <div className="min-w-0">
+      {/* The number is pinned to the bottom of the tile, so a row of tiles keeps its numbers level
+          when some labels wrap to two lines and others do not. */}
+      <CardContent className="flex h-full items-center justify-between gap-3 p-5">
+        <div className="flex min-w-0 flex-col self-stretch">
           <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
             {label}
           </p>
-          <p className="mt-1 text-3xl font-semibold tracking-tight tabular-nums">
+          <p className="mt-auto pt-1 text-3xl font-semibold tracking-tight tabular-nums">
             {value.toLocaleString("en-KE")}
           </p>
         </div>

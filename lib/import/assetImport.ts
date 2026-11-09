@@ -3,7 +3,7 @@ import { formatLookupName } from "@/lib/badgeVariants";
 import { todayIso } from "@/lib/format";
 import {
   createWorkbook,
-  DATE_FORMAT,
+  ISO_DATE_FORMAT,
   KES_FORMAT,
 } from "@/lib/reports/workbook";
 import {
@@ -271,7 +271,7 @@ function addAssetsSheet(
 
     if (col.kind === "date") {
       for (let r = 2; r <= lastRow; r++)
-        sheet.getCell(r, i + 1).numFmt = DATE_FORMAT;
+        sheet.getCell(r, i + 1).numFmt = ISO_DATE_FORMAT;
       addValidation(sheet, range, {
         type: "date",
         operator: "greaterThan",

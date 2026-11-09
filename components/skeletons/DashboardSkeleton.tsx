@@ -1,5 +1,11 @@
 import type { LucideIcon } from "lucide-react";
-import { Boxes, CheckCircle2, Wrench, ShieldAlert } from "lucide-react";
+import {
+  Boxes,
+  CheckCircle2,
+  Wrench,
+  TriangleAlert,
+  ShieldAlert,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils";
@@ -12,10 +18,11 @@ export function DashboardSkeleton() {
     <div className="flex flex-col gap-6">
       <PageHeaderSkeleton title="Dashboard" />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <StatTileSkeleton label="Total assets" icon={Boxes} />
         <StatTileSkeleton label="In service" icon={CheckCircle2} />
         <StatTileSkeleton label="In repair" icon={Wrench} />
+        <StatTileSkeleton label="Needs attention" icon={TriangleAlert} />
         {/* The warranty label carries the configured window, so it's data. */}
         <StatTileSkeleton icon={ShieldAlert} />
       </div>
@@ -51,8 +58,8 @@ function StatTileSkeleton({
 }) {
   return (
     <Card className="h-full">
-      <CardContent className="flex items-center justify-between gap-3 p-5">
-        <div className="min-w-0">
+      <CardContent className="flex h-full items-center justify-between gap-3 p-5">
+        <div className="flex min-w-0 flex-col self-stretch">
           {label ? (
             <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
               {label}
@@ -60,7 +67,9 @@ function StatTileSkeleton({
           ) : (
             <Skeleton className="my-0.5 h-3 w-36" />
           )}
-          <Skeleton className="mt-1 h-9 w-16" />
+          <div className="mt-auto pt-1">
+            <Skeleton className="h-9 w-16" />
+          </div>
         </div>
         <div className="bg-muted text-muted-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
           <Icon className="h-5 w-5" />
@@ -118,8 +127,10 @@ function LifecycleSkeleton() {
       </CardHeader>
       <CardContent className="flex flex-col gap-5 pt-0">
         <div className="grid grid-cols-2 gap-3">
-          <Skeleton className="h-[4.25rem] rounded-lg" />
-          <Skeleton className="h-[4.25rem] rounded-lg" />
+          <FigureSkeleton label="Past useful life" />
+          {/* The real label carries the window from getLifecycleOverview's default. Spelling it out
+              lets it wrap exactly as the loaded one does, so the card does not jump. */}
+          <FigureSkeleton label="Due within 6 months" />
         </div>
         <ul className="flex flex-col gap-2.5">
           {BAR_WIDTHS.slice(0, 4).map((barWidth, i) => (
@@ -128,7 +139,7 @@ function LifecycleSkeleton() {
               className="grid grid-cols-[minmax(0,9rem)_1fr_2.5rem] items-center gap-3 py-0.5"
             >
               <Skeleton className={cn("h-4", NAME_WIDTHS[i])} />
-              <div className="bg-muted h-2.5 overflow-hidden rounded-full">
+              <div className="bg-muted h-2.5 overflow-clip rounded-full">
                 <div
                   className={cn(
                     "bg-muted-foreground/20 h-full animate-pulse rounded-full",
@@ -142,6 +153,17 @@ function LifecycleSkeleton() {
         </ul>
       </CardContent>
     </Card>
+  );
+}
+
+function FigureSkeleton({ label }: { label: string }) {
+  return (
+    <div className="bg-muted/50 flex flex-col rounded-lg px-3 py-2.5">
+      <p className="text-muted-foreground text-xs">{label}</p>
+      <div className="mt-auto pt-0.5">
+        <Skeleton className="h-8 w-8" />
+      </div>
+    </div>
   );
 }
 
@@ -163,7 +185,7 @@ function BarBreakdownSkeleton({ title }: { title: string }) {
             >
               <Skeleton className={cn("h-4", NAME_WIDTHS[i])} />
               {/* The track is the real (static) bar track; only the fill is a placeholder. */}
-              <div className="bg-muted h-2.5 overflow-hidden rounded-full">
+              <div className="bg-muted h-2.5 overflow-clip rounded-full">
                 <div
                   className={cn(
                     "bg-muted-foreground/20 h-full animate-pulse rounded-full",

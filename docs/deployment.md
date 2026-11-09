@@ -45,7 +45,9 @@ Every variable is listed in `.env.example`:
 | `NOTIFICATION_EMAIL_ENABLED` | Unset or `true` in production. `false` only on dev/staging copies whose users are real people. |
 | `CRON_SECRET` | Long random value; must equal the content of `C:\ProgramData\ITAM\cron-secret.txt` (see the script's help). |
 | `SESSION_COOKIE_SECURE` | **Leave unset** (the cookie is then `Secure` because `NODE_ENV=production`). `false` only to test a production build over plain HTTP, never on a real deployment; see section 3. |
-| `ITAM_APP_URL` | The **public HTTPS URL**, e.g. `https://itam.hotpoint.example`. QR labels and email links are built from it. |
+| `ITAM_APP_URL` | The **public HTTPS URL**, e.g. `https://itam.hotpoint.example`. QR labels and email links are built from it. Equipment issue form links only work for people who can reach this address. |
+| `REQUISITIONS_API_URL` | Base URL of the requisitions app as this server reaches it. Supplies the HOD list for issue forms' "Approved By"; the last list is kept if it can't be reached. |
+| `REQUISITIONS_API_KEY` | Must equal `STAFF_LOOKUP_API_KEY` in the requisitions app. |
 
 Generate secrets with a CSPRNG, e.g.
 `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.

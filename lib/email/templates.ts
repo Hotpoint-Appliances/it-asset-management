@@ -104,6 +104,70 @@ export function renderPasswordResetEmail(
   };
 }
 
+function primaryButton(href: string, label: string): string {
+  return `<a href="${href}" style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:6px;font-weight:600">${escapeHtml(label)}</a>`;
+}
+
+export function renderIssueFormRequestEmail(details: {
+  recipientName: string;
+  formNumber: string;
+  equipment: string;
+  issuedBy: string;
+  link: string;
+  validDays: number;
+  reminder: boolean;
+}): { subject: string; html: string } {
+  const href = escapeHtml(details.link);
+  const form = escapeHtml(details.formNumber);
+  const equipment = escapeHtml(details.equipment);
+  return {
+    subject: `${details.reminder ? "Reminder: please" : "Please"} acknowledge your IT equipment (${details.formNumber})`,
+    html: renderAccountEmail(details.recipientName, [
+      `${details.reminder ? "This is a reminder that " : ""}${escapeHtml(details.issuedBy)} has issued you <strong>${equipment}</strong>. Please review equipment issue form ${form} and acknowledge it.`,
+      primaryButton(href, "Review and acknowledge"),
+      `The link is personal to you, so please don't forward it. It stays open for ${details.validDays} days from when it was sent. If the button doesn't work, paste this address into your browser:<br><span style="color:#52525b;word-break:break-all">${href}</span>`,
+      "If any of the details are wrong, use the “Report a problem” option on the form.",
+    ]),
+  };
+}
+
+export function renderIssueFormConfirmationEmail(details: {
+  recipientName: string;
+  formNumber: string;
+  equipment: string;
+  acknowledgedAt: string;
+}): { subject: string; html: string } {
+  return {
+    subject: `Equipment issue form ${details.formNumber} acknowledged`,
+    html: renderAccountEmail(details.recipientName, [
+      `Equipment issue form ${escapeHtml(details.formNumber)} for <strong>${escapeHtml(details.equipment)}</strong> was acknowledged on ${escapeHtml(details.acknowledgedAt)}.`,
+      "The signed form is attached for your records.",
+      "If you didn't do this, contact the ICT Department right away.",
+    ]),
+  };
+}
+
+export function renderIssueFormDisputedEmail(details: {
+  recipientName: string;
+  formNumber: string;
+  equipment: string;
+  issuedToName: string;
+  reason: string;
+  link: string | null;
+}): { subject: string; html: string } {
+  return {
+    subject: `Problem reported on equipment issue form ${details.formNumber}`,
+    html: renderAccountEmail(details.recipientName, [
+      `${escapeHtml(details.issuedToName)} reported a problem with equipment issue form ${escapeHtml(details.formNumber)} for <strong>${escapeHtml(details.equipment)}</strong>:`,
+      `<span style="color:#52525b">${escapeHtml(details.reason)}</span>`,
+      "Void the form from the asset's Issue Forms tab, then trigger a corrected one.",
+      ...(details.link
+        ? [primaryButton(escapeHtml(details.link), "Open the asset")]
+        : []),
+    ]),
+  };
+}
+
 export function renderPasswordChangedEmail(recipientName: string): {
   subject: string;
   html: string;

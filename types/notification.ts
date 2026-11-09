@@ -2,7 +2,10 @@ export type NotificationType =
   | "asset_assigned"
   | "asset_transferred"
   | "maintenance_due"
-  | "warranty_expiring";
+  | "warranty_expiring"
+  | "issue_form_acknowledged"
+  | "issue_form_disputed"
+  | "issue_form_expired";
 
 export interface Notification {
   id: number;

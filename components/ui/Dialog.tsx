@@ -28,6 +28,7 @@ function DialogOverlay({
 function DialogContent({
   className,
   children,
+  onInteractOutside,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content>) {
   return (
@@ -35,12 +36,24 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Content
         className={cn(
-          "bg-card text-card-foreground fixed z-50 flex flex-col overflow-hidden p-0 shadow-lg",
+          "bg-card text-card-foreground fixed z-50 flex flex-col overflow-clip p-0 shadow-lg",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           "inset-x-0 top-0 h-dvh max-h-dvh w-full",
           "sm:border-border sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-auto sm:max-h-[85dvh] sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:border",
           className,
         )}
+        onInteractOutside={(e) => {
+          // Toasts and the user picker's panel render outside the dialog (see data-dialog-safe), but
+          // using one isn't a click away from it.
+          const target = e.detail.originalEvent.target;
+          if (
+            target instanceof Element &&
+            target.closest("[data-dialog-safe]")
+          ) {
+            e.preventDefault();
+          }
+          onInteractOutside?.(e);
+        }}
         {...props}
       >
         {children}
@@ -75,7 +88,7 @@ function DialogBody({
   return (
     <div
       className={cn(
-        "scroll-area flex min-h-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto overscroll-contain px-4 py-4 sm:px-6",
+        "scroll-area flex min-h-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:[--scrollbar-inset:0.75rem]",
         className,
       )}
       {...props}
