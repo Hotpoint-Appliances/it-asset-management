@@ -6,7 +6,7 @@ import { resolveSessionToken, SESSION_COOKIE } from "@/lib/auth/session";
 const GUEST_PATHS = ["/login", "/forgot-password"];
 // Open either way: an emailed reset link can be followed from a browser that's still signed in
 // (the reset signs that session out too).
-const OPEN_PATHS = ["/reset-password"];
+const OPEN_PATHS = ["/reset-password", "/acknowledge"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -42,6 +42,6 @@ export const config = {
   // App icons are excluded too: redirecting them to /login hands the browser an
   // HTML page instead of an image (Firefox prefers icon.svg over favicon.ico).
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png|logo-dark.svg|logo-white.svg).*)",
   ],
 };
