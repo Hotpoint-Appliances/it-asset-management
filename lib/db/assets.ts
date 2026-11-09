@@ -15,6 +15,7 @@ import type { AssetSort } from "@/lib/assetSort";
 import type { AssetAccessoryInput } from "@/types/accessory";
 import { syncAssetAccessories } from "./assetAccessories";
 import { findExistingSerialNumbers } from "./assetImport";
+import { voidIssueFormAfterAssetChange, voidOpenIssueForm } from "./issueForms";
 
 export interface AssetRow {
   id: string;
@@ -578,6 +579,8 @@ async function updateAssetInternal(
     );
   }
 
+  await voidIssueFormAfterAssetChange(client, before, after, performedBy);
+
   return { before, after };
 }
 
@@ -703,6 +706,12 @@ export async function softDeleteAsset(
     await client.query(
       `INSERT INTO asset_audit_log (asset_id, action_type, performed_by) VALUES ($1, 'deleted', $2)`,
       [id, performedBy],
+    );
+    await voidOpenIssueForm(
+      client,
+      id,
+      "The asset record was deleted.",
+      performedBy,
     );
     return true;
   });

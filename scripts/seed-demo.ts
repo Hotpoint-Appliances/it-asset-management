@@ -346,6 +346,11 @@ async function main() {
       );
     }
 
+    // Issue forms deliberately block deleting their asset, so demo ones go first.
+    await client.query(
+      `DELETE FROM equipment_issue_forms
+       WHERE asset_id IN (SELECT id FROM assets WHERE asset_tag LIKE 'DEMO-%')`,
+    );
     const removed = await client.query(
       `DELETE FROM assets WHERE asset_tag LIKE 'DEMO-%'`,
     );
