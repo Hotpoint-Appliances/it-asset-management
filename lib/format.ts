@@ -15,7 +15,7 @@ export function formatCurrency(amount: number): string {
  * text (no hydration mismatch) and everyone reads the same time on an audit entry. */
 const DISPLAY_TIME_ZONE = "Africa/Nairobi";
 
-const DATE_ONLY = /^d{4}-d{2}-d{2}$/;
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
 const DATE_PARTS: Intl.DateTimeFormatOptions = {
   day: "numeric",
