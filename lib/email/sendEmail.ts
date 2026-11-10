@@ -49,7 +49,7 @@ export async function sendEmail({
             contentBytes: a.content.toString("base64"),
           })),
         },
-        saveToSentItems: false,
+        saveToSentItems: true,
       }),
       signal: AbortSignal.timeout(SEND_TIMEOUT_MS),
     },
