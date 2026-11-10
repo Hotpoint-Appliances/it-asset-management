@@ -22,14 +22,23 @@ import { RequiredMark } from "@/components/shared/RequiredMark";
 import { useFieldErrors, looksLikeEmail } from "@/lib/hooks/useFieldErrors";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import { formatDate } from "@/lib/format";
-import { REISSUE_REASONS } from "@/lib/issueForms/rules";
+import {
+  REISSUE_REASONS,
+  SPECIFICATIONS_MAX_LENGTH,
+} from "@/lib/issueForms/rules";
 import { useUIStore } from "@/store";
 import type { IssueFormPrefill } from "@/types/issueForm";
 
-type Field = "make" | "model" | "payroll" | "approver" | "email";
+type Field =
+  "make" | "model" | "specifications" | "payroll" | "approver" | "email";
 
 const TEXTAREA =
-  "border-border bg-background focus-visible:ring-ring flex w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none";
+  "border-border bg-background focus-visible:ring-ring aria-invalid:border-destructive aria-invalid:focus-visible:ring-destructive flex w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none";
+
+const SPECIFICATIONS_HINTS = {
+  form: "Copied from this asset's last form. Update it if anything has changed.",
+  notes: "Filled in from the asset's notes. Keep only the specifications.",
+};
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -60,6 +69,9 @@ export function IssueFormDialog({
     gcTime: 0,
     staleTime: 0,
     retry: false,
+    // A refetch re-keys the form below, which would throw away whatever has been typed.
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   return (
@@ -123,7 +135,9 @@ function IssueFormFields({
   const fields = useFieldErrors<Field>();
   const [make, setMake] = React.useState(prefill.make);
   const [model, setModel] = React.useState(prefill.model);
-  const [conditionComment, setConditionComment] = React.useState("");
+  const [specifications, setSpecifications] = React.useState(
+    prefill.specifications,
+  );
   const [payroll, setPayroll] = React.useState(prefill.payrollNumber);
   const [approver, setApprover] = React.useState(prefill.defaultHodEmail);
   const [remarks, setRemarks] = React.useState("");
@@ -172,6 +186,11 @@ function IssueFormFields({
       {
         make: !make.trim() && "Enter the make.",
         model: !model.trim() && "Enter the model.",
+        // Long asset notes can prefill more than the box would let anyone type.
+        specifications: !specifications.trim()
+          ? "Enter the specifications."
+          : specifications.trim().length > SPECIFICATIONS_MAX_LENGTH &&
+            `Keep the specifications to ${SPECIFICATIONS_MAX_LENGTH} characters.`,
         payroll: !payroll.trim() && "Enter the payroll number.",
         approver: !approver && "Choose who approved this.",
         email:
@@ -192,7 +211,7 @@ function IssueFormFields({
       }>(`/api/assets/${assetId}/issue-forms`, {
         make,
         model,
-        conditionComment,
+        specifications,
         payrollNumber: payroll,
         approverEmail: approver,
         remarks,
@@ -283,6 +302,38 @@ function IssueFormFields({
               message={fields.errors.model}
             />
           </div>
+          <div className="flex flex-col gap-1.5 md:col-span-2">
+            <label
+              htmlFor={`${id}-specifications`}
+              className="text-sm font-medium"
+            >
+              Specifications
+              <RequiredMark />
+            </label>
+            <textarea
+              id={`${id}-specifications`}
+              required
+              rows={3}
+              maxLength={SPECIFICATIONS_MAX_LENGTH}
+              value={specifications}
+              onChange={(e) => {
+                setSpecifications(e.target.value);
+                fields.clear("specifications");
+              }}
+              placeholder="For example, Core i7, 16 GB RAM, 512 GB SSD, 14-inch display"
+              {...fields.invalid("specifications")}
+              className={TEXTAREA}
+            />
+            <FieldError
+              id={fields.errorId("specifications")}
+              message={fields.errors.specifications}
+            />
+            {prefill.specificationsSource && (
+              <p className="text-muted-foreground text-xs">
+                {SPECIFICATIONS_HINTS[prefill.specificationsSource]}
+              </p>
+            )}
+          </div>
           <div className="flex flex-col gap-1.5">
             <label htmlFor={`${id}-payroll`} className="text-sm font-medium">
               Payroll no.
@@ -370,21 +421,6 @@ function IssueFormFields({
               From the owner&apos;s user account.
             </p>
           )}
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor={`${id}-condition`} className="text-sm font-medium">
-            Condition comment
-          </label>
-          <textarea
-            id={`${id}-condition`}
-            rows={2}
-            maxLength={300}
-            value={conditionComment}
-            onChange={(e) => setConditionComment(e.target.value)}
-            placeholder="Printed after the condition, e.g. small scratch on the lid"
-            className={TEXTAREA}
-          />
         </div>
 
         <div className="flex flex-col gap-1.5">

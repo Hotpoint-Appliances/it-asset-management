@@ -320,6 +320,7 @@ CREATE TABLE equipment_issue_forms (
   equipment_type VARCHAR(150) NOT NULL,
   make VARCHAR(100) NOT NULL,
   model VARCHAR(200) NOT NULL,
+  specifications TEXT NOT NULL,
   serial_number VARCHAR(100) NOT NULL,
   finance_asset_no VARCHAR(50) NOT NULL, -- the asset tag
   physical_condition VARCHAR(50) NOT NULL,
@@ -351,6 +352,7 @@ CREATE TABLE equipment_issue_forms (
   acknowledged_name VARCHAR(150),
   acknowledged_ip VARCHAR(64),
   acknowledged_user_agent VARCHAR(500),
+  user_comments TEXT, -- optional, written when the recipient signs
   disputed_at TIMESTAMPTZ,
   dispute_reason TEXT,
   voided_at TIMESTAMPTZ,

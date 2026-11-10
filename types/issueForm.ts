@@ -16,6 +16,7 @@ export interface IssueForm {
   equipmentType: string;
   make: string;
   model: string;
+  specifications: string;
   serialNumber: string;
   financeAssetNo: string;
   physicalCondition: string;
@@ -38,6 +39,7 @@ export interface IssueForm {
   emailStatus: "pending" | "sent" | "failed";
   acknowledgedAt: string | null;
   acknowledgedName: string | null;
+  userComments: string | null;
   disputedAt: string | null;
   disputeReason: string | null;
   voidedAt: string | null;
@@ -62,6 +64,9 @@ export interface IssueFormPrefill {
   equipmentType: string;
   make: string;
   model: string;
+  specifications: string;
+  /** Where `specifications` came from, so the dialog can say; null when it starts empty. */
+  specificationsSource: "form" | "notes" | null;
   serialNumber: string;
   financeAssetNo: string;
   physicalCondition: string;
@@ -84,7 +89,7 @@ export interface IssueFormPrefill {
 export interface IssueFormInput {
   make: string;
   model: string;
-  conditionComment: string | null;
+  specifications: string;
   payrollNumber: string;
   approverEmail: string;
   remarks: string | null;

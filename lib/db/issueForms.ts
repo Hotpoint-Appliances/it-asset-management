@@ -7,6 +7,7 @@ import {
   LINK_TTL_DAYS,
   REMINDER_DAYS,
   RESEND_COOLDOWN_SECONDS,
+  UNRECORDED_SPECIFICATIONS,
   VOIDING_STATUSES,
   canIssueForm,
   deriveMakeAndModel,
@@ -30,8 +31,8 @@ import type {
 //  - One open (pending or disputed) form per asset. A pending form can be re-sent; changing its
 //    details means voiding it and triggering a new one.
 //  - A form that repeats what the same person already acknowledged needs a stated reason.
-//  - A pending or disputed form is voided if the owner or department changes, or the asset is
-//    disposed, lost, stolen or deleted. That happens in the same transaction as the change.
+//  - A pending or disputed form is voided if the owner, department or condition changes, or the
+//    asset is disposed, lost, stolen or deleted. That happens in the same transaction as the change.
 //  - Everything printed is frozen at trigger time. Acknowledged forms keep their evidence forever.
 
 /** A request that breaks one of the rules above; `status` is the HTTP status for the route. */
@@ -84,6 +85,7 @@ interface IssueFormRow {
   equipment_type: string;
   make: string;
   model: string;
+  specifications: string;
   serial_number: string;
   finance_asset_no: string;
   physical_condition: string;
@@ -106,6 +108,7 @@ interface IssueFormRow {
   email_status: IssueForm["emailStatus"];
   acknowledged_at: Date | string | null;
   acknowledged_name: string | null;
+  user_comments: string | null;
   disputed_at: Date | string | null;
   dispute_reason: string | null;
   voided_at: Date | string | null;
@@ -118,11 +121,11 @@ interface IssueFormRow {
 
 /** Deliberately leaves out the token columns and the signer's IP and browser. */
 const FORM_COLUMNS = `f.id, f.form_number, f.asset_id, f.status, f.issue_date, f.equipment_type,
-  f.make, f.model, f.serial_number, f.finance_asset_no, f.physical_condition, f.condition_comment,
+  f.make, f.model, f.specifications, f.serial_number, f.finance_asset_no, f.physical_condition, f.condition_comment,
   f.accessories, f.department, f.location, f.issued_to_name, f.issued_to_user_id, f.recipient_email,
   f.payroll_number, f.approved_by_name, f.approved_by_email, f.remarks, f.reissue_reason,
   f.disclaimer, f.content_hash, f.expires_at, f.last_sent_at, f.email_status, f.acknowledged_at,
-  f.acknowledged_name, f.disputed_at, f.dispute_reason, f.voided_at, f.void_reason, f.created_by,
+  f.acknowledged_name, f.user_comments, f.disputed_at, f.dispute_reason, f.voided_at, f.void_reason, f.created_by,
   creator.full_name AS created_by_name, creator.email AS created_by_email, f.created_at`;
 const FORM_FROM = `equipment_issue_forms f JOIN users creator ON creator.id = f.created_by`;
 
@@ -136,6 +139,7 @@ function mapForm(row: IssueFormRow): IssueForm {
     equipmentType: row.equipment_type,
     make: row.make,
     model: row.model,
+    specifications: row.specifications,
     serialNumber: row.serial_number,
     financeAssetNo: row.finance_asset_no,
     physicalCondition: row.physical_condition,
@@ -158,6 +162,7 @@ function mapForm(row: IssueFormRow): IssueForm {
     emailStatus: row.email_status,
     acknowledgedAt: toIsoString(row.acknowledged_at),
     acknowledgedName: row.acknowledged_name,
+    userComments: row.user_comments,
     disputedAt: toIsoString(row.disputed_at),
     disputeReason: row.dispute_reason,
     voidedAt: toIsoString(row.voided_at),
@@ -239,6 +244,7 @@ interface ContextRow {
   name: string;
   model_number: string | null;
   serial_number: string;
+  notes: string | null;
   assigned_user_id: string | null;
   owner_name: string | null;
   owner_email: string | null;
@@ -251,7 +257,7 @@ interface ContextRow {
   user_email: string | null;
 }
 
-const CONTEXT_SQL = `SELECT a.id, a.asset_tag, a.name, a.model_number, a.serial_number,
+const CONTEXT_SQL = `SELECT a.id, a.asset_tag, a.name, a.model_number, a.serial_number, a.notes,
     a.assigned_user_id, a.owner_name, a.owner_email, c.name AS category_name,
     l.name AS location_name, d.name AS department_name, ac.name AS condition_name,
     st.name AS status_name, u.full_name AS user_name, u.email AS user_email
@@ -319,24 +325,34 @@ export async function getIssueFormPrefill(
 
   const email = ctx.user_email ?? ctx.owner_email ?? "";
   const person = email ? samePersonClause(ctx, email, 2) : null;
-  const [accessories, open, prior, payrollNumber] = await Promise.all([
-    query<IssueFormAccessory>(ACCESSORIES_SQL, [assetId]),
-    query<{ form_number: string; status: string }>(
-      `SELECT form_number, status FROM equipment_issue_forms
+  const [accessories, open, prior, payrollNumber, lastForm] = await Promise.all(
+    [
+      query<IssueFormAccessory>(ACCESSORIES_SQL, [assetId]),
+      query<{ form_number: string; status: string }>(
+        `SELECT form_number, status FROM equipment_issue_forms
        WHERE asset_id = $1
          AND (status = 'disputed' OR (status = 'pending' AND expires_at > now()))`,
-      [assetId],
-    ),
-    person
-      ? query(
-          `SELECT 1 FROM equipment_issue_forms
+        [assetId],
+      ),
+      person
+        ? query(
+            `SELECT 1 FROM equipment_issue_forms
            WHERE asset_id = $1 AND status = 'acknowledged' AND ${person.sql} LIMIT 1`,
-          [assetId, ...person.params],
-        )
-      : Promise.resolve({ rowCount: 0 }),
-    lastPayrollNumber(ctx, email),
-  ]);
+            [assetId, ...person.params],
+          )
+        : Promise.resolve({ rowCount: 0 }),
+      lastPayrollNumber(ctx, email),
+      query<{ specifications: string }>(
+        `SELECT specifications FROM equipment_issue_forms
+       WHERE asset_id = $1 AND specifications <> $2
+       ORDER BY created_at DESC, form_number DESC LIMIT 1`,
+        [assetId, UNRECORDED_SPECIFICATIONS],
+      ),
+    ],
+  );
 
+  const lastSpecifications = lastForm.rows[0]?.specifications;
+  const notes = ctx.notes?.trim() ?? "";
   const openForm = open.rows[0];
   const blockedReason = !canIssueForm(ctx.status_name)
     ? issuableStatusMessage(ctx.status_name)
@@ -352,6 +368,8 @@ export async function getIssueFormPrefill(
     equipmentType: ctx.category_name,
     make,
     model,
+    specifications: lastSpecifications ?? notes,
+    specificationsSource: lastSpecifications ? "form" : notes ? "notes" : null,
     serialNumber: ctx.serial_number,
     financeAssetNo: ctx.asset_tag,
     physicalCondition: capitalize(ctx.condition_name),
@@ -412,6 +430,7 @@ function substance(form: {
   recipientEmail: string;
   make: string;
   model: string;
+  specifications: string;
   serialNumber: string;
   department: string;
   location: string;
@@ -423,6 +442,7 @@ function substance(form: {
     form.recipientEmail.toLowerCase(),
     form.make,
     form.model,
+    form.specifications,
     form.serialNumber,
     form.department,
     form.location,
@@ -477,10 +497,10 @@ export async function createIssueForm(
       equipmentType: ctx.category_name,
       make: input.make,
       model: input.model,
+      specifications: input.specifications,
       serialNumber: ctx.serial_number,
       financeAssetNo: ctx.asset_tag,
       physicalCondition: capitalize(ctx.condition_name),
-      conditionComment: input.conditionComment,
       accessories,
       department: ctx.department_name,
       location: ctx.location_name,
@@ -513,13 +533,13 @@ export async function createIssueForm(
     const inserted = await client.query<{ id: string }>(
       `INSERT INTO equipment_issue_forms (
          id, asset_id, issue_date, equipment_type, make, model, serial_number, finance_asset_no,
-         physical_condition, condition_comment, accessories, department, location, issued_to_name,
+         physical_condition, accessories, department, location, issued_to_name,
          issued_to_user_id, recipient_email, payroll_number, approved_by_name, approved_by_email,
          remarks, reissue_reason, disclaimer, content_hash, token_hash, token_nonce, expires_at,
-         created_by
+         created_by, specifications
        ) VALUES (
-         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb, $12, $13, $14, $15, $16, $17, $18,
-         $19, $20, $21, $22::jsonb, $23, $24, $25, now() + make_interval(days => $26), $27
+         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11, $12, $13, $14, $15, $16, $17, $18,
+         $19, $20, $21::jsonb, $22, $23, $24, now() + make_interval(days => $25), $26, $27
        ) RETURNING id`,
       [
         id,
@@ -531,7 +551,6 @@ export async function createIssueForm(
         frozen.serialNumber,
         frozen.financeAssetNo,
         frozen.physicalCondition,
-        frozen.conditionComment,
         JSON.stringify(frozen.accessories),
         frozen.department,
         frozen.location,
@@ -549,6 +568,7 @@ export async function createIssueForm(
         link.nonce,
         LINK_TTL_DAYS,
         performedBy,
+        frozen.specifications,
       ],
     );
 
@@ -757,7 +777,16 @@ export async function voidIssueFormAfterAssetChange(
         `The asset was marked ${formatLookupName(name)}.`,
         performedBy,
       );
+      return;
     }
+  }
+  if (before.conditionId !== after.conditionId) {
+    await voidOpenIssueForm(
+      client,
+      after.id,
+      "The asset's condition changed.",
+      performedBy,
+    );
   }
 }
 
@@ -783,6 +812,7 @@ async function lockPendingByToken(
 export async function acknowledgeIssueForm(
   token: string,
   typedName: string,
+  userComments: string | null,
   evidence: { ip: string | null; userAgent: string | null },
 ): Promise<IssueForm | null> {
   return withTransaction(async (client) => {
@@ -797,10 +827,16 @@ export async function acknowledgeIssueForm(
     await client.query(
       `UPDATE equipment_issue_forms
        SET status = 'acknowledged', acknowledged_at = now(), acknowledged_name = $2,
-           acknowledged_ip = $3, acknowledged_user_agent = $4
+           acknowledged_ip = $3, acknowledged_user_agent = $4, user_comments = $5
        WHERE id = $1`,
       // The printed name, now it's matched: the signature shouldn't carry typing slips in case.
-      [row.id, row.issued_to_name, evidence.ip, evidence.userAgent],
+      [
+        row.id,
+        row.issued_to_name,
+        evidence.ip,
+        evidence.userAgent,
+        userComments,
+      ],
     );
     await client.query(
       `UPDATE equipment_issue_forms SET status = 'superseded', superseded_by = $2
@@ -818,7 +854,7 @@ export async function acknowledgeIssueForm(
       "issue_form_acknowledged",
       form.formNumber,
       form.createdBy,
-      `Acknowledged by ${row.issued_to_name} through the emailed link${evidence.ip ? ` (IP ${evidence.ip})` : ""}.`,
+      `Acknowledged by ${row.issued_to_name} through the emailed link${evidence.ip ? ` (IP ${evidence.ip})` : ""}.${userComments ? ` Comment: ${userComments}` : ""}`,
     );
     return form;
   });

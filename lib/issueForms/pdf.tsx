@@ -11,6 +11,7 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 import { formatDate, formatDateTime } from "@/lib/format";
+import { userCommentsText } from "./rules";
 import type { IssueForm } from "@/types/issueForm";
 
 const PUBLIC_DIR = path.join(process.cwd(), "public");
@@ -80,7 +81,8 @@ const styles = StyleSheet.create({
   },
   label: { fontSize: 7.5, color: MUTED, marginBottom: 2 },
   value: { fontFamily: "Helvetica-Bold" },
-  plain: { lineHeight: 1.3 },
+  // The size is repeated because react-pdf works out lineHeight without inheriting it.
+  plain: { fontSize: 9.5, lineHeight: 1.3 },
   signature: { fontFamily: "Signature", fontSize: 21, color: "#1b2a6b" },
   disclaimer: {
     marginTop: 14,
@@ -139,6 +141,7 @@ function IssueFormDocument({ form }: { form: IssueForm }) {
     ? `${form.physicalCondition}: ${form.conditionComment}`
     : form.physicalCondition;
   const banner = BANNERS[form.status];
+  const userComments = userCommentsText(form);
 
   return (
     <Document
@@ -173,6 +176,9 @@ function IssueFormDocument({ form }: { form: IssueForm }) {
           <View style={styles.row}>
             <Cell label="Make" value={form.make} />
             <Cell label="Model" value={form.model} />
+          </View>
+          <View style={styles.row}>
+            <Cell label="Specifications" value={form.specifications} plain />
           </View>
           <View style={styles.row}>
             <Cell label="Serial No." value={form.serialNumber} />
@@ -213,6 +219,11 @@ function IssueFormDocument({ form }: { form: IssueForm }) {
           <View style={styles.row}>
             <Cell label="Remarks" value={form.remarks ?? "None"} plain />
           </View>
+          {userComments !== null && (
+            <View style={styles.row}>
+              <Cell label="User Comments" value={userComments} plain />
+            </View>
+          )}
         </View>
 
         <View style={styles.disclaimer}>

@@ -9,6 +9,21 @@ export const REMINDER_DAYS = [3, 7];
 /** A form can't be re-sent sooner than this, so the button can't flood an inbox. */
 export const RESEND_COOLDOWN_SECONDS = 60;
 
+export const SPECIFICATIONS_MAX_LENGTH = 1000;
+/** What migration 008 gave forms from before specifications were recorded. Never a prefill. */
+export const UNRECORDED_SPECIFICATIONS = "Not specified";
+
+export const USER_COMMENTS_MAX_LENGTH = 500;
+
+/** What a form shows for the recipient's comments: nothing until it has been signed. */
+export function userCommentsText(form: {
+  acknowledgedAt: string | null;
+  userComments: string | null;
+}): string | null {
+  if (!form.acknowledgedAt) return null;
+  return form.userComments ?? "No user comments";
+}
+
 export const REISSUE_REASONS = [
   "Replacement equipment",
   "Lost copy",

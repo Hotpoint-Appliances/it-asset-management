@@ -1,18 +1,25 @@
 import { Card, CardContent } from "@/components/ui/Card";
 import { formatDate } from "@/lib/format";
+import { userCommentsText } from "@/lib/issueForms/rules";
 import type { IssueForm } from "@/types/issueForm";
 
-function Group({ title, rows }: { title: string; rows: [string, string][] }) {
+/** Label and value; a third item of `true` gives longer text the group's full width. */
+type Row = [string, string, boolean?];
+
+function Group({ title, rows }: { title: string; rows: Row[] }) {
   return (
     <section className="flex flex-col gap-3">
       <h2 className="text-sm font-semibold">{title}</h2>
       <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
-        {rows.map(([label, value]) => (
-          <div key={label} className="flex min-w-0 flex-col gap-0.5">
+        {rows.map(([label, value, wide]) => (
+          <div
+            key={label}
+            className={`flex min-w-0 flex-col gap-0.5 ${wide ? "sm:col-span-2" : ""}`}
+          >
             <dt className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
               {label}
             </dt>
-            <dd className="text-sm break-words">{value}</dd>
+            <dd className="text-sm break-words whitespace-pre-line">{value}</dd>
           </div>
         ))}
       </dl>
@@ -32,6 +39,7 @@ export function IssueFormSummary({ form }: { form: IssueForm }) {
   const condition = form.conditionComment
     ? `${form.physicalCondition}: ${form.conditionComment}`
     : form.physicalCondition;
+  const userComments = userCommentsText(form);
 
   return (
     <Card>
@@ -47,6 +55,7 @@ export function IssueFormSummary({ form }: { form: IssueForm }) {
             ["Finance asset no.", form.financeAssetNo],
             ["Make", form.make],
             ["Model", form.model],
+            ["Specifications", form.specifications, true],
             ["Serial no.", form.serialNumber],
             ["Physical condition", condition],
             ["Accessories", accessories],
@@ -61,6 +70,9 @@ export function IssueFormSummary({ form }: { form: IssueForm }) {
             ["Payroll no.", form.payrollNumber],
             ["Approved by", form.approvedByName],
             ["Remarks", form.remarks ?? "None"],
+            ...(userComments !== null
+              ? [["User comments", userComments, true] as Row]
+              : []),
           ]}
         />
         <section className="bg-muted/50 flex flex-col gap-2 rounded-lg p-4">
