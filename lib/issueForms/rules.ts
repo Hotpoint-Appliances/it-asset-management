@@ -1,3 +1,4 @@
+import type { BadgeProps } from "@/components/ui/Badge";
 import { formatLookupName, statusKey } from "@/lib/badgeVariants";
 import type { IssueFormStatus } from "@/types/issueForm";
 
@@ -43,6 +44,18 @@ export const ISSUE_FORM_STATUS_LABELS: Record<IssueFormStatus, string> = {
   voided: "Voided",
   superseded: "Superseded",
   expired: "Expired",
+};
+
+export const ISSUE_FORM_STATUS_VARIANTS: Record<
+  IssueFormStatus,
+  NonNullable<BadgeProps["variant"]>
+> = {
+  pending: "warning",
+  acknowledged: "success",
+  disputed: "danger",
+  voided: "neutral",
+  superseded: "neutral",
+  expired: "neutral",
 };
 
 /** Names differ only in case and spacing between what's printed and what's typed. */

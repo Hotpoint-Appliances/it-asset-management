@@ -33,11 +33,14 @@ export async function generateMetadata({
 
 export default async function AssetDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string | string[] }>;
 }) {
   const session = await requireSession();
   const { id } = await params;
+  const { tab } = await searchParams;
   const asset = await getAssetForPage(id, session);
   if (!asset) notFound();
 
@@ -84,6 +87,7 @@ export default async function AssetDetailPage({
       maintenance={maintenance}
       disposal={disposal}
       issueForms={issueForms}
+      initialTab={canManage && tab === "issue-forms" ? tab : "overview"}
       canManage={canManage}
       isAdmin={session.roleName === "admin"}
       locations={locations}

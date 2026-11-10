@@ -82,6 +82,7 @@ export function AssetDetail({
   maintenance,
   disposal,
   issueForms,
+  initialTab,
   canManage,
   isAdmin,
   locations,
@@ -101,6 +102,8 @@ export function AssetDetail({
   disposal: AssetDisposal | null;
   /** Empty unless `canManage`: forms carry payroll numbers. */
   issueForms: IssueForm[];
+  /** The tab to open on; a link back from a sub-page can ask for the one it came from. */
+  initialTab: "overview" | "issue-forms";
   canManage: boolean;
   isAdmin: boolean;
   locations: Location[];
@@ -268,7 +271,7 @@ export function AssetDetail({
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="overview">
+      <Tabs defaultValue={initialTab}>
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="accessories">Accessories</TabsTrigger>
