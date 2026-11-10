@@ -30,8 +30,8 @@ import type {
 //  - One open (pending or disputed) form per asset. A pending form can be re-sent; changing its
 //    details means voiding it and triggering a new one.
 //  - A form that repeats what the same person already acknowledged needs a stated reason.
-//  - A pending or disputed form is voided if the owner or department changes, or the asset is
-//    disposed, lost, stolen or deleted. That happens in the same transaction as the change.
+//  - A pending or disputed form is voided if the owner, department or condition changes, or the
+//    asset is disposed, lost, stolen or deleted. That happens in the same transaction as the change.
 //  - Everything printed is frozen at trigger time. Acknowledged forms keep their evidence forever.
 
 /** A request that breaks one of the rules above; `status` is the HTTP status for the route. */
@@ -757,7 +757,16 @@ export async function voidIssueFormAfterAssetChange(
         `The asset was marked ${formatLookupName(name)}.`,
         performedBy,
       );
+      return;
     }
+  }
+  if (before.conditionId !== after.conditionId) {
+    await voidOpenIssueForm(
+      client,
+      after.id,
+      "The asset's condition changed.",
+      performedBy,
+    );
   }
 }
 
