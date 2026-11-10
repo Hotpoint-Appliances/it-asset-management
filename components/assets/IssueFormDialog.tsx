@@ -60,6 +60,9 @@ export function IssueFormDialog({
     gcTime: 0,
     staleTime: 0,
     retry: false,
+    // A refetch re-keys the form below, which would throw away whatever has been typed.
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   return (
