@@ -7,6 +7,7 @@ import {
   LINK_TTL_DAYS,
   REMINDER_DAYS,
   RESEND_COOLDOWN_SECONDS,
+  UNRECORDED_SPECIFICATIONS,
   VOIDING_STATUSES,
   canIssueForm,
   deriveMakeAndModel,
@@ -84,6 +85,7 @@ interface IssueFormRow {
   equipment_type: string;
   make: string;
   model: string;
+  specifications: string;
   serial_number: string;
   finance_asset_no: string;
   physical_condition: string;
@@ -118,7 +120,7 @@ interface IssueFormRow {
 
 /** Deliberately leaves out the token columns and the signer's IP and browser. */
 const FORM_COLUMNS = `f.id, f.form_number, f.asset_id, f.status, f.issue_date, f.equipment_type,
-  f.make, f.model, f.serial_number, f.finance_asset_no, f.physical_condition, f.condition_comment,
+  f.make, f.model, f.specifications, f.serial_number, f.finance_asset_no, f.physical_condition, f.condition_comment,
   f.accessories, f.department, f.location, f.issued_to_name, f.issued_to_user_id, f.recipient_email,
   f.payroll_number, f.approved_by_name, f.approved_by_email, f.remarks, f.reissue_reason,
   f.disclaimer, f.content_hash, f.expires_at, f.last_sent_at, f.email_status, f.acknowledged_at,
@@ -136,6 +138,7 @@ function mapForm(row: IssueFormRow): IssueForm {
     equipmentType: row.equipment_type,
     make: row.make,
     model: row.model,
+    specifications: row.specifications,
     serialNumber: row.serial_number,
     financeAssetNo: row.finance_asset_no,
     physicalCondition: row.physical_condition,
@@ -239,6 +242,7 @@ interface ContextRow {
   name: string;
   model_number: string | null;
   serial_number: string;
+  notes: string | null;
   assigned_user_id: string | null;
   owner_name: string | null;
   owner_email: string | null;
@@ -251,7 +255,7 @@ interface ContextRow {
   user_email: string | null;
 }
 
-const CONTEXT_SQL = `SELECT a.id, a.asset_tag, a.name, a.model_number, a.serial_number,
+const CONTEXT_SQL = `SELECT a.id, a.asset_tag, a.name, a.model_number, a.serial_number, a.notes,
     a.assigned_user_id, a.owner_name, a.owner_email, c.name AS category_name,
     l.name AS location_name, d.name AS department_name, ac.name AS condition_name,
     st.name AS status_name, u.full_name AS user_name, u.email AS user_email
@@ -319,24 +323,34 @@ export async function getIssueFormPrefill(
 
   const email = ctx.user_email ?? ctx.owner_email ?? "";
   const person = email ? samePersonClause(ctx, email, 2) : null;
-  const [accessories, open, prior, payrollNumber] = await Promise.all([
-    query<IssueFormAccessory>(ACCESSORIES_SQL, [assetId]),
-    query<{ form_number: string; status: string }>(
-      `SELECT form_number, status FROM equipment_issue_forms
+  const [accessories, open, prior, payrollNumber, lastForm] = await Promise.all(
+    [
+      query<IssueFormAccessory>(ACCESSORIES_SQL, [assetId]),
+      query<{ form_number: string; status: string }>(
+        `SELECT form_number, status FROM equipment_issue_forms
        WHERE asset_id = $1
          AND (status = 'disputed' OR (status = 'pending' AND expires_at > now()))`,
-      [assetId],
-    ),
-    person
-      ? query(
-          `SELECT 1 FROM equipment_issue_forms
+        [assetId],
+      ),
+      person
+        ? query(
+            `SELECT 1 FROM equipment_issue_forms
            WHERE asset_id = $1 AND status = 'acknowledged' AND ${person.sql} LIMIT 1`,
-          [assetId, ...person.params],
-        )
-      : Promise.resolve({ rowCount: 0 }),
-    lastPayrollNumber(ctx, email),
-  ]);
+            [assetId, ...person.params],
+          )
+        : Promise.resolve({ rowCount: 0 }),
+      lastPayrollNumber(ctx, email),
+      query<{ specifications: string }>(
+        `SELECT specifications FROM equipment_issue_forms
+       WHERE asset_id = $1 AND specifications <> $2
+       ORDER BY created_at DESC, form_number DESC LIMIT 1`,
+        [assetId, UNRECORDED_SPECIFICATIONS],
+      ),
+    ],
+  );
 
+  const lastSpecifications = lastForm.rows[0]?.specifications;
+  const notes = ctx.notes?.trim() ?? "";
   const openForm = open.rows[0];
   const blockedReason = !canIssueForm(ctx.status_name)
     ? issuableStatusMessage(ctx.status_name)
@@ -352,6 +366,8 @@ export async function getIssueFormPrefill(
     equipmentType: ctx.category_name,
     make,
     model,
+    specifications: lastSpecifications ?? notes,
+    specificationsSource: lastSpecifications ? "form" : notes ? "notes" : null,
     serialNumber: ctx.serial_number,
     financeAssetNo: ctx.asset_tag,
     physicalCondition: capitalize(ctx.condition_name),
@@ -412,6 +428,7 @@ function substance(form: {
   recipientEmail: string;
   make: string;
   model: string;
+  specifications: string;
   serialNumber: string;
   department: string;
   location: string;
@@ -423,6 +440,7 @@ function substance(form: {
     form.recipientEmail.toLowerCase(),
     form.make,
     form.model,
+    form.specifications,
     form.serialNumber,
     form.department,
     form.location,
@@ -477,6 +495,7 @@ export async function createIssueForm(
       equipmentType: ctx.category_name,
       make: input.make,
       model: input.model,
+      specifications: input.specifications,
       serialNumber: ctx.serial_number,
       financeAssetNo: ctx.asset_tag,
       physicalCondition: capitalize(ctx.condition_name),
@@ -515,10 +534,10 @@ export async function createIssueForm(
          physical_condition, accessories, department, location, issued_to_name,
          issued_to_user_id, recipient_email, payroll_number, approved_by_name, approved_by_email,
          remarks, reissue_reason, disclaimer, content_hash, token_hash, token_nonce, expires_at,
-         created_by
+         created_by, specifications
        ) VALUES (
          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11, $12, $13, $14, $15, $16, $17, $18,
-         $19, $20, $21::jsonb, $22, $23, $24, now() + make_interval(days => $25), $26
+         $19, $20, $21::jsonb, $22, $23, $24, now() + make_interval(days => $25), $26, $27
        ) RETURNING id`,
       [
         id,
@@ -547,6 +566,7 @@ export async function createIssueForm(
         link.nonce,
         LINK_TTL_DAYS,
         performedBy,
+        frozen.specifications,
       ],
     );
 

@@ -16,6 +16,7 @@ export interface IssueForm {
   equipmentType: string;
   make: string;
   model: string;
+  specifications: string;
   serialNumber: string;
   financeAssetNo: string;
   physicalCondition: string;
@@ -62,6 +63,9 @@ export interface IssueFormPrefill {
   equipmentType: string;
   make: string;
   model: string;
+  specifications: string;
+  /** Where `specifications` came from, so the dialog can say; null when it starts empty. */
+  specificationsSource: "form" | "notes" | null;
   serialNumber: string;
   financeAssetNo: string;
   physicalCondition: string;
@@ -84,6 +88,7 @@ export interface IssueFormPrefill {
 export interface IssueFormInput {
   make: string;
   model: string;
+  specifications: string;
   payrollNumber: string;
   approverEmail: string;
   remarks: string | null;

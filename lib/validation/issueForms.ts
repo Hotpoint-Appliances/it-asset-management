@@ -1,5 +1,8 @@
 import { optionalString, requireString } from "./helpers";
-import { REISSUE_REASONS } from "@/lib/issueForms/rules";
+import {
+  REISSUE_REASONS,
+  SPECIFICATIONS_MAX_LENGTH,
+} from "@/lib/issueForms/rules";
 import type { IssueFormInput } from "@/types/issueForm";
 
 type Result<T> = { success: true; data: T } | { success: false; error: string };
@@ -20,6 +23,10 @@ export function validateIssueFormInput(body: unknown): Result<IssueFormInput> {
   if (!make.ok) return { success: false, error: make.error };
   const model = requireString(b.model, "Model");
   if (!model.ok) return { success: false, error: model.error };
+  const specifications = requireString(b.specifications, "Specifications");
+  if (!specifications.ok) {
+    return { success: false, error: specifications.error };
+  }
   const payrollNumber = requireString(b.payrollNumber, "Payroll number");
   if (!payrollNumber.ok) {
     return { success: false, error: payrollNumber.error };
@@ -46,6 +53,9 @@ export function validateIssueFormInput(body: unknown): Result<IssueFormInput> {
   if (model.value.length > 200) {
     return { success: false, error: "Model is too long" };
   }
+  if (specifications.value.length > SPECIFICATIONS_MAX_LENGTH) {
+    return { success: false, error: "Specifications are too long" };
+  }
   if (payrollNumber.value.length > 50) {
     return { success: false, error: "Payroll number is too long" };
   }
@@ -67,6 +77,7 @@ export function validateIssueFormInput(body: unknown): Result<IssueFormInput> {
     data: {
       make: make.value,
       model: model.value,
+      specifications: specifications.value,
       payrollNumber: payrollNumber.value,
       approverEmail: approverEmail.value,
       remarks,

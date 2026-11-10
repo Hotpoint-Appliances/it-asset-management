@@ -9,6 +9,10 @@ export const REMINDER_DAYS = [3, 7];
 /** A form can't be re-sent sooner than this, so the button can't flood an inbox. */
 export const RESEND_COOLDOWN_SECONDS = 60;
 
+export const SPECIFICATIONS_MAX_LENGTH = 1000;
+/** What migration 008 gave forms from before specifications were recorded. Never a prefill. */
+export const UNRECORDED_SPECIFICATIONS = "Not specified";
+
 export const REISSUE_REASONS = [
   "Replacement equipment",
   "Lost copy",
