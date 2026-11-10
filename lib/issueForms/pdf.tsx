@@ -11,6 +11,7 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 import { formatDate, formatDateTime } from "@/lib/format";
+import { userCommentsText } from "./rules";
 import type { IssueForm } from "@/types/issueForm";
 
 const PUBLIC_DIR = path.join(process.cwd(), "public");
@@ -140,6 +141,7 @@ function IssueFormDocument({ form }: { form: IssueForm }) {
     ? `${form.physicalCondition}: ${form.conditionComment}`
     : form.physicalCondition;
   const banner = BANNERS[form.status];
+  const userComments = userCommentsText(form);
 
   return (
     <Document
@@ -217,6 +219,11 @@ function IssueFormDocument({ form }: { form: IssueForm }) {
           <View style={styles.row}>
             <Cell label="Remarks" value={form.remarks ?? "None"} plain />
           </View>
+          {userComments !== null && (
+            <View style={styles.row}>
+              <Cell label="User Comments" value={userComments} plain />
+            </View>
+          )}
         </View>
 
         <View style={styles.disclaimer}>

@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/Card";
 import { formatDate } from "@/lib/format";
+import { userCommentsText } from "@/lib/issueForms/rules";
 import type { IssueForm } from "@/types/issueForm";
 
 /** Label and value; a third item of `true` gives longer text the group's full width. */
@@ -38,6 +39,7 @@ export function IssueFormSummary({ form }: { form: IssueForm }) {
   const condition = form.conditionComment
     ? `${form.physicalCondition}: ${form.conditionComment}`
     : form.physicalCondition;
+  const userComments = userCommentsText(form);
 
   return (
     <Card>
@@ -68,6 +70,9 @@ export function IssueFormSummary({ form }: { form: IssueForm }) {
             ["Payroll no.", form.payrollNumber],
             ["Approved by", form.approvedByName],
             ["Remarks", form.remarks ?? "None"],
+            ...(userComments !== null
+              ? [["User comments", userComments, true] as Row]
+              : []),
           ]}
         />
         <section className="bg-muted/50 flex flex-col gap-2 rounded-lg p-4">

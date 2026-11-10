@@ -39,6 +39,7 @@ export interface IssueForm {
   emailStatus: "pending" | "sent" | "failed";
   acknowledgedAt: string | null;
   acknowledgedName: string | null;
+  userComments: string | null;
   disputedAt: string | null;
   disputeReason: string | null;
   voidedAt: string | null;

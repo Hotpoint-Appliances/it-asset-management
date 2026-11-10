@@ -69,7 +69,7 @@ async function notifyAcknowledged(form: IssueForm): Promise<void> {
       userId: form.createdBy,
       type: "issue_form_acknowledged",
       title: `Issue form acknowledged: ${form.formNumber}`,
-      message: `${form.issuedToName} acknowledged ${equipmentLabel(form)}.`,
+      message: `${form.issuedToName} acknowledged ${equipmentLabel(form)}.${form.userComments ? ` Comment: ${form.userComments}` : ""}`,
       relatedAssetId: form.assetId,
     },
   ]);
@@ -79,6 +79,7 @@ async function notifyAcknowledged(form: IssueForm): Promise<void> {
     formNumber: form.formNumber,
     equipment: equipmentLabel(form),
     acknowledgedAt: `${formatDateTime(form.acknowledgedAt!)} EAT`,
+    userComments: form.userComments,
   });
   const cc = [...new Set([form.createdByEmail, form.approvedByEmail])].filter(
     (address) => address.toLowerCase() !== form.recipientEmail.toLowerCase(),

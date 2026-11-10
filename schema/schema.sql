@@ -352,6 +352,7 @@ CREATE TABLE equipment_issue_forms (
   acknowledged_name VARCHAR(150),
   acknowledged_ip VARCHAR(64),
   acknowledged_user_agent VARCHAR(500),
+  user_comments TEXT, -- optional, written when the recipient signs
   disputed_at TIMESTAMPTZ,
   dispute_reason TEXT,
   voided_at TIMESTAMPTZ,

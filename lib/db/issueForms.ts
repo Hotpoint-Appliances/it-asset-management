@@ -108,6 +108,7 @@ interface IssueFormRow {
   email_status: IssueForm["emailStatus"];
   acknowledged_at: Date | string | null;
   acknowledged_name: string | null;
+  user_comments: string | null;
   disputed_at: Date | string | null;
   dispute_reason: string | null;
   voided_at: Date | string | null;
@@ -124,7 +125,7 @@ const FORM_COLUMNS = `f.id, f.form_number, f.asset_id, f.status, f.issue_date, f
   f.accessories, f.department, f.location, f.issued_to_name, f.issued_to_user_id, f.recipient_email,
   f.payroll_number, f.approved_by_name, f.approved_by_email, f.remarks, f.reissue_reason,
   f.disclaimer, f.content_hash, f.expires_at, f.last_sent_at, f.email_status, f.acknowledged_at,
-  f.acknowledged_name, f.disputed_at, f.dispute_reason, f.voided_at, f.void_reason, f.created_by,
+  f.acknowledged_name, f.user_comments, f.disputed_at, f.dispute_reason, f.voided_at, f.void_reason, f.created_by,
   creator.full_name AS created_by_name, creator.email AS created_by_email, f.created_at`;
 const FORM_FROM = `equipment_issue_forms f JOIN users creator ON creator.id = f.created_by`;
 
@@ -161,6 +162,7 @@ function mapForm(row: IssueFormRow): IssueForm {
     emailStatus: row.email_status,
     acknowledgedAt: toIsoString(row.acknowledged_at),
     acknowledgedName: row.acknowledged_name,
+    userComments: row.user_comments,
     disputedAt: toIsoString(row.disputed_at),
     disputeReason: row.dispute_reason,
     voidedAt: toIsoString(row.voided_at),
@@ -810,6 +812,7 @@ async function lockPendingByToken(
 export async function acknowledgeIssueForm(
   token: string,
   typedName: string,
+  userComments: string | null,
   evidence: { ip: string | null; userAgent: string | null },
 ): Promise<IssueForm | null> {
   return withTransaction(async (client) => {
@@ -824,10 +827,16 @@ export async function acknowledgeIssueForm(
     await client.query(
       `UPDATE equipment_issue_forms
        SET status = 'acknowledged', acknowledged_at = now(), acknowledged_name = $2,
-           acknowledged_ip = $3, acknowledged_user_agent = $4
+           acknowledged_ip = $3, acknowledged_user_agent = $4, user_comments = $5
        WHERE id = $1`,
       // The printed name, now it's matched: the signature shouldn't carry typing slips in case.
-      [row.id, row.issued_to_name, evidence.ip, evidence.userAgent],
+      [
+        row.id,
+        row.issued_to_name,
+        evidence.ip,
+        evidence.userAgent,
+        userComments,
+      ],
     );
     await client.query(
       `UPDATE equipment_issue_forms SET status = 'superseded', superseded_by = $2
@@ -845,7 +854,7 @@ export async function acknowledgeIssueForm(
       "issue_form_acknowledged",
       form.formNumber,
       form.createdBy,
-      `Acknowledged by ${row.issued_to_name} through the emailed link${evidence.ip ? ` (IP ${evidence.ip})` : ""}.`,
+      `Acknowledged by ${row.issued_to_name} through the emailed link${evidence.ip ? ` (IP ${evidence.ip})` : ""}.${userComments ? ` Comment: ${userComments}` : ""}`,
     );
     return form;
   });

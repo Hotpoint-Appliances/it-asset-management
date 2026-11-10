@@ -136,11 +136,17 @@ export function renderIssueFormConfirmationEmail(details: {
   formNumber: string;
   equipment: string;
   acknowledgedAt: string;
+  userComments: string | null;
 }): { subject: string; html: string } {
   return {
     subject: `Equipment issue form ${details.formNumber} acknowledged`,
     html: renderAccountEmail(details.recipientName, [
       `Equipment issue form ${escapeHtml(details.formNumber)} for <strong>${escapeHtml(details.equipment)}</strong> was acknowledged on ${escapeHtml(details.acknowledgedAt)}.`,
+      ...(details.userComments
+        ? [
+            `Comment left when signing:<br><span style="color:#52525b;white-space:pre-line">${escapeHtml(details.userComments)}</span>`,
+          ]
+        : []),
       "The signed form is attached for your records.",
       "If you didn't do this, contact the ICT Department right away.",
     ]),

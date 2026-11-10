@@ -8,7 +8,10 @@ import { Input } from "@/components/ui/Input";
 import { FieldError } from "@/components/shared/FieldError";
 import { RequiredMark } from "@/components/shared/RequiredMark";
 import { useFieldErrors } from "@/lib/hooks/useFieldErrors";
-import { normalizeName } from "@/lib/issueForms/rules";
+import {
+  USER_COMMENTS_MAX_LENGTH,
+  normalizeName,
+} from "@/lib/issueForms/rules";
 import { signatureFont } from "./signatureFont";
 
 type Field = "typedName" | "accepted" | "reason";
@@ -35,6 +38,7 @@ export function AcknowledgeForm({
 }) {
   const [mode, setMode] = React.useState<"sign" | "report">("sign");
   const [typedName, setTypedName] = React.useState("");
+  const [userComments, setUserComments] = React.useState("");
   const [accepted, setAccepted] = React.useState(false);
   const [reason, setReason] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
@@ -67,7 +71,8 @@ export function AcknowledgeForm({
       },
       event.currentTarget,
     );
-    if (ok) void send("/api/acknowledge", { typedName, accepted });
+    if (ok)
+      void send("/api/acknowledge", { typedName, accepted, userComments });
   }
 
   function handleReport(event: React.FormEvent<HTMLFormElement>) {
@@ -153,6 +158,24 @@ export function AcknowledgeForm({
       <CardContent className="p-6">
         <form onSubmit={handleSign} noValidate className="flex flex-col gap-4">
           <h2 className="text-sm font-semibold">Acknowledge receipt</h2>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="ack-comments" className="text-sm font-medium">
+              Comments (optional)
+            </label>
+            <textarea
+              id="ack-comments"
+              rows={3}
+              maxLength={USER_COMMENTS_MAX_LENGTH}
+              value={userComments}
+              onChange={(e) => setUserComments(e.target.value)}
+              aria-describedby="ack-comments-hint"
+              className="border-border bg-background focus-visible:ring-ring flex w-full rounded-lg border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+            />
+            <p id="ack-comments-hint" className="text-muted-foreground text-xs">
+              If the details are wrong or you didn&apos;t receive this
+              equipment, use Report a problem instead.
+            </p>
+          </div>
           <div className="flex flex-col gap-1.5">
             <label htmlFor="ack-name" className="text-sm font-medium">
               Type your full name to sign
