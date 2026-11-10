@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import axios from "axios";
-import { FileSignature, Send, XCircle } from "lucide-react";
-import { Badge, type BadgeProps } from "@/components/ui/Badge";
+import { Eye, FileSignature, Send, XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import {
   Dialog,
@@ -33,23 +34,14 @@ import { usePagination } from "@/lib/hooks/usePagination";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import { useSyncOnOpen } from "@/lib/hooks/useSyncOnOpen";
 import { formatDate, formatDateTime } from "@/lib/format";
-import { ISSUE_FORM_STATUS_LABELS } from "@/lib/issueForms/rules";
+import {
+  ISSUE_FORM_STATUS_LABELS,
+  ISSUE_FORM_STATUS_VARIANTS,
+} from "@/lib/issueForms/rules";
 import { useUIStore } from "@/store";
-import type { IssueForm, IssueFormStatus } from "@/types/issueForm";
+import type { IssueForm } from "@/types/issueForm";
 
 const PAGE_SIZE = 10;
-
-const STATUS_VARIANTS: Record<
-  IssueFormStatus,
-  NonNullable<BadgeProps["variant"]>
-> = {
-  pending: "warning",
-  acknowledged: "success",
-  disputed: "danger",
-  voided: "neutral",
-  superseded: "neutral",
-  expired: "neutral",
-};
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -164,7 +156,7 @@ export function IssueFormsTab({
                 </TableCell>
                 <TableCell>
                   <div className="flex max-w-64 flex-col gap-1">
-                    <Badge variant={STATUS_VARIANTS[form.status]}>
+                    <Badge variant={ISSUE_FORM_STATUS_VARIANTS[form.status]}>
                       {ISSUE_FORM_STATUS_LABELS[form.status]}
                     </Badge>
                     {detail && (
@@ -176,12 +168,22 @@ export function IssueFormsTab({
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap justify-end gap-1.5">
+                    <Button variant="outline" size="sm" asChild>
+                      <Link
+                        href={`/assets/${assetId}/issue-forms/${form.id}`}
+                        aria-label={`View ${form.formNumber}`}
+                      >
+                        <Eye aria-hidden="true" className="h-4 w-4" />
+                        View
+                      </Link>
+                    </Button>
                     <DownloadButton
                       href={`/api/assets/${assetId}/issue-forms/${form.id}/pdf`}
                       variant="outline"
                       size="sm"
+                      aria-label={`Download ${form.formNumber}`}
                     >
-                      PDF
+                      Download
                     </DownloadButton>
                     {form.status === "pending" && (
                       <Button

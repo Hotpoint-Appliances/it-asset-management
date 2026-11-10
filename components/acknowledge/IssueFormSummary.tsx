@@ -23,7 +23,11 @@ function Group({ title, rows }: { title: string; rows: [string, string][] }) {
 /** The form as the recipient reads it; the same fields, in the same order, as the PDF. */
 export function IssueFormSummary({ form }: { form: IssueForm }) {
   const accessories = form.accessories.length
-    ? form.accessories.map((a) => `${a.name} × ${a.quantity}`).join(", ")
+    ? form.accessories
+        .map(
+          (a) => `${a.name} × ${a.quantity}${a.notes ? ` (${a.notes})` : ""}`,
+        )
+        .join(", ")
     : "None";
   const condition = form.conditionComment
     ? `${form.physicalCondition}: ${form.conditionComment}`
