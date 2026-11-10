@@ -84,7 +84,6 @@ export interface IssueFormPrefill {
 export interface IssueFormInput {
   make: string;
   model: string;
-  conditionComment: string | null;
   payrollNumber: string;
   approverEmail: string;
   remarks: string | null;

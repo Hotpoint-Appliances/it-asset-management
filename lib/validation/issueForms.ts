@@ -29,12 +29,10 @@ export function validateIssueFormInput(body: unknown): Result<IssueFormInput> {
     return { success: false, error: approverEmail.error };
   }
 
-  const conditionComment = optionalString(b.conditionComment);
   const remarks = optionalString(b.remarks);
   const recipientEmail = optionalString(b.recipientEmail);
   const reissueReason = optionalString(b.reissueReason);
   if (
-    conditionComment === undefined ||
     remarks === undefined ||
     recipientEmail === undefined ||
     reissueReason === undefined
@@ -50,9 +48,6 @@ export function validateIssueFormInput(body: unknown): Result<IssueFormInput> {
   }
   if (payrollNumber.value.length > 50) {
     return { success: false, error: "Payroll number is too long" };
-  }
-  if (tooLong(conditionComment, 300)) {
-    return { success: false, error: "Condition comment is too long" };
   }
   if (tooLong(remarks, 500)) {
     return { success: false, error: "Remarks are too long" };
@@ -72,7 +67,6 @@ export function validateIssueFormInput(body: unknown): Result<IssueFormInput> {
     data: {
       make: make.value,
       model: model.value,
-      conditionComment,
       payrollNumber: payrollNumber.value,
       approverEmail: approverEmail.value,
       remarks,

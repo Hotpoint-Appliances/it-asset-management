@@ -480,7 +480,6 @@ export async function createIssueForm(
       serialNumber: ctx.serial_number,
       financeAssetNo: ctx.asset_tag,
       physicalCondition: capitalize(ctx.condition_name),
-      conditionComment: input.conditionComment,
       accessories,
       department: ctx.department_name,
       location: ctx.location_name,
@@ -513,13 +512,13 @@ export async function createIssueForm(
     const inserted = await client.query<{ id: string }>(
       `INSERT INTO equipment_issue_forms (
          id, asset_id, issue_date, equipment_type, make, model, serial_number, finance_asset_no,
-         physical_condition, condition_comment, accessories, department, location, issued_to_name,
+         physical_condition, accessories, department, location, issued_to_name,
          issued_to_user_id, recipient_email, payroll_number, approved_by_name, approved_by_email,
          remarks, reissue_reason, disclaimer, content_hash, token_hash, token_nonce, expires_at,
          created_by
        ) VALUES (
-         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb, $12, $13, $14, $15, $16, $17, $18,
-         $19, $20, $21, $22::jsonb, $23, $24, $25, now() + make_interval(days => $26), $27
+         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11, $12, $13, $14, $15, $16, $17, $18,
+         $19, $20, $21::jsonb, $22, $23, $24, now() + make_interval(days => $25), $26
        ) RETURNING id`,
       [
         id,
@@ -531,7 +530,6 @@ export async function createIssueForm(
         frozen.serialNumber,
         frozen.financeAssetNo,
         frozen.physicalCondition,
-        frozen.conditionComment,
         JSON.stringify(frozen.accessories),
         frozen.department,
         frozen.location,

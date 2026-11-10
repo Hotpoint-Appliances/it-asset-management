@@ -126,7 +126,6 @@ function IssueFormFields({
   const fields = useFieldErrors<Field>();
   const [make, setMake] = React.useState(prefill.make);
   const [model, setModel] = React.useState(prefill.model);
-  const [conditionComment, setConditionComment] = React.useState("");
   const [payroll, setPayroll] = React.useState(prefill.payrollNumber);
   const [approver, setApprover] = React.useState(prefill.defaultHodEmail);
   const [remarks, setRemarks] = React.useState("");
@@ -195,7 +194,6 @@ function IssueFormFields({
       }>(`/api/assets/${assetId}/issue-forms`, {
         make,
         model,
-        conditionComment,
         payrollNumber: payroll,
         approverEmail: approver,
         remarks,
@@ -373,21 +371,6 @@ function IssueFormFields({
               From the owner&apos;s user account.
             </p>
           )}
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor={`${id}-condition`} className="text-sm font-medium">
-            Condition comment
-          </label>
-          <textarea
-            id={`${id}-condition`}
-            rows={2}
-            maxLength={300}
-            value={conditionComment}
-            onChange={(e) => setConditionComment(e.target.value)}
-            placeholder="Printed after the condition, e.g. small scratch on the lid"
-            className={TEXTAREA}
-          />
         </div>
 
         <div className="flex flex-col gap-1.5">
