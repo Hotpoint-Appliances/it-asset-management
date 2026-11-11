@@ -90,9 +90,10 @@ consistent, complete CRUD + workflow actions around it.
      the same transaction as the status change).
 
 5. **Maintenance** — creating an `asset_maintenance` row does not by itself change asset
-   status; the app should prompt to set status to `in_repair` when a maintenance record is
-   created with `status = in_progress`, and prompt to restore the prior status when the
-   maintenance record is marked `completed`.
+   status. A `repair` record moving to `in_progress` sets the asset to `in_repair` automatically,
+   and finishing the last open repair restores the prior status (never automatically into
+   lost/stolen/disposed). For `service` / `inspection` the app prompts instead: set `in_repair`
+   on start, restore the prior status on `completed`.
 
 6. **Disposal (terminal)** — requires: `disposal_date`, `disposal_method`, `approved_by`.
    On disposal: asset `status_id` → `disposed`, a `disposed` row is written to
