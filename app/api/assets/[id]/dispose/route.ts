@@ -13,6 +13,11 @@ import {
   saveAssetDisposalAttachment,
   UploadValidationError,
 } from "@/lib/files/upload";
+import { formatDate } from "@/lib/format";
+import {
+  assetLabel,
+  scheduleAssetEventNotifications,
+} from "@/lib/notifications/triggers";
 
 /** Disposal flow (phase-5-asset-lifecycle Step 5), a dedicated action, not a status-dropdown
  * option, so `asset_disposals` is never skipped (docs/asset-lifecycle-flow.md rule 6).
@@ -103,6 +108,26 @@ export async function POST(
     await setDisposalAttachmentPath(id, relativePath);
     result.disposal.attachmentPath = relativePath;
   }
+
+  const method = result.disposal.disposalMethod.replace(/_/g, " ");
+  scheduleAssetEventNotifications(
+    {
+      before: existing,
+      after: result.asset,
+      note: result.disposal.notes,
+      action: {
+        type: "asset_disposed",
+        ownerTitle: "An asset assigned to you was disposed of",
+        actorTitle: "You disposed of an asset",
+        lead: `${assetLabel(existing)} was disposed of`,
+        details: [
+          `Method: ${method.charAt(0).toUpperCase()}${method.slice(1)}`,
+          `Disposal date: ${formatDate(result.disposal.disposalDate)}`,
+        ],
+      },
+    },
+    session.userId,
+  );
 
   return NextResponse.json({ asset: result.asset, disposal: result.disposal });
 }

@@ -21,7 +21,10 @@ import {
   deleteUploadedFile,
   UploadValidationError,
 } from "@/lib/files/upload";
-import { scheduleAssetEventNotifications } from "@/lib/notifications/triggers";
+import {
+  assetLabel,
+  scheduleAssetEventNotifications,
+} from "@/lib/notifications/triggers";
 
 export async function GET(
   _request: NextRequest,
@@ -164,5 +167,18 @@ export async function DELETE(
   if (!deleted) {
     return NextResponse.json({ error: "Asset not found" }, { status: 404 });
   }
+  scheduleAssetEventNotifications(
+    {
+      before: existing,
+      after: existing,
+      action: {
+        type: "asset_deleted",
+        ownerTitle: "An asset assigned to you was removed from the register",
+        actorTitle: "You deleted an asset",
+        lead: `${assetLabel(existing)} was removed from the asset register`,
+      },
+    },
+    session.userId,
+  );
   return NextResponse.json({ success: true });
 }
