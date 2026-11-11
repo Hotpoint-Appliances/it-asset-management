@@ -238,3 +238,40 @@ Phase 8 set it to `false` for its own test runs and restored the file byte-ident
 - `skills/phase-6-dashboard-reporting` — source of the warranty-expiring query reused here
 - `skills/phase-8-polish` — audits the bell and `/notifications` page, and confirms the deployed
   scheduled task
+
+## Asset action emails (change request, 2026-11-11)
+
+Extends the owner-only `asset_assigned` / `asset_transferred` triggers to every user-involved
+asset action. Entry point: `scheduleAssetEventNotifications()` / `notifyAssetEvent()` in
+`lib/notifications/triggers.ts`. Confirmed with the stakeholder:
+
+- **Only user-involved actions notify**: the asset has, or just lost, an owner. Unowned stock
+  changes notify nobody, including the actor.
+- **Recipients**: the new owner (`asset_assigned`), the previous owner when reassigned or
+  unassigned (`asset_unassigned`, new), the unchanged owner (`asset_updated` / `asset_transferred`
+  / the action's own type), and **the actor**: an email-only receipt (no bell entry) that lists
+  every change and who was, or wasn't, notified (inactive account, no email address). An actor
+  who is also the owner gets only the receipt. This reverses the original "actor is never
+  notified" rule.
+- **Owner-relevant fields only**: asset tag, name, category, model, serial, location, department,
+  status, condition, plus accessories. Purchase/finance, vendor, warranty, depreciation, notes
+  and the image change notify nobody.
+- **Triggers**: create, full edit, transfer, status change (its note is included), condition
+  change, accessories (the form and the detail-tab PUT), maintenance scheduled / started /
+  completed / cancelled (`asset_maintenance`), disposal (`asset_disposed`) and soft delete
+  (`asset_deleted`, with no link). Bulk import still sends nothing.
+- **One message per action**: each recipient gets one notification per save, with the changes as
+  `•` lines in `message` (rendered with `white-space: pre-line` in the bell and email), so
+  retries carry the same content.
+- **Repair automation** (`lib/maintenance/repairStatus.ts`): a `repair` record starting sets
+  `in_repair`. Completing it (or cancelling it after it started) restores the status from before
+  the in_repair transition, once no other repair on the asset is open. It never auto-restores
+  into lost/stolen/disposed; for those, and for service/inspection, the client's confirm prompts
+  remain. The resulting status change appears in the same maintenance email.
+- **Dev outbox**: in `next dev` with email disabled, every would-be email is written to
+  `.next/dev-outbox/` for inspection.
+
+Verified 2026-11-11 against the dev server (Chrome, admin session): status change with note,
+reassign away and back, accessory add/remove, a notes-only edit (no email), repair
+schedule → start (auto in_repair, no prompt) → complete (auto restore + toast), disposal and
+deletion. Every outbox email was checked for recipients, subject and lines.

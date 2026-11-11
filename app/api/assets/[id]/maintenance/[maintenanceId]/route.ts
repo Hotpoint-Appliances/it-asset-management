@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getApiSession, requireApiRole } from "@/lib/auth/api";
 import { getAssetById } from "@/lib/db/assets";
 import { getMaintenanceById, updateMaintenance } from "@/lib/db/maintenance";
-import { listAssetStatuses } from "@/lib/db/assetStatuses";
-import { findStatusBeforeMostRecentInRepair } from "@/lib/db/auditLog";
+import {
+  applyRepairStatus,
+  maintenanceEventAction,
+} from "@/lib/maintenance/repairStatus";
+import { scheduleAssetEventNotifications } from "@/lib/notifications/triggers";
 import {
   validateMaintenanceUpdateInput,
   isValidMaintenanceTransition,
@@ -58,22 +61,39 @@ export async function PATCH(
   }
 
   const maintenance = await updateMaintenance(numericId, validated.data);
-
-  // "Marking completed prompts restoring the asset's prior status" (docs/asset-lifecycle-flow.md
-  // rule 5), resolved here (via the unified audit log, no schema change) so the client can offer
-  // the prompt without a second round trip. Null means "no known prior status" (e.g. the asset
-  // was created directly in_repair); the client falls back to leaving status untouched.
-  let suggestedRestoreStatusId: number | null = null;
-  if (validated.data.status === "completed") {
-    const statuses = await listAssetStatuses();
-    const inRepairStatus = statuses.find((s) => s.name === "in_repair");
-    if (inRepairStatus) {
-      suggestedRestoreStatusId = await findStatusBeforeMostRecentInRepair(
-        id,
-        inRepairStatus.id,
-      );
-    }
+  if (!maintenance) {
+    return NextResponse.json(
+      { error: "Maintenance record not found" },
+      { status: 404 },
+    );
   }
 
-  return NextResponse.json({ maintenance, suggestedRestoreStatusId });
+  // Repairs drive the asset status themselves (in_repair on start, prior status restored when the
+  // last open repair finishes); for anything the automation didn't do, `suggestedRestoreStatusId`
+  // lets the client offer the old confirm prompt (docs/asset-lifecycle-flow.md rule 5).
+  const { change, suggestedRestoreStatusId } = await applyRepairStatus(
+    asset,
+    existing.status,
+    maintenance,
+    session.userId,
+  );
+
+  // Only status steps are announced; editing cost/notes on an open record isn't owner news.
+  if (existing.status !== maintenance.status) {
+    scheduleAssetEventNotifications(
+      {
+        before: change?.before ?? asset,
+        after: change?.after ?? asset,
+        note: maintenance.notes,
+        action: maintenanceEventAction(asset, maintenance),
+      },
+      session.userId,
+    );
+  }
+
+  return NextResponse.json({
+    maintenance,
+    suggestedRestoreStatusId,
+    assetStatusChanged: !!change,
+  });
 }

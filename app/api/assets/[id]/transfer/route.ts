@@ -3,7 +3,7 @@ import { getApiSession, requireApiRole } from "@/lib/auth/api";
 import { getAssetById, transferAsset } from "@/lib/db/assets";
 import { validateTransferInput } from "@/lib/validation/assetLifecycle";
 import { isForeignKeyViolation } from "@/lib/db/query";
-import { scheduleAssetChangeNotifications } from "@/lib/notifications/triggers";
+import { scheduleAssetEventNotifications } from "@/lib/notifications/triggers";
 
 export async function POST(
   request: NextRequest,
@@ -51,6 +51,6 @@ export async function POST(
     return NextResponse.json({ error: "Asset not found" }, { status: 404 });
   }
   // After the commit, never inside it: a notification/email failure must not undo the transfer.
-  scheduleAssetChangeNotifications(change, session.userId);
+  scheduleAssetEventNotifications(change, session.userId);
   return NextResponse.json({ asset: change.after });
 }

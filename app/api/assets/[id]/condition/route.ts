@@ -3,6 +3,7 @@ import { getApiSession, requireApiRole } from "@/lib/auth/api";
 import { getAssetById, changeAssetCondition } from "@/lib/db/assets";
 import { isForeignKeyViolation } from "@/lib/db/query";
 import { requireNumber } from "@/lib/validation/helpers";
+import { scheduleAssetEventNotifications } from "@/lib/notifications/triggers";
 
 export async function POST(
   request: NextRequest,
@@ -36,9 +37,9 @@ export async function POST(
     );
   }
 
-  let asset;
+  let change;
   try {
-    asset = await changeAssetCondition(id, conditionId, session.userId);
+    change = await changeAssetCondition(id, conditionId, session.userId);
   } catch (err) {
     if (isForeignKeyViolation(err)) {
       return NextResponse.json(
@@ -48,8 +49,9 @@ export async function POST(
     }
     throw err;
   }
-  if (!asset) {
+  if (!change) {
     return NextResponse.json({ error: "Asset not found" }, { status: 404 });
   }
-  return NextResponse.json({ asset });
+  scheduleAssetEventNotifications(change, session.userId);
+  return NextResponse.json({ asset: change.after });
 }

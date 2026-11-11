@@ -1,6 +1,11 @@
 export type NotificationType =
   | "asset_assigned"
   | "asset_transferred"
+  | "asset_unassigned"
+  | "asset_updated"
+  | "asset_maintenance"
+  | "asset_disposed"
+  | "asset_deleted"
   | "maintenance_due"
   | "warranty_expiring"
   | "issue_form_acknowledged"

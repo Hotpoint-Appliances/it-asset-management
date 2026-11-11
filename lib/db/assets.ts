@@ -13,7 +13,7 @@ import type {
 import type { RoleName } from "@/lib/auth/session";
 import type { AssetSort } from "@/lib/assetSort";
 import type { AssetAccessoryInput } from "@/types/accessory";
-import { syncAssetAccessories } from "./assetAccessories";
+import { syncAssetAccessories, type AccessoryChange } from "./assetAccessories";
 import { findExistingSerialNumbers } from "./assetImport";
 import { voidIssueFormAfterAssetChange, voidOpenIssueForm } from "./issueForms";
 
@@ -363,13 +363,18 @@ export async function createAsset(
   input: AssetInput,
   createdBy: string,
   accessories?: AssetAccessoryInput[],
-): Promise<Asset> {
+): Promise<{ asset: Asset; accessoryChanges: AccessoryChange[] }> {
   return withTransaction(async (client) => {
     const asset = await insertAsset(client, input, createdBy);
-    if (accessories?.length) {
-      await syncAssetAccessories(client, asset.id, accessories, createdBy);
-    }
-    return asset;
+    const accessoryChanges = accessories?.length
+      ? ((await syncAssetAccessories(
+          client,
+          asset.id,
+          accessories,
+          createdBy,
+        )) ?? [])
+      : [];
+    return { asset, accessoryChanges };
   });
 }
 
@@ -584,12 +589,14 @@ async function updateAssetInternal(
   return { before, after };
 }
 
-/** The row as the update's own `FOR UPDATE` read found it, and as written. Returned by the
- * owner/location-changing writes (full edit, transfer) so phase-7's notification triggers diff
- * against the locked pre-update state rather than a separate, racy read. */
+/** The row as the update's own `FOR UPDATE` read found it, and as written. Returned by every
+ * asset write so the notification triggers diff against the locked pre-update state rather
+ * than a separate, racy read. `accessoryChanges` is set when the same save also changed the
+ * accessory list (the full edit). */
 export interface AssetChange {
   before: Asset;
   after: Asset;
+  accessoryChanges?: AccessoryChange[];
 }
 
 /** `accessories` undefined leaves the asset's accessory list untouched; otherwise it replaces
@@ -603,7 +610,9 @@ export async function updateAsset(
   return withTransaction(async (client) => {
     const change = await updateAssetInternal(client, id, input, performedBy);
     if (change && accessories) {
-      await syncAssetAccessories(client, id, accessories, performedBy);
+      change.accessoryChanges =
+        (await syncAssetAccessories(client, id, accessories, performedBy)) ??
+        [];
     }
     return change;
   });
@@ -669,10 +678,8 @@ export async function changeAssetCondition(
   id: string,
   conditionId: number,
   performedBy: string,
-): Promise<Asset | null> {
-  return (
-    (await patchAssetFields(id, { conditionId }, performedBy))?.after ?? null
-  );
+): Promise<AssetChange | null> {
+  return patchAssetFields(id, { conditionId }, performedBy);
 }
 
 /** Status change action (phase-5-asset-lifecycle Step 3). Transition-rule enforcement (disposed
@@ -684,10 +691,8 @@ export async function changeAssetStatus(
   statusId: number,
   performedBy: string,
   note?: string | null,
-): Promise<Asset | null> {
-  return (
-    (await patchAssetFields(id, { statusId }, performedBy, note))?.after ?? null
-  );
+): Promise<AssetChange | null> {
+  return patchAssetFields(id, { statusId }, performedBy, note);
 }
 
 /** Soft delete (phase-5-asset-lifecycle Step 7), data-entry correction only, never disposal.

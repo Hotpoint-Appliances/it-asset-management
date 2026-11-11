@@ -7,6 +7,8 @@ import {
 } from "@/lib/db/maintenance";
 import { validateMaintenanceInput } from "@/lib/validation/assetLifecycle";
 import { isForeignKeyViolation } from "@/lib/db/query";
+import { scheduleAssetEventNotifications } from "@/lib/notifications/triggers";
+import { maintenanceEventAction } from "@/lib/maintenance/repairStatus";
 
 export async function GET(
   _request: NextRequest,
@@ -64,5 +66,14 @@ export async function POST(
     }
     throw err;
   }
+  scheduleAssetEventNotifications(
+    {
+      before: existing,
+      after: existing,
+      note: maintenance.notes,
+      action: maintenanceEventAction(existing, maintenance),
+    },
+    session.userId,
+  );
   return NextResponse.json({ maintenance }, { status: 201 });
 }

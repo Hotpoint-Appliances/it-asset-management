@@ -7,6 +7,7 @@ import {
   AssetAccessoryError,
 } from "@/lib/db/assetAccessories";
 import { validateAssetAccessories } from "@/lib/validation/accessories";
+import { scheduleAssetEventNotifications } from "@/lib/notifications/triggers";
 
 export async function GET(
   _request: NextRequest,
@@ -48,15 +49,21 @@ export async function PUT(
   }
 
   try {
-    const accessories = await replaceAssetAccessories(
+    const result = await replaceAssetAccessories(
       id,
       validated.data,
       session.userId,
     );
-    if (!accessories) {
+    if (!result) {
       return NextResponse.json({ error: "Asset not found" }, { status: 404 });
     }
-    return NextResponse.json({ accessories });
+    // The accessory sync doesn't touch the asset's own fields, so the pre-save read stands in
+    // for both sides of the change.
+    scheduleAssetEventNotifications(
+      { before: asset, after: asset, accessoryChanges: result.changes },
+      session.userId,
+    );
+    return NextResponse.json({ accessories: result.accessories });
   } catch (err) {
     if (err instanceof AssetAccessoryError) {
       return NextResponse.json({ error: err.message }, { status: 400 });

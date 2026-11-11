@@ -35,6 +35,14 @@ export async function listAssetAccessories(
   return result.rows.map(mapAssetAccessory);
 }
 
+/** One difference applied by syncAssetAccessories, as the same display snapshots the audit rows
+ * store ("Charger × 2"). */
+export interface AccessoryChange {
+  kind: "added" | "removed" | "updated";
+  before: string | null;
+  after: string | null;
+}
+
 /** A request that can't be applied (locked status, unknown or retired accessory), surfaced by
  * the route as a 400. */
 export class AssetAccessoryError extends Error {
@@ -50,13 +58,14 @@ export class AssetAccessoryError extends Error {
  * create, the full edit, and the detail tab's PUT, so the lock rule and the audit diffing live
  * once. The lock rule is checked against the asset's status as it stands in this transaction,
  * i.e. after a same-transaction edit, so recovering a lost asset and updating its kit in one
- * save works. Returns false when the asset doesn't exist. */
+ * save works. Returns the changes as display lines (e.g. "Added Charger × 2", used by the
+ * notification emails; empty when nothing changed), or null when the asset doesn't exist. */
 export async function syncAssetAccessories(
   client: PoolClient,
   assetId: string,
   items: AssetAccessoryInput[],
   performedBy: string,
-): Promise<boolean> {
+): Promise<AccessoryChange[] | null> {
   // FOR UPDATE OF a: serializes concurrent edits of the same asset's list (a no-op re-lock when
   // the caller's own UPDATE already holds it).
   const assetResult = await client.query<{ status_name: string }>(
@@ -66,7 +75,7 @@ export async function syncAssetAccessories(
     [assetId],
   );
   const statusName = assetResult.rows[0]?.status_name;
-  if (statusName === undefined) return false;
+  if (statusName === undefined) return null;
 
   const current = (
     await client.query<AssetAccessoryRow>(LIST_SQL, [assetId])
@@ -84,7 +93,7 @@ export async function syncAssetAccessories(
         (before.notes ?? null) !== (i.notes ?? null))
     );
   });
-  if (added.length + removed.length + updated.length === 0) return true;
+  if (added.length + removed.length + updated.length === 0) return [];
 
   if (!canEditAccessories(statusName)) {
     throw new AssetAccessoryError(
@@ -128,12 +137,14 @@ export async function syncAssetAccessories(
       [assetId, actionType, oldValue, newValue, performedBy],
     );
 
+  const changes: AccessoryChange[] = [];
   for (const a of removed) {
     await client.query(
       `DELETE FROM asset_accessories WHERE asset_id = $1 AND accessory_id = $2`,
       [assetId, a.accessoryId],
     );
     await audit("accessory_removed", formatAccessory(a), null);
+    changes.push({ kind: "removed", before: formatAccessory(a), after: null });
   }
   for (const a of added) {
     await client.query(
@@ -141,11 +152,9 @@ export async function syncAssetAccessories(
        VALUES ($1, $2, $3, $4, $5)`,
       [assetId, a.accessoryId, a.quantity, a.notes, performedBy],
     );
-    await audit(
-      "accessory_added",
-      null,
-      formatAccessory({ ...a, name: names.get(a.accessoryId)! }),
-    );
+    const label = formatAccessory({ ...a, name: names.get(a.accessoryId)! });
+    await audit("accessory_added", null, label);
+    changes.push({ kind: "added", before: null, after: label });
   }
   for (const a of updated) {
     const before = currentById.get(a.accessoryId)!;
@@ -154,18 +163,17 @@ export async function syncAssetAccessories(
        WHERE asset_id = $1 AND accessory_id = $2`,
       [assetId, a.accessoryId, a.quantity, a.notes],
     );
-    await audit(
-      "accessory_updated",
-      formatAccessory(before),
-      formatAccessory({ ...a, name: before.name }),
-    );
+    const from = formatAccessory(before);
+    const to = formatAccessory({ ...a, name: before.name });
+    await audit("accessory_updated", from, to);
+    changes.push({ kind: "updated", before: from, after: to });
   }
 
   // Bumps updated_at via the trigger, so the asset's "Last updated" reflects kit changes too.
   await client.query(`UPDATE assets SET updated_at = now() WHERE id = $1`, [
     assetId,
   ]);
-  return true;
+  return changes;
 }
 
 /** The detail tab's standalone save (PUT /api/assets/[id]/accessories). */
@@ -173,11 +181,19 @@ export async function replaceAssetAccessories(
   assetId: string,
   items: AssetAccessoryInput[],
   performedBy: string,
-): Promise<AssetAccessory[] | null> {
+): Promise<{
+  accessories: AssetAccessory[];
+  changes: AccessoryChange[];
+} | null> {
   return withTransaction(async (client) => {
-    const ok = await syncAssetAccessories(client, assetId, items, performedBy);
-    if (!ok) return null;
+    const changes = await syncAssetAccessories(
+      client,
+      assetId,
+      items,
+      performedBy,
+    );
+    if (!changes) return null;
     const result = await client.query<AssetAccessoryRow>(LIST_SQL, [assetId]);
-    return result.rows.map(mapAssetAccessory);
+    return { accessories: result.rows.map(mapAssetAccessory), changes };
   });
 }

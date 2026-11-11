@@ -4,6 +4,7 @@ import { getAssetById, changeAssetStatus } from "@/lib/db/assets";
 import { listAssetStatuses } from "@/lib/db/assetStatuses";
 import { isForeignKeyViolation } from "@/lib/db/query";
 import { requireNumber, optionalString } from "@/lib/validation/helpers";
+import { scheduleAssetEventNotifications } from "@/lib/notifications/triggers";
 
 const NOTE_REQUIRED_STATUSES = new Set(["lost", "stolen"]);
 
@@ -76,9 +77,9 @@ export async function POST(
     );
   }
 
-  let asset;
+  let change;
   try {
-    asset = await changeAssetStatus(id, statusId, session.userId, note);
+    change = await changeAssetStatus(id, statusId, session.userId, note);
   } catch (err) {
     if (isForeignKeyViolation(err)) {
       return NextResponse.json(
@@ -88,8 +89,9 @@ export async function POST(
     }
     throw err;
   }
-  if (!asset) {
+  if (!change) {
     return NextResponse.json({ error: "Asset not found" }, { status: 404 });
   }
-  return NextResponse.json({ asset });
+  scheduleAssetEventNotifications({ ...change, note }, session.userId);
+  return NextResponse.json({ asset: change.after });
 }

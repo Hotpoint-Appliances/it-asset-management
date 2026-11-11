@@ -1,19 +1,21 @@
 import { after } from "next/server";
+import type { AssetRequester } from "@/lib/db/assets";
 import {
-  getAssetById,
-  type AssetChange,
-  type AssetRequester,
-} from "@/lib/db/assets";
+  listAssetAccessories,
+  type AccessoryChange,
+} from "@/lib/db/assetAccessories";
 import { listWarrantyExpiring } from "@/lib/db/dashboard";
 import { listMaintenanceDue } from "@/lib/db/maintenance";
 import { getWarrantyWindows } from "@/lib/db/systemSettings";
-import { getUserById } from "@/lib/db/users";
 import {
   getActiveRecipient,
   insertNotifications,
   listAlertRecipients,
   listPendingEmails,
   markEmailsSent,
+  resolveLookupNames,
+  type LookupIds,
+  type LookupKind,
   type NotificationDraft,
   type PendingEmail,
   type Recipient,
@@ -26,11 +28,14 @@ import {
   type IssueFormCheckSummary,
 } from "@/lib/issueForms/notify";
 import type { NotificationType } from "@/types/notification";
+import type { Asset } from "@/types/asset";
 import { formatDate } from "@/lib/format";
+import { formatAccessory } from "@/lib/assetAccessories";
 
 // Notification triggers (phase-7). Two entry points:
-//  - scheduleAssetChangeNotifications(): asset_assigned / asset_transferred, called by the asset
-//    create / edit / transfer routes *after* their transaction commits. The work runs in
+//  - scheduleAssetEventNotifications(): every user-involved asset action (assign/unassign,
+//    edit, transfer, status/condition, accessories, maintenance, disposal, deletion), called by
+//    the asset routes *after* their transaction commits. The work runs in
 //    Next's after(), once the response is sent, so a slow or failing Graph call can never delay
 //    or roll back the asset change itself.
 //  - runScheduledChecks(): warranty_expiring / maintenance_due plus the email catch-up, called by
@@ -86,7 +91,16 @@ async function deliverPendingEmails(
     sent: 0,
     failed: 0,
   };
-  if (!summary.configured || !pending.length) return summary;
+  if (!pending.length) return summary;
+  if (!summary.configured) {
+    for (const row of pending) {
+      const { subject, html } = renderNotificationEmail(row.userName, [
+        { title: row.title, message: row.message, link: null },
+      ]);
+      await captureDevEmail(row.userEmail, subject, html);
+    }
+    return summary;
+  }
 
   const byRecipient = new Map<string, PendingEmail[]>();
   for (const row of pending) {
@@ -123,104 +137,364 @@ async function deliverPendingEmails(
   return summary;
 }
 
-/** Email for an owner with no system login (free-text owner_email): there is no user to attach
- * an in-app row to (notifications.user_id is NOT NULL), so this is a one-shot, untracked send. */
-async function sendOwnerEmail(
+/** An email with no in-app row behind it: a free-text owner (no login, and notifications.user_id
+ * is NOT NULL) or the actor's own receipt (email only, by design). One-shot and untracked, so
+ * the scheduled run doesn't retry it. */
+async function sendUntrackedEmail(
   to: string,
-  ownerName: string | null,
+  recipientName: string | null,
   title: string,
   message: string,
+  link: string | null,
 ): Promise<void> {
-  if (!isEmailConfigured()) return;
+  const { subject, html } = renderNotificationEmail(recipientName, [
+    { title, message, link },
+  ]);
+  if (!isEmailConfigured()) {
+    await captureDevEmail(to, subject, html);
+    return;
+  }
   try {
-    const { subject, html } = renderNotificationEmail(ownerName, [
-      { title, message, link: null },
-    ]);
     await sendEmail({ to, subject, html });
   } catch (err) {
-    console.error(`${LOG} email to free-text owner ${to} failed`, err);
+    console.error(`${LOG} untracked email to ${to} failed`, err);
+  }
+}
+
+/** Dev only: with email switched off (NOTIFICATION_EMAIL_ENABLED=false), write what would have
+ * been sent to .next/dev-outbox/ so notification emails can be checked without a mail server. */
+async function captureDevEmail(
+  to: string,
+  subject: string,
+  html: string,
+): Promise<void> {
+  if (process.env.NODE_ENV !== "development") return;
+  try {
+    const { mkdir, writeFile } = await import("node:fs/promises");
+    const path = await import("node:path");
+    const dir = path.join(process.cwd(), ".next", "dev-outbox");
+    await mkdir(dir, { recursive: true });
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const slug = to.replace(/[^a-z0-9]+/gi, "_");
+    const header = `To: ${to} | Subject: ${subject}`.replace(/--/g, "- -");
+    await writeFile(
+      path.join(dir, `${stamp}_${slug}.html`),
+      `<!-- ${header} -->\n${html}`,
+    );
+  } catch (err) {
+    console.error(`${LOG} dev outbox write failed`, err);
   }
 }
 
 // ---------------------------------------------------------------------------------------------
-// Event triggers: asset_assigned / asset_transferred
+// Event triggers: every user-involved asset action
 // ---------------------------------------------------------------------------------------------
 
-/** Decides and delivers the notifications for one committed asset write. `before` is null for a
- * newly created asset. Rules (confirmed with the stakeholder, see phase-7-notifications):
- *  - asset_assigned: the owner changed. A system user gets an in-app row + email; a free-text
- *    owner with an email address gets the email only.
- *  - asset_transferred: location or department changed and the owner didn't: the current owner
- *    is told where the asset now is. (When both change, the assignment message already carries
- *    the new location, so the owner gets one notification, not two.)
- *  - The person who made the change is never notified about it. */
-export async function notifyAssetChange(
-  change: { before: AssetChange["before"] | null; after: AssetChange["after"] },
+/** A lifecycle action that is more than a field edit (maintenance, disposal, deletion). The
+ * caller words it, since only it knows what happened; `lead` is passive and is followed by
+ * " by <actor>." (e.g. "Dell Latitude (HP-001) was sent for repair"). */
+export interface AssetEventAction {
+  type: NotificationType;
+  ownerTitle: string;
+  actorTitle: string;
+  lead: string;
+  /** Extra lines under the lead, e.g. the vendor or disposal method. */
+  details?: string[];
+}
+
+export interface AssetEvent {
+  /** Null for a newly created asset. */
+  before: Asset | null;
+  after: Asset;
+  accessoryChanges?: AccessoryChange[];
+  /** Free text entered with the action (status-change note, maintenance/disposal notes). */
+  note?: string | null;
+  action?: AssetEventAction;
+}
+
+/** "Dell Latitude 5440 (HP-0012)", how every asset notification names the asset. */
+export function assetLabel(asset: Pick<Asset, "name" | "assetTag">): string {
+  return `${asset.name} (${asset.assetTag})`;
+}
+
+type Owner =
+  | { kind: "user"; userId: string }
+  | { kind: "external"; name: string | null; email: string | null };
+
+function ownerOf(asset: Asset): Owner | null {
+  if (asset.assignedUserId) {
+    return { kind: "user", userId: asset.assignedUserId };
+  }
+  if (asset.ownerName || asset.ownerEmail) {
+    return { kind: "external", name: asset.ownerName, email: asset.ownerEmail };
+  }
+  return null;
+}
+
+function sameOwner(a: Owner | null, b: Owner | null): boolean {
+  if (!a || !b) return a === b;
+  if (a.kind === "user" || b.kind === "user") {
+    return a.kind === "user" && b.kind === "user" && a.userId === b.userId;
+  }
+  if (a.email || b.email) {
+    return a.email?.toLowerCase() === b.email?.toLowerCase();
+  }
+  return a.name === b.name;
+}
+
+/** The fields an owner cares about (per the change request): identity, where it is, what state
+ * it's in. Purchase/finance, vendor, warranty, depreciation and notes stay internal. */
+const OWNER_FIELDS: {
+  label: string;
+  value: (a: Asset) => string | number | null;
+  lookup?: Exclude<LookupKind, "users">;
+}[] = [
+  { label: "Asset tag", value: (a) => a.assetTag },
+  { label: "Name", value: (a) => a.name },
+  { label: "Category", value: (a) => a.categoryId, lookup: "categories" },
+  { label: "Model", value: (a) => a.modelNumber },
+  { label: "Serial number", value: (a) => a.serialNumber },
+  { label: "Location", value: (a) => a.locationId, lookup: "locations" },
+  { label: "Department", value: (a) => a.departmentId, lookup: "departments" },
+  { label: "Status", value: (a) => a.statusId, lookup: "statuses" },
+  { label: "Condition", value: (a) => a.conditionId, lookup: "conditions" },
+];
+const MOVE_LABELS = new Set(["Location", "Department"]);
+
+function accessoryLine(c: AccessoryChange): string {
+  if (c.kind === "added") return `Accessory added: ${c.after}`;
+  if (c.kind === "removed") return `Accessory removed: ${c.before}`;
+  return `Accessory changed: ${c.before} → ${c.after}`;
+}
+
+const bullets = (lines: string[]) => lines.map((l) => `• ${l}`);
+const joinLines = (lines: string[]) => lines.filter(Boolean).join("\n");
+
+interface Notice {
+  owner: Owner;
+  type: NotificationType;
+  title: string;
+  message: string;
+}
+
+/** Decides and delivers the notifications for one committed, user-involved asset action. Rules
+ * (confirmed with the stakeholder, see phase-7-notifications "Asset action emails"):
+ *  - Only actions that involve an owner notify anyone: the asset has (or just lost) an owner.
+ *  - New owner: asset_assigned (in-app + email). Previous owner: asset_unassigned.
+ *  - Unchanged owner: told about owner-relevant field changes, accessory changes and lifecycle
+ *    actions (asset_transferred when only location/department moved, else asset_updated or the
+ *    action's own type). Internal-only edits (cost, vendor, notes...) notify nobody.
+ *  - The actor gets an email-only receipt listing every change and who was told. An actor who
+ *    is also the owner gets just that receipt, never a bell entry for their own action.
+ *  - System users get an in-app row + tracked email; free-text owners the email only, if they
+ *    have an address. Inactive users get nothing. */
+export async function notifyAssetEvent(
+  event: AssetEvent,
   actorId: string,
 ): Promise<void> {
-  const { before, after: asset } = change;
+  const { before, after: asset, action } = event;
+  const prevOwner = before ? ownerOf(before) : null;
+  const owner = ownerOf(asset);
+  if (!owner && !prevOwner) return;
+  const ownerChanged = !sameOwner(prevOwner, owner);
 
-  const userAssigned =
-    !!asset.assignedUserId && asset.assignedUserId !== before?.assignedUserId;
-  const freeTextAssigned =
-    !asset.assignedUserId &&
-    !!asset.ownerEmail &&
-    (!!before?.assignedUserId ||
-      before?.ownerEmail?.toLowerCase() !== asset.ownerEmail.toLowerCase());
-  const moved =
-    !!before &&
-    (before.locationId !== asset.locationId ||
-      before.departmentId !== asset.departmentId);
-
-  const ownerNotified =
-    (asset.assignedUserId && asset.assignedUserId !== actorId) ||
-    (!asset.assignedUserId && asset.ownerEmail);
-  if (!ownerNotified || !(userAssigned || freeTextAssigned || moved)) return;
-
-  const [detail, actor] = await Promise.all([
-    getAssetById(asset.id, SYSTEM_REQUESTER),
-    getUserById(actorId),
-  ]);
-  if (!detail) return;
-
-  const label = `${detail.name} (${detail.assetTag})`;
-  const where = `Location: ${detail.locationName} · Department: ${detail.departmentName}.`;
-  const by = actor ? ` by ${actor.fullName}` : "";
-  const assigned = userAssigned || freeTextAssigned;
-  const type: NotificationType = assigned
-    ? "asset_assigned"
-    : "asset_transferred";
-  const title = assigned
-    ? `Asset assigned to you: ${detail.assetTag}`
-    : `Your asset was moved: ${detail.assetTag}`;
-  const message = assigned
-    ? `${label} was assigned to you${by}. ${where}`
-    : `${label}, assigned to you, was moved${by}. ${where}`;
-
-  if (asset.assignedUserId) {
-    const recipient = await getActiveRecipient(asset.assignedUserId);
-    if (!recipient) return;
-    const ids = await insertNotifications([
-      { userId: recipient.id, type, title, message, relatedAssetId: asset.id },
-    ]);
-    await deliverPendingEmails(await listPendingEmails({ ids }));
-  } else if (asset.ownerEmail) {
-    await sendOwnerEmail(asset.ownerEmail, asset.ownerName, title, message);
+  const changedFields = before
+    ? OWNER_FIELDS.filter(
+        (f) => String(f.value(before) ?? "") !== String(f.value(asset) ?? ""),
+      )
+    : [];
+  const accessoryChanges = event.accessoryChanges ?? [];
+  if (
+    !ownerChanged &&
+    !changedFields.length &&
+    !accessoryChanges.length &&
+    !action
+  ) {
+    return;
   }
+
+  const ids: LookupIds = {
+    categories: [],
+    locations: [asset.locationId],
+    departments: [asset.departmentId],
+    statuses: [],
+    conditions: [],
+    users: [actorId],
+  };
+  for (const f of changedFields) {
+    if (!f.lookup) continue;
+    for (const side of [before!, asset]) {
+      const v = f.value(side);
+      if (v != null) ids[f.lookup].push(Number(v));
+    }
+  }
+  for (const o of [prevOwner, owner]) {
+    if (o?.kind === "user") ids.users.push(o.userId);
+  }
+  const [names, accessories] = await Promise.all([
+    resolveLookupNames(ids),
+    ownerChanged && owner ? listAssetAccessories(asset.id) : null,
+  ]);
+  const nameOf = (kind: LookupKind, id: string | number | null) => {
+    if (id == null) return "None";
+    const name = names.get(`${kind}:${id}`) ?? String(id);
+    return kind === "statuses" || kind === "conditions"
+      ? formatLabel(name)
+      : name;
+  };
+  const display = (f: (typeof OWNER_FIELDS)[number], a: Asset) =>
+    f.lookup ? nameOf(f.lookup, f.value(a)) : String(f.value(a) ?? "None");
+  const ownerName = (o: Owner | null) =>
+    !o
+      ? "Unassigned"
+      : o.kind === "user"
+        ? nameOf("users", o.userId)
+        : (o.name ?? o.email ?? "Unnamed owner");
+
+  const actorName = nameOf("users", actorId);
+  const label = assetLabel(asset);
+  const changeLines = [
+    ...changedFields.map(
+      (f) => `${f.label}: ${display(f, before!)} → ${display(f, asset)}`,
+    ),
+    ...accessoryChanges.map(accessoryLine),
+  ];
+  const whereLine = `Location: ${nameOf("locations", asset.locationId)} · Department: ${nameOf("departments", asset.departmentId)}`;
+  const noteLine = event.note ? [`Note: ${event.note}`] : [];
+  const leadBy = (who: string) =>
+    action
+      ? `${action.lead} by ${who}.`
+      : !before
+        ? `${label} was created by ${who}.`
+        : `${label} was updated by ${who}.`;
+
+  const notices: Notice[] = [];
+  if (ownerChanged && owner) {
+    const kit = accessories?.length
+      ? [
+          `Accessories: ${accessories.map((a) => formatAccessory(a)).join(", ")}`,
+        ]
+      : [];
+    notices.push({
+      owner,
+      type: "asset_assigned",
+      title: `Asset assigned to you: ${asset.assetTag}`,
+      message: joinLines([
+        `${label} was assigned to you by ${actorName}.`,
+        ...bullets([whereLine, ...kit, ...(action?.details ?? [])]),
+        ...noteLine,
+      ]),
+    });
+  }
+  if (ownerChanged && prevOwner) {
+    notices.push({
+      owner: prevOwner,
+      type: "asset_unassigned",
+      title: `Asset no longer assigned to you: ${asset.assetTag}`,
+      message: owner
+        ? `${label} was reassigned to ${ownerName(owner)} by ${actorName}.`
+        : `${label} was unassigned from you by ${actorName}.`,
+    });
+  }
+  if (!ownerChanged && owner) {
+    const movedOnly =
+      !action &&
+      !accessoryChanges.length &&
+      changedFields.every((f) => MOVE_LABELS.has(f.label));
+    notices.push({
+      owner,
+      type: action?.type ?? (movedOnly ? "asset_transferred" : "asset_updated"),
+      title: action
+        ? `${action.ownerTitle}: ${asset.assetTag}`
+        : movedOnly
+          ? `Your asset was moved: ${asset.assetTag}`
+          : `Your asset was updated: ${asset.assetTag}`,
+      message: joinLines([
+        movedOnly
+          ? `${label}, assigned to you, was moved by ${actorName}.`
+          : leadBy(actorName),
+        ...bullets([...(action?.details ?? []), ...changeLines]),
+        ...noteLine,
+      ]),
+    });
+  }
+
+  // Resolve who each notice actually reaches; the actor's own notices fold into their receipt.
+  const told: string[] = [];
+  const untold: string[] = [];
+  const drafts: NotificationDraft[] = [];
+  const external: { notice: Notice; email: string; name: string | null }[] = [];
+  for (const notice of notices) {
+    const o = notice.owner;
+    if (o.kind === "user") {
+      if (o.userId === actorId) continue;
+      const recipient = await getActiveRecipient(o.userId);
+      if (!recipient) {
+        untold.push(`${ownerName(o)} (inactive account)`);
+        continue;
+      }
+      drafts.push({
+        userId: recipient.id,
+        type: notice.type,
+        title: notice.title,
+        message: notice.message,
+        relatedAssetId: asset.id,
+      });
+      told.push(recipient.fullName);
+    } else if (o.email) {
+      external.push({ notice, email: o.email, name: o.name });
+      told.push(ownerName(o));
+    } else {
+      untold.push(`${ownerName(o)} (no email address)`);
+    }
+  }
+
+  const created = await insertNotifications(drafts);
+  await deliverPendingEmails(await listPendingEmails({ ids: created }));
+  for (const { notice, email, name } of external) {
+    await sendUntrackedEmail(email, name, notice.title, notice.message, null);
+  }
+
+  const actor = await getActiveRecipient(actorId);
+  if (!actor) return;
+  const ownerLine = ownerChanged
+    ? [`Owner: ${ownerName(prevOwner)} → ${ownerName(owner)}`]
+    : [];
+  await sendUntrackedEmail(
+    actor.email,
+    actor.fullName,
+    action
+      ? `${action.actorTitle}: ${asset.assetTag}`
+      : !before
+        ? `You created ${asset.assetTag}`
+        : `You updated ${asset.assetTag}`,
+    joinLines([
+      leadBy("you"),
+      ...bullets([
+        ...(action?.details ?? []),
+        ...ownerLine,
+        ...(before ? changeLines : [whereLine]),
+      ]),
+      ...noteLine,
+      told.length ? `Notified: ${told.join(", ")}.` : "",
+      untold.length ? `Not notified: ${untold.join(", ")}.` : "",
+    ]),
+    action?.type === "asset_deleted" ? null : appUrl(`/assets/${asset.id}`),
+  );
 }
 
-/** Route-handler entry point: queue notifyAssetChange() to run after the response is sent. Call
+/** Route-handler entry point: queue notifyAssetEvent() to run after the response is sent. Call
  * it only once the asset write has committed. Errors are logged, never surfaced to the user. */
-export function scheduleAssetChangeNotifications(
-  change: { before: AssetChange["before"] | null; after: AssetChange["after"] },
+export function scheduleAssetEventNotifications(
+  event: AssetEvent,
   actorId: string,
 ): void {
   after(async () => {
     try {
-      await notifyAssetChange(change, actorId);
+      await notifyAssetEvent(event, actorId);
     } catch (err) {
       console.error(
-        `${LOG} asset change notification failed for ${change.after.id}`,
+        `${LOG} asset event notification failed for ${event.after.id}`,
         err,
       );
     }
