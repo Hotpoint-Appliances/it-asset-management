@@ -40,7 +40,7 @@ export function renderNotificationEmail(
         ? `<a href="${escapeHtml(item.link)}" style="color:#4f46e5;text-decoration:none">${title}</a>`
         : title;
       const message = item.message
-        ? `<div style="color:#52525b;margin-top:4px">${escapeHtml(item.message)}</div>`
+        ? `<div style="color:#52525b;margin-top:4px;white-space:pre-line">${escapeHtml(item.message)}</div>`
         : "";
       return `<tr><td style="padding:12px 0;border-top:1px solid #e4e4e7">
         <div style="font-weight:600">${heading}</div>${message}</td></tr>`;

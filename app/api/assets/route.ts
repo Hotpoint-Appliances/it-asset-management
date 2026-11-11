@@ -19,7 +19,7 @@ import {
   saveAssetImage,
   UploadValidationError,
 } from "@/lib/files/upload";
-import { scheduleAssetChangeNotifications } from "@/lib/notifications/triggers";
+import { scheduleAssetEventNotifications } from "@/lib/notifications/triggers";
 import type { AssetFilters } from "@/types/asset";
 import { parseAssetSort } from "@/lib/assetSort";
 
@@ -92,13 +92,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: accessories.error }, { status: 400 });
   }
 
-  let asset;
+  let asset, accessoryChanges;
   try {
-    asset = await createAsset(
+    ({ asset, accessoryChanges } = await createAsset(
       validated.data,
       session.userId,
       accessories?.data,
-    );
+    ));
   } catch (err) {
     if (err instanceof AssetAccessoryError) {
       return NextResponse.json({ error: err.message }, { status: 400 });
@@ -120,8 +120,8 @@ export async function POST(request: NextRequest) {
     }
     throw err;
   }
-  scheduleAssetChangeNotifications(
-    { before: null, after: asset },
+  scheduleAssetEventNotifications(
+    { before: null, after: asset, accessoryChanges },
     session.userId,
   );
 

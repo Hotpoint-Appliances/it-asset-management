@@ -21,7 +21,7 @@ import {
   deleteUploadedFile,
   UploadValidationError,
 } from "@/lib/files/upload";
-import { scheduleAssetChangeNotifications } from "@/lib/notifications/triggers";
+import { scheduleAssetEventNotifications } from "@/lib/notifications/triggers";
 
 export async function GET(
   _request: NextRequest,
@@ -125,7 +125,7 @@ export async function PATCH(
   if (!change) {
     return NextResponse.json({ error: "Asset not found" }, { status: 404 });
   }
-  scheduleAssetChangeNotifications(change, session.userId);
+  scheduleAssetEventNotifications(change, session.userId);
   let asset = change.after;
 
   if (imageFile) {

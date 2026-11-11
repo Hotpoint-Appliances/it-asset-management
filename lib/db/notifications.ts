@@ -227,3 +227,39 @@ export async function getActiveRecipient(
   const row = result.rows[0];
   return row ? { id: row.id, email: row.email, fullName: row.full_name } : null;
 }
+
+export interface LookupIds {
+  categories: number[];
+  locations: number[];
+  departments: number[];
+  statuses: number[];
+  conditions: number[];
+  users: string[];
+}
+
+export type LookupKind = keyof LookupIds;
+
+/** Display names for the lookup ids an asset change touched (both sides of the diff), in one
+ * round trip, keyed `${kind}:${id}`. Statuses/conditions come back raw ("in_repair"); callers
+ * format them for display. */
+export async function resolveLookupNames(
+  ids: LookupIds,
+): Promise<Map<string, string>> {
+  const result = await query<{ kind: LookupKind; id: string; name: string }>(
+    `SELECT 'categories' AS kind, id::text AS id, name FROM categories WHERE id = ANY($1::int[])
+     UNION ALL SELECT 'locations', id::text, name FROM locations WHERE id = ANY($2::int[])
+     UNION ALL SELECT 'departments', id::text, name FROM departments WHERE id = ANY($3::int[])
+     UNION ALL SELECT 'statuses', id::text, name FROM asset_statuses WHERE id = ANY($4::int[])
+     UNION ALL SELECT 'conditions', id::text, name FROM asset_conditions WHERE id = ANY($5::int[])
+     UNION ALL SELECT 'users', id::text, full_name FROM users WHERE id = ANY($6::uuid[])`,
+    [
+      ids.categories,
+      ids.locations,
+      ids.departments,
+      ids.statuses,
+      ids.conditions,
+      ids.users,
+    ],
+  );
+  return new Map(result.rows.map((r) => [`${r.kind}:${r.id}`, r.name]));
+}

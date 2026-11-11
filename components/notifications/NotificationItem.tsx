@@ -1,11 +1,16 @@
 import {
+  Archive,
   ArrowRightLeft,
   Bell,
   FileCheck,
   FileClock,
   FileWarning,
+  Hammer,
+  PencilLine,
   ShieldAlert,
+  Trash2,
   UserCheck,
+  UserMinus,
   Wrench,
   type LucideIcon,
 } from "lucide-react";
@@ -16,6 +21,11 @@ import type { Notification, NotificationType } from "@/types/notification";
 const TYPE_ICONS: Record<NotificationType, LucideIcon> = {
   asset_assigned: UserCheck,
   asset_transferred: ArrowRightLeft,
+  asset_unassigned: UserMinus,
+  asset_updated: PencilLine,
+  asset_maintenance: Hammer,
+  asset_disposed: Archive,
+  asset_deleted: Trash2,
   maintenance_due: Wrench,
   warranty_expiring: ShieldAlert,
   issue_form_acknowledged: FileCheck,
@@ -63,7 +73,7 @@ export function NotificationItem({
         {notification.message && (
           <span
             className={cn(
-              "text-muted-foreground text-xs",
+              "text-muted-foreground text-xs whitespace-pre-line",
               compact && "line-clamp-2",
             )}
           >
