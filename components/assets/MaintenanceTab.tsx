@@ -55,11 +55,12 @@ const STATUS_VARIANT: Record<
 };
 
 /** Maintenance module (phase-5-asset-lifecycle Step 4): create/list `asset_maintenance` records
- * and drive the two non-forced prompts docs/asset-lifecycle-flow.md rule 5 calls for, marking
- * `in_progress` offers to also set the asset's status to `in_repair` (reusing Step 3's action),
- * marking `completed` offers to restore whatever status preceded that in_repair transition
- * (resolved server-side via the unified audit log; see the PATCH route's
- * `suggestedRestoreStatusId`). Both are confirm dialogs, not automatic, per the lifecycle doc. */
+ * and the asset-status side of docs/asset-lifecycle-flow.md rule 5. A `repair` record drives the
+ * status on the server (in_repair when started, prior status restored when the last open repair
+ * finishes; lib/maintenance/repairStatus.ts). For service/inspection, and for a repair the server
+ * couldn't restore (e.g. prior status lost/stolen needs a note), the confirm prompts remain:
+ * marking `in_progress` offers in_repair, marking `completed` offers the PATCH route's
+ * `suggestedRestoreStatusId`. */
 export function MaintenanceTab({
   assetId,
   initialMaintenance,
@@ -181,18 +182,30 @@ export function MaintenanceTab({
       const res = await axios.patch<{
         maintenance: AssetMaintenance;
         suggestedRestoreStatusId: number | null;
+        assetStatusChanged: boolean;
       }>(`/api/assets/${assetId}/maintenance/${record.id}`, {
         status,
         completedDate: null,
         cost: record.cost,
         notes: record.notes,
       });
+      const statusNote = res.data.assetStatusChanged
+        ? status === "in_progress"
+          ? "Asset status set to in repair."
+          : "Asset status restored to what it was before the repair."
+        : undefined;
       router.refresh(() =>
-        addToast({ title: "Maintenance record updated", variant: "success" }),
+        addToast({
+          title: "Maintenance record updated",
+          description: statusNote,
+          variant: "success",
+        }),
       );
 
+      if (res.data.assetStatusChanged) return;
       if (
         status === "in_progress" &&
+        record.maintenanceType !== "repair" &&
         inRepairStatus &&
         inRepairStatus.id !== currentStatusId
       ) {
