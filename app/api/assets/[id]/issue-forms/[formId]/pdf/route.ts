@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiSession, requireApiRole } from "@/lib/auth/api";
-import { getAssetById } from "@/lib/db/assets";
 import { getIssueForm } from "@/lib/db/issueForms";
 import {
   issueFormPdfResponseHeaders,
@@ -17,8 +16,9 @@ export async function GET(
   if (forbidden) return forbidden;
 
   const { id, formId } = await params;
-  const asset = await getAssetById(id, session);
-  const form = asset ? await getIssueForm(id, formId) : null;
+  // Read without the asset lookup, which hides deleted assets: a signed form stays evidence after
+  // its asset is deleted. Only admins and asset managers get here, so no department scoping.
+  const form = await getIssueForm(id, formId);
   if (!form) {
     return NextResponse.json({ error: "Form not found" }, { status: 404 });
   }

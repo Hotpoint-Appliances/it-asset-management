@@ -21,18 +21,22 @@ export default async function IssueFormPage({
 }) {
   const session = await requireRole(["admin", "asset_manager"]);
   const { id, formId } = await params;
-  const asset = await getAssetForPage(id, session);
-  const form = asset ? await getIssueForm(id, formId) : null;
-  if (!asset || !form) notFound();
+  // The form is read on its own, so one whose asset was deleted stays reachable as evidence. The
+  // asset lookup hides deleted assets, so null here means the asset is gone.
+  const [asset, form] = await Promise.all([
+    getAssetForPage(id, session),
+    getIssueForm(id, formId),
+  ]);
+  if (!form) notFound();
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
       <Link
-        href={`/assets/${id}?tab=issue-forms`}
+        href={asset ? `/assets/${id}?tab=issue-forms` : "/assets"}
         className="text-muted-foreground hover:text-foreground inline-flex min-h-11 w-fit items-center gap-1.5 text-sm sm:min-h-0"
       >
         <ArrowLeft aria-hidden="true" className="h-4 w-4" />
-        Back to issue forms
+        {asset ? "Back to issue forms" : "Back to assets"}
       </Link>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
@@ -40,7 +44,9 @@ export default async function IssueFormPage({
             Equipment issue form
           </h1>
           <p className="text-muted-foreground text-sm break-words">
-            {asset.assetTag} - {asset.name}
+            {asset
+              ? `${asset.assetTag} - ${asset.name}`
+              : `${form.financeAssetNo} - ${form.equipmentType} (asset deleted)`}
           </p>
         </div>
         <DownloadButton
