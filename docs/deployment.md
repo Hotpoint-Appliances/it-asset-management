@@ -45,14 +45,16 @@ Every variable is listed in `.env.example`:
 | `NOTIFICATION_EMAIL_ENABLED` | Unset or `true` in production. `false` only on dev/staging copies whose users are real people. |
 | `CRON_SECRET` | Long random value; must equal the content of `C:\ProgramData\ITAM\cron-secret.txt` (see the script's help). |
 | `SESSION_COOKIE_SECURE` | **Leave unset** (the cookie is then `Secure` because `NODE_ENV=production`). `false` only to test a production build over plain HTTP, never on a real deployment; see section 3. |
-| `ITAM_APP_URL` | The **public HTTPS URL**, e.g. `https://itam.hotpoint.example`. QR labels and email links are built from it. Equipment issue form links only work for people who can reach this address. |
+| `NEXT_PUBLIC_BASE_PATH` | Optional. The sub-path the app is served under, e.g. `/itam`: a leading slash and no trailing one (the build fails otherwise). Empty = the root. It's **inlined at build time**, so set it before `npm run build`, and rebuild after changing it (`pm2 reload` alone isn't enough). Match it in `deploy/nginx-itam.conf`. The session cookie is scoped to this path, so changing it signs everyone out once. |
+| `ITAM_APP_URL` | The **public HTTPS URL, including the base path** if one is set, e.g. `https://itam.hotpoint.example/itam`. QR labels and email links are built from it. Equipment issue form links only work for people who can reach this address. |
 | `REQUISITIONS_API_URL` | Base URL of the requisitions app as this server reaches it. Supplies the HOD list for issue forms' "Approved By"; the last list is kept if it can't be reached. |
 | `REQUISITIONS_API_KEY` | Must equal `STAFF_LOOKUP_API_KEY` in the requisitions app. |
 
 Generate secrets with a CSPRNG, e.g.
 `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
 
-Env changes take effect on the next `pm2 reload itam`.
+Env changes take effect on the next `pm2 reload itam`, except `NEXT_PUBLIC_BASE_PATH`, which
+needs `npm run build` first.
 
 ### Restrict the Graph permission
 
@@ -104,9 +106,10 @@ certificate paths, `include` it from `nginx.conf`'s `http { }` block, then `ngin
 or reload nginx.
 
 Scheduled notifications: follow `Get-Help .\scripts\run-notifications-check.ps1 -Full` (secret
-file + ACL, a manual test, `Register-ScheduledTask`). Use `-AppUrl http://127.0.0.1:3000`: it
-skips nginx, DNS and certificate trust, and the secret never leaves the host. nginx also returns
-404 for `/api/cron/*` from outside.
+file + ACL, a manual test, `Register-ScheduledTask`). Use `-AppUrl http://127.0.0.1:3000` (plus
+the base path if one is set, e.g. `http://127.0.0.1:3000/itam`): it skips nginx, DNS and
+certificate trust, and the secret never leaves the host. nginx also returns 404 for
+`/api/cron/*` from outside.
 
 ## 6. Running nginx and PM2 as services (recommended: NSSM)
 
@@ -151,7 +154,7 @@ nssm set ITAM-pm2 Start SERVICE_AUTO_START
 
 Run after the first deployment and after each upgrade. Record the result in the ops notes.
 
-- [ ] `curl http://127.0.0.1:3000/api/health` on the server → `{"status":"ok","db":"connected"}`.
+- [ ] `curl http://127.0.0.1:3000/api/health` on the server (with the base path if set: `http://127.0.0.1:3000/itam/api/health`) → `{"status":"ok","db":"connected"}`.
 - [ ] `https://<host>/` loads with the company certificate (no browser warning); `http://` redirects to `https://`.
 - [ ] Log in over HTTPS; the dashboard loads. A redirect's `Location` uses `https://`.
 - [ ] Upload an asset image of ~4 MB (proves `client_max_body_size`); an attachment of ~9 MB.
