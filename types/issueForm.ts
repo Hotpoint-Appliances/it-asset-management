@@ -50,6 +50,26 @@ export interface IssueForm {
   createdAt: string;
 }
 
+/** A row of the register (/issue-forms). `status` there is the effective one: a pending form past
+ * its expiry reads as expired. */
+export interface IssueFormListItem extends IssueForm {
+  assetName: string;
+  /** The asset was deleted; the form is kept as evidence. */
+  assetDeleted: boolean;
+}
+
+export type IssueFormStatusCounts = Record<IssueFormStatus, number> & {
+  /** Pending forms whose email didn't send. */
+  emailFailed: number;
+};
+
+export interface IssueFormFilterOptions {
+  departments: string[];
+  locations: string[];
+  approvers: { email: string; name: string }[];
+  issuers: { id: string; name: string }[];
+}
+
 export interface Hod {
   name: string;
   email: string;

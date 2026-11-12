@@ -16,8 +16,10 @@ export const metadata: Metadata = {
 
 export default async function IssueFormPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string; formId: string }>;
+  searchParams: Promise<{ from?: string | string[] }>;
 }) {
   const session = await requireRole(["admin", "asset_manager"]);
   const { id, formId } = await params;
@@ -28,15 +30,17 @@ export default async function IssueFormPage({
     getIssueForm(id, formId),
   ]);
   if (!form) notFound();
+  // Opened from the register (or the asset is gone): back goes to the register, not the asset.
+  const toRegister = !asset || (await searchParams).from === "register";
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
       <Link
-        href={asset ? `/assets/${id}?tab=issue-forms` : "/assets"}
+        href={toRegister ? "/issue-forms" : `/assets/${id}?tab=issue-forms`}
         className="text-muted-foreground hover:text-foreground inline-flex min-h-11 w-fit items-center gap-1.5 text-sm sm:min-h-0"
       >
         <ArrowLeft aria-hidden="true" className="h-4 w-4" />
-        {asset ? "Back to issue forms" : "Back to assets"}
+        Back to issue forms
       </Link>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">

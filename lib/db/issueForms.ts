@@ -22,9 +22,16 @@ import type {
   Hod,
   IssueForm,
   IssueFormAccessory,
+  IssueFormFilterOptions,
   IssueFormInput,
+  IssueFormListItem,
   IssueFormPrefill,
+  IssueFormStatusCounts,
 } from "@/types/issueForm";
+import type {
+  IssueFormFilters,
+  IssueFormSortKey,
+} from "@/lib/issueForms/register";
 
 // Equipment issue forms. The rules agreed for them:
 //  - Admins and asset managers trigger them, for active or reserved assets only.
@@ -214,6 +221,166 @@ export async function getIssueForm(
     [assetId, formId],
   );
   return result.rows[0] ? mapForm(result.rows[0]) : null;
+}
+
+// ---------------------------------------------------------------------------------------------
+// The register (/issue-forms): every form, across assets
+// ---------------------------------------------------------------------------------------------
+
+/** A pending form past its link expiry reads as expired here, before the nightly check writes it,
+ * so the register's status filter and counts never show a dead link as pending. */
+const EFFECTIVE_STATUS = `(CASE WHEN f.status = 'pending' AND f.expires_at <= now() THEN 'expired' ELSE f.status END)`;
+
+const REGISTER_FROM = `${FORM_FROM} JOIN assets a ON a.id = f.asset_id`;
+
+const REGISTER_SORT_SQL: Record<IssueFormSortKey, string> = {
+  number: "f.form_number",
+  asset: "f.finance_asset_no",
+  issuedTo: "lower(f.issued_to_name)",
+  department: "lower(f.department)",
+  issueDate: "f.issue_date",
+  status: EFFECTIVE_STATUS,
+};
+
+/** `ignore` leaves filters out, for the status counts, which describe the other filters' results. */
+function registerWhere(
+  filters: IssueFormFilters,
+  ignore: { status?: boolean } = {},
+): { where: string; params: unknown[] } {
+  const term = filters.search?.replace(/[\\%_]/g, "\\$&") ?? null;
+  const params: unknown[] = [
+    !ignore.status && filters.statuses.length ? filters.statuses : null,
+    filters.departments.length ? filters.departments : null,
+    filters.locations.length ? filters.locations : null,
+    filters.approvers.length ? filters.approvers : null,
+    filters.issuedBy.length ? filters.issuedBy : null,
+    !ignore.status && filters.emailFailed,
+    filters.from,
+    filters.to,
+    term,
+  ];
+  const where = `
+    ($1::text[] IS NULL OR ${EFFECTIVE_STATUS} = ANY($1))
+    AND ($2::text[] IS NULL OR f.department = ANY($2))
+    AND ($3::text[] IS NULL OR f.location = ANY($3))
+    AND ($4::text[] IS NULL OR lower(f.approved_by_email) = ANY($4))
+    AND ($5::uuid[] IS NULL OR f.created_by = ANY($5))
+    AND (NOT $6::boolean OR (f.email_status = 'failed' AND ${EFFECTIVE_STATUS} = 'pending'))
+    AND ($7::date IS NULL OR f.issue_date >= $7::date)
+    AND ($8::date IS NULL OR f.issue_date <= $8::date)
+    AND ($9::text IS NULL
+      OR ('EIF-' || lpad(f.form_number::text, 6, '0')) ILIKE '%' || $9 || '%'
+      OR f.finance_asset_no ILIKE '%' || $9 || '%'
+      OR f.serial_number ILIKE '%' || $9 || '%'
+      OR f.issued_to_name ILIKE '%' || $9 || '%'
+      OR f.recipient_email ILIKE '%' || $9 || '%'
+      OR a.name ILIKE '%' || $9 || '%')`;
+  return { where, params };
+}
+
+type RegisterRow = IssueFormRow & {
+  effective_status: IssueForm["status"];
+  asset_name: string;
+  asset_deleted: boolean;
+};
+
+function mapRegisterRow(row: RegisterRow): IssueFormListItem {
+  return {
+    ...mapForm(row),
+    status: row.effective_status,
+    assetName: row.asset_name,
+    assetDeleted: row.asset_deleted,
+  };
+}
+
+/** One page of the register, or every match when `limit` is null (the export). Reads forms on
+ * deleted assets too: they're kept as evidence. */
+export async function listIssueForms(
+  filters: IssueFormFilters,
+  limit: number | null,
+  offset = 0,
+): Promise<{ items: IssueFormListItem[]; total: number }> {
+  const { where, params } = registerWhere(filters);
+  const order = filters.sort
+    ? `${REGISTER_SORT_SQL[filters.sort.key]} ${filters.sort.dir === "desc" ? "DESC" : "ASC"}, f.form_number DESC`
+    : "f.created_at DESC, f.form_number DESC";
+  const [rows, count] = await Promise.all([
+    query<RegisterRow>(
+      `SELECT ${FORM_COLUMNS}, ${EFFECTIVE_STATUS} AS effective_status, a.name AS asset_name,
+         a.deleted_at IS NOT NULL AS asset_deleted
+       FROM ${REGISTER_FROM} WHERE ${where}
+       ORDER BY ${order}
+       LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+      [...params, limit, offset],
+    ),
+    query<{ total: number }>(
+      `SELECT count(*)::int AS total FROM ${REGISTER_FROM} WHERE ${where}`,
+      params,
+    ),
+  ]);
+  return {
+    items: rows.rows.map(mapRegisterRow),
+    total: count.rows[0]?.total ?? 0,
+  };
+}
+
+/** Per-status counts under every filter except status, plus pending forms whose email failed. */
+export async function countIssueFormsByStatus(
+  filters: IssueFormFilters,
+): Promise<IssueFormStatusCounts> {
+  const { where, params } = registerWhere(filters, { status: true });
+  const result = await query<{
+    status: IssueForm["status"];
+    total: number;
+    failed: number;
+  }>(
+    `SELECT ${EFFECTIVE_STATUS} AS status, count(*)::int AS total,
+       count(*) FILTER (WHERE f.email_status = 'failed')::int AS failed
+     FROM ${REGISTER_FROM} WHERE ${where} GROUP BY 1`,
+    params,
+  );
+  const counts: IssueFormStatusCounts = {
+    pending: 0,
+    acknowledged: 0,
+    disputed: 0,
+    voided: 0,
+    superseded: 0,
+    expired: 0,
+    emailFailed: 0,
+  };
+  for (const row of result.rows) {
+    counts[row.status] = row.total;
+    if (row.status === "pending") counts.emailFailed = row.failed;
+  }
+  return counts;
+}
+
+/** The filter choices, taken from the forms themselves: departments and locations are frozen on
+ * each form, so a renamed department still filters its old forms. */
+export async function listIssueFormFilterOptions(): Promise<IssueFormFilterOptions> {
+  const [departments, locations, approvers, issuers] = await Promise.all([
+    query<{ value: string }>(
+      `SELECT DISTINCT department AS value FROM equipment_issue_forms ORDER BY 1`,
+    ),
+    query<{ value: string }>(
+      `SELECT DISTINCT location AS value FROM equipment_issue_forms ORDER BY 1`,
+    ),
+    query<{ email: string; name: string }>(
+      `SELECT DISTINCT ON (lower(approved_by_email)) lower(approved_by_email) AS email,
+         approved_by_name AS name
+       FROM equipment_issue_forms ORDER BY lower(approved_by_email), created_at DESC`,
+    ),
+    query<{ id: string; name: string }>(
+      `SELECT DISTINCT u.id, u.full_name AS name
+       FROM equipment_issue_forms f JOIN users u ON u.id = f.created_by ORDER BY 2`,
+    ),
+  ]);
+  return {
+    departments: departments.rows.map((r) => r.value),
+    locations: locations.rows.map((r) => r.value),
+    approvers: approvers.rows.sort((x, y) => x.name.localeCompare(y.name)),
+    issuers: issuers.rows,
+  };
 }
 
 /** What the emailed link may show. Voided, superseded and expired forms show nothing. */

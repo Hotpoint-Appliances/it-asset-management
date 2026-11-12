@@ -1,5 +1,11 @@
 import type { LucideIcon } from "lucide-react";
-import { LayoutDashboard, Boxes, FileBarChart, Settings } from "lucide-react";
+import {
+  LayoutDashboard,
+  Boxes,
+  FileSignature,
+  FileBarChart,
+  Settings,
+} from "lucide-react";
 import type { RoleName } from "@/lib/auth/session";
 
 export interface NavItem {
@@ -15,6 +21,12 @@ export interface NavItem {
 export const navItems: NavItem[] = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
   { label: "Assets", href: "/assets", icon: Boxes },
+  {
+    label: "Issue forms",
+    href: "/issue-forms",
+    icon: FileSignature,
+    roles: ["admin", "asset_manager"],
+  },
   { label: "Reports", href: "/reports", icon: FileBarChart },
   { label: "Settings", href: "/settings", icon: Settings, roles: ["admin"] },
 ];
