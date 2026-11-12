@@ -7,6 +7,9 @@ import {
   type ExportFilters,
   type AuditExportFilters,
 } from "@/lib/db/reports";
+import { listIssueForms } from "@/lib/db/issueForms";
+import { ISSUE_FORM_STATUS_LABELS } from "@/lib/issueForms/rules";
+import type { IssueFormFilters } from "@/lib/issueForms/register";
 import { computeStraightLine } from "./depreciation";
 import {
   addSheet,
@@ -271,6 +274,84 @@ export async function buildDepreciationWorkbook(requester: AssetRequester) {
     [
       "Depreciation summary",
       `As of ${asOf} · straight-line method · book value floored at salvage value · disposed assets excluded · ${scopeLine(requester)}`,
+    ],
+  );
+  return workbook;
+}
+
+/** The issue-form register (/issue-forms) as on screen: same filters and sort, every page. */
+export async function buildIssueFormRegisterWorkbook(
+  filters: IssueFormFilters,
+) {
+  const { items } = await listIssueForms(filters, null);
+  const active = [
+    filters.statuses.length &&
+      `Status: ${filters.statuses.map((s) => ISSUE_FORM_STATUS_LABELS[s]).join(", ")}`,
+    filters.emailFailed && "Email failed",
+    filters.departments.length &&
+      `Department: ${filters.departments.join(", ")}`,
+    filters.locations.length && `Location: ${filters.locations.join(", ")}`,
+    filters.approvers.length && `Approver: ${filters.approvers.join(", ")}`,
+    filters.issuedBy.length && `Issued by: ${filters.issuedBy.length} selected`,
+    (filters.from || filters.to) &&
+      `Issued ${filters.from ?? "…"} to ${filters.to ?? "…"}`,
+    filters.search && `Search: "${filters.search}"`,
+  ].filter(Boolean);
+  const workbook = createWorkbook();
+  addSheet(
+    workbook,
+    "Issue forms",
+    [
+      { header: "Form no.", key: "formNumber", width: 13 },
+      { header: "Status", key: "status", width: 14 },
+      {
+        header: "Issue date",
+        key: "issueDate",
+        width: 13,
+        numFmt: DATE_FORMAT,
+      },
+      { header: "Asset tag", key: "financeAssetNo", width: 18 },
+      { header: "Asset name", key: "assetName", width: 28 },
+      { header: "Asset deleted", key: "assetDeleted", width: 13 },
+      { header: "Equipment type", key: "equipmentType", width: 18 },
+      { header: "Make", key: "make", width: 14 },
+      { header: "Model", key: "model", width: 22 },
+      { header: "Serial number", key: "serialNumber", width: 20 },
+      { header: "Issued to", key: "issuedToName", width: 22 },
+      { header: "Recipient email", key: "recipientEmail", width: 28 },
+      { header: "Payroll no.", key: "payrollNumber", width: 13 },
+      { header: "Department", key: "department", width: 20 },
+      { header: "Location", key: "location", width: 18 },
+      { header: "Condition", key: "physicalCondition", width: 14 },
+      { header: "Approved by", key: "approvedByName", width: 22 },
+      { header: "Issued by", key: "createdByName", width: 22 },
+      { header: "Email", key: "emailStatus", width: 10 },
+      {
+        header: "Acknowledged",
+        key: "acknowledgedAt",
+        width: 18,
+        numFmt: DATETIME_FORMAT,
+      },
+      { header: "Signed as", key: "acknowledgedName", width: 22 },
+      { header: "User comments", key: "userComments", width: 30 },
+      { header: "Dispute reason", key: "disputeReason", width: 30 },
+      { header: "Voided", key: "voidedAt", width: 18, numFmt: DATETIME_FORMAT },
+      { header: "Void reason", key: "voidReason", width: 30 },
+      { header: "Re-issue reason", key: "reissueReason", width: 24 },
+      { header: "Remarks", key: "remarks", width: 30 },
+    ],
+    items.map((f) => ({
+      ...f,
+      status: ISSUE_FORM_STATUS_LABELS[f.status],
+      issueDate: dateCell(f.issueDate),
+      assetDeleted: f.assetDeleted ? "Yes" : "No",
+      emailStatus: lookupCell(f.emailStatus),
+      acknowledgedAt: dateTimeCell(f.acknowledgedAt),
+      voidedAt: dateTimeCell(f.voidedAt),
+    })),
+    [
+      "Equipment issue forms",
+      `Generated ${todayIso()} · ${items.length} form${items.length === 1 ? "" : "s"}${active.length ? ` · ${active.join(" · ")}` : ""}`,
     ],
   );
   return workbook;

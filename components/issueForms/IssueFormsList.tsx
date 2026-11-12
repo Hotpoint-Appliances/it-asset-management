@@ -206,6 +206,12 @@ export function IssueFormsList({
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const allCount = ISSUE_FORM_STATUSES.reduce((n, s) => n + counts[s], 0);
 
+  // The export reads the same params minus paging, so it downloads exactly what's filtered.
+  const exportParams = new URLSearchParams(searchParams.toString());
+  exportParams.delete("page");
+  exportParams.delete("pageSize");
+  const exportHref = `/api/reports/issue-forms${exportParams.size ? `?${exportParams.toString()}` : ""}`;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -216,6 +222,13 @@ export function IssueFormsList({
             {hasFilters ? " match" : ""}
           </p>
         </div>
+        <DownloadButton
+          href={exportHref}
+          variant="outline"
+          disabled={total === 0}
+        >
+          Export
+        </DownloadButton>
       </div>
 
       {/* Status counts double as the status filter: each toggles in or out. They count under
