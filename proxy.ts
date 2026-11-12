@@ -8,6 +8,20 @@ const GUEST_PATHS = ["/login", "/forgot-password"];
 // (the reset signs that session out too).
 const OPEN_PATHS = ["/reset-password", "/acknowledge"];
 
+/** An app-relative URL on this request's origin. Built from `nextUrl`, not
+ * `new URL(path, request.url)`: nextUrl keeps the base path, a plain URL would drop it.
+ * `pathname` (and so `from`) is app-relative too. */
+function appUrl(
+  request: NextRequest,
+  path: string,
+  params: Record<string, string> = {},
+): URL {
+  const url = request.nextUrl.clone();
+  url.pathname = path;
+  url.search = new URLSearchParams(params).toString();
+  return url;
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isGuestPath = GUEST_PATHS.includes(pathname);
@@ -23,11 +37,11 @@ export async function proxy(request: NextRequest) {
 
   let response: NextResponse;
   if (!isPublicPath && !session) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("from", pathname);
-    response = NextResponse.redirect(loginUrl);
+    response = NextResponse.redirect(
+      appUrl(request, "/login", { from: pathname }),
+    );
   } else if (isGuestPath && session) {
-    response = NextResponse.redirect(new URL("/", request.url));
+    response = NextResponse.redirect(appUrl(request, "/"));
   } else {
     response = NextResponse.next();
   }

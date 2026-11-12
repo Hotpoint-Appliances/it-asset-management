@@ -8,6 +8,7 @@ import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { withBasePath } from "@/lib/basePath";
 import { AppLogo } from "@/components/shared/AppLogo";
 import { RequiredMark } from "@/components/shared/RequiredMark";
 import { FieldError } from "@/components/shared/FieldError";
@@ -57,7 +58,10 @@ export function LoginForm() {
       await axios.post("/api/auth/login", { email, password });
       // Full reload (not next/navigation) so the whole app, client state, the session context,
       // every store, starts fresh under the new session, matching the logout flow.
-      window.location.assign(safeRedirectTarget(searchParams.get("from")));
+      // `from` is app-relative (the proxy sets it without the base path).
+      window.location.assign(
+        withBasePath(safeRedirectTarget(searchParams.get("from"))),
+      );
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
         // nginx's limit_req on /api/auth/login (docs/deployment.md) answers with an HTML page,
