@@ -34,6 +34,7 @@ import { PresetInput, type Preset } from "@/components/shared/PresetInput";
 import { ConfirmSummary, useConfirm } from "@/components/shared/ConfirmDialog";
 import { FieldError } from "@/components/shared/FieldError";
 import { useFieldErrors, looksLikeEmail } from "@/lib/hooks/useFieldErrors";
+import { withBasePath } from "@/lib/basePath";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -263,7 +264,9 @@ export function AssetForm({
   const [imageFile, setImageFile] = React.useState<File | null>(null);
   const [imagePreview, setImagePreview] = React.useState<string | null>(
     asset?.imagePath
-      ? `/api/assets/${asset.id}/image?v=${encodeURIComponent(asset.imagePath)}`
+      ? withBasePath(
+          `/api/assets/${asset.id}/image?v=${encodeURIComponent(asset.imagePath)}`,
+        )
       : null,
   );
   const [submitting, setSubmitting] = React.useState(false);

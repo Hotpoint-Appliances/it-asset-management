@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { useSession } from "@/lib/auth/session-context";
 import { useUIStore } from "@/store";
+import { withBasePath } from "@/lib/basePath";
 import { ChangePasswordDialog } from "./ChangePasswordDialog";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -40,7 +41,7 @@ export function UserMenu() {
       // Full reload (not next/navigation) so every client-only React and store state resets,
       // matches the login flow's own full reload. `replace`, not `assign`, so Back can't land on
       // a stale authenticated page.
-      window.location.replace("/login");
+      window.location.replace(withBasePath("/login"));
     } catch {
       setLoggingOut(false);
       addToast({

@@ -63,6 +63,7 @@ import type { AssetCondition } from "@/types/assetCondition";
 import type { AssetStatus } from "@/types/assetStatus";
 import type { Accessory, AssetAccessory } from "@/types/accessory";
 import type { IssueForm } from "@/types/issueForm";
+import { withBasePath } from "@/lib/basePath";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -146,7 +147,9 @@ export function AssetDetail({
           {asset.imagePath ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={`/api/assets/${asset.id}/image?v=${encodeURIComponent(asset.imagePath)}`}
+              src={withBasePath(
+                `/api/assets/${asset.id}/image?v=${encodeURIComponent(asset.imagePath)}`,
+              )}
               alt=""
               className="border-border h-32 w-32 shrink-0 rounded-lg border object-cover"
             />
@@ -428,7 +431,7 @@ function DisposalSummary({
       "Attachment",
       <a
         key="attachment"
-        href={`/api/assets/${assetId}/dispose/attachment`}
+        href={withBasePath(`/api/assets/${assetId}/dispose/attachment`)}
         target="_blank"
         rel="noopener noreferrer"
         className="text-primary underline-offset-4 hover:underline"
