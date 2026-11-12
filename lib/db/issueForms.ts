@@ -791,9 +791,10 @@ export async function prepareIssueFormResend(
     const found = await client.query<{
       status: string;
       recent: boolean;
+      expired: boolean;
       form_number: string;
     }>(
-      `SELECT status, form_number,
+      `SELECT status, form_number, expires_at <= now() AS expired,
          last_sent_at IS NOT NULL AND last_sent_at > now() - make_interval(secs => $3) AS recent
        FROM equipment_issue_forms
        WHERE asset_id = $1 AND id::text = $2 FOR UPDATE`,
@@ -803,6 +804,13 @@ export async function prepareIssueFormResend(
     if (!row) return null;
     if (row.status !== "pending") {
       throw new IssueFormError(`A ${row.status} form can't be re-sent.`);
+    }
+    // Still 'pending' until the nightly check marks it, but the link is dead. Re-sending would
+    // push the expiry out and quietly revive it, so the form has to be triggered afresh.
+    if (row.expired) {
+      throw new IssueFormError(
+        "This form's link has expired, so it can't be re-sent. Trigger a new form instead.",
+      );
     }
     if (row.recent) {
       throw new IssueFormError(
