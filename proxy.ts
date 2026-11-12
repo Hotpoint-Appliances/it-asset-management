@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { resolveSessionToken, SESSION_COOKIE } from "@/lib/auth/session";
+import {
+  resolveSessionToken,
+  SESSION_COOKIE,
+  sessionCookieDeletion,
+} from "@/lib/auth/session";
 
 // Signed-out pages; a signed-in visitor is sent to the dashboard instead.
 const GUEST_PATHS = ["/login", "/forgot-password"];
@@ -46,7 +50,7 @@ export async function proxy(request: NextRequest) {
     response = NextResponse.next();
   }
 
-  if (staleCookie) response.cookies.delete(SESSION_COOKIE);
+  if (staleCookie) response.cookies.delete(sessionCookieDeletion());
   return response;
 }
 
