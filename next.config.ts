@@ -12,6 +12,14 @@ if (basePath && (!basePath.startsWith("/") || basePath.endsWith("/"))) {
 const nextConfig: NextConfig = {
   output: process.env.NEXT_OUTPUT_STANDALONE === "1" ? "standalone" : undefined,
   basePath: basePath || undefined,
+  experimental: {
+    // Keep a visited page's server-rendered data in the browser for 30s, so going back to the
+    // dashboard or the assets list a moment later is instant instead of a fresh round-trip
+    // (Next 15+ defaults this to 0). Your own saves still show at once: they end in a
+    // `router.refresh()`, or a push that refreshes (`useRouteLoadingRouter`), which drops the
+    // whole cache. Other users' changes show after 30s, or on the page's Refresh button.
+    staleTimes: { dynamic: 30 },
+  },
 };
 
 export default nextConfig;

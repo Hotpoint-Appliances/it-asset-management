@@ -17,7 +17,13 @@ import { useUIStore } from "@/store";
  * Each method also takes an optional `onSettled` callback, run once that transition finishes, so
  * a mutation's success toast lands alongside the refreshed data instead of ahead of the progress
  * line. If the calling component unmounts first (a `push` to another page commits, unmounting
- * the caller), queued callbacks run on unmount, since that unmount *is* the navigation settling. */
+ * the caller), queued callbacks run on unmount, since that unmount *is* the navigation settling.
+ *
+ * Visited pages stay in the client cache for a while (`staleTimes` in next.config.ts), and a
+ * mutation through a route handler can't clear that cache from the server. So a mutation that
+ * ends by navigating somewhere else uses `pushFresh`, which refreshes after the push: the page it
+ * lands on is re-rendered from the server even if it was cached, and every other cached page is
+ * dropped too, so the list or dashboard shows the change when you go back to it. */
 export function useRouteLoadingRouter() {
   const router = useRouter();
   const [isPending, startTransition] = React.useTransition();
@@ -59,6 +65,12 @@ export function useRouteLoadingRouter() {
         options?: Parameters<typeof router.replace>[1],
         onSettled?: () => void,
       ) => run(() => router.replace(href, options), onSettled),
+      /** `push` after a mutation: lands on fresh data rather than a cached copy of `href`. */
+      pushFresh: (href: string, onSettled?: () => void) =>
+        run(() => {
+          router.push(href);
+          router.refresh();
+        }, onSettled),
       refresh: (onSettled?: () => void) =>
         run(() => router.refresh(), onSettled),
       /** Local pending flag for the calling component's own UI (e.g. dimming a table while its

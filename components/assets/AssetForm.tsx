@@ -507,12 +507,12 @@ export function AssetForm({
           "/api/assets",
           formData,
         );
-        router.push(`/assets/${res.data.asset.id}`, undefined, () =>
+        router.pushFresh(`/assets/${res.data.asset.id}`, () =>
           addToast({ title: "Asset created", variant: "success" }),
         );
       } else if (asset) {
         await axios.patch(`/api/assets/${asset.id}`, formData);
-        router.push(`/assets/${asset.id}`, undefined, () =>
+        router.pushFresh(`/assets/${asset.id}`, () =>
           addToast({ title: "Asset updated", variant: "success" }),
         );
       }
