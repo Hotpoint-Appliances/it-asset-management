@@ -12,18 +12,40 @@ export function onRouterTransitionStart(
   url: string,
   navigationType: "push" | "replace" | "traverse",
 ) {
-  // Back/forward passes the URL after the browser has already moved to it, so there's nothing to
-  // compare against.
-  if (navigationType !== "traverse") {
-    const target = new URL(url, window.location.href);
-    // A same-URL or hash-only navigation never changes the route, so the line would never finish.
-    if (
-      target.pathname === window.location.pathname &&
-      target.search === window.location.search
-    ) {
-      return;
-    }
+  const store = useUIStore.getState();
+
+  // A navigation that stays on the URL already shown (clicking the current page's link, a
+  // hash-only change) renders nothing new, so `RouteProgress` would never see it finish. It also
+  // supersedes any navigation still in flight, so that one's line is cleared rather than left
+  // running until the timeout.
+  if (routeKey(url, navigationType) === currentRoute(store.committedRoute)) {
+    store.endNavigation();
+    return;
   }
 
-  useUIStore.getState().startNavigation();
+  store.startNavigation();
+}
+
+/** `pathname?search` of a navigation target, base path excluded, in the same shape
+ * `RouteProgress` builds from `usePathname()`/`useSearchParams()`. */
+function routeKey(url: string, navigationType: string): string {
+  const target = new URL(url, window.location.href);
+  // `push`/`replace` get the href as the app wrote it (`/assets`), before Next adds the base
+  // path; back/forward gets the full browser URL, which includes it.
+  const pathname =
+    navigationType === "traverse" ? stripBasePath(target.pathname) : target.pathname;
+  return `${pathname}?${new URLSearchParams(target.search).toString()}`;
+}
+
+function currentRoute(committed: string | null): string {
+  if (committed !== null) return committed;
+  return `${stripBasePath(window.location.pathname)}?${new URLSearchParams(window.location.search).toString()}`;
+}
+
+function stripBasePath(pathname: string): string {
+  if (!BASE_PATH) return pathname;
+  if (pathname === BASE_PATH) return "/";
+  return pathname.startsWith(`${BASE_PATH}/`)
+    ? pathname.slice(BASE_PATH.length)
+    : pathname;
 }

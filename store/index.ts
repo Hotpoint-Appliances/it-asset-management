@@ -82,6 +82,10 @@ interface UIState {
   endRouteLoading: () => void;
   /** A navigation has started and its URL hasn't rendered yet (see instrumentation-client.ts). */
   navigating: boolean;
+  /** `pathname?search` of the URL last rendered, base path excluded, as `RouteProgress` saw it.
+   * `onRouterTransitionStart` compares against it to skip navigations that stay on that URL.
+   * null until `RouteProgress` first mounts. */
+  committedRoute: string | null;
   startNavigation: () => void;
   endNavigation: () => void;
   loggingOut: boolean;
@@ -112,6 +116,7 @@ export const useUIStore = create<UIState>()((set) => ({
   endRouteLoading: () =>
     set((state) => ({ routeLoading: Math.max(0, state.routeLoading - 1) })),
   navigating: false,
+  committedRoute: null,
   startNavigation: () => {
     clearTimeout(navigationTimer);
     navigationTimer = setTimeout(
