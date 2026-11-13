@@ -4,6 +4,7 @@ import {
   createPasswordResetToken,
   RESET_TOKEN_TTL_MINUTES,
 } from "@/lib/db/passwordResets";
+import { withBasePath } from "@/lib/basePath";
 import { isEmailConfigured } from "@/lib/email/graphClient";
 import { sendEmail } from "@/lib/email/sendEmail";
 import { appUrl, renderPasswordResetEmail } from "@/lib/email/templates";
@@ -14,11 +15,13 @@ const isProduction = process.env.NODE_ENV === "production";
 
 /** The emailed link. Production uses ITAM_APP_URL only: the request's own origin comes from the
  * Host header, which a caller controls, and would let them point a victim's link at their own
- * site. Dev falls back to it so a local setup works without the variable. */
+ * site. Dev falls back to it so a local setup works without the variable; the origin has no
+ * path, so the base path is added here (ITAM_APP_URL already includes it). */
 function resetLink(request: NextRequest, token: string): string | null {
   const path = `/reset-password?token=${encodeURIComponent(token)}`;
   return (
-    appUrl(path) ?? (isProduction ? null : `${request.nextUrl.origin}${path}`)
+    appUrl(path) ??
+    (isProduction ? null : `${request.nextUrl.origin}${withBasePath(path)}`)
   );
 }
 
