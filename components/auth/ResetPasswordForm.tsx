@@ -10,6 +10,7 @@ import { AppLogo } from "@/components/shared/AppLogo";
 import { RequiredMark } from "@/components/shared/RequiredMark";
 import { FieldError } from "@/components/shared/FieldError";
 import { useFieldErrors } from "@/lib/hooks/useFieldErrors";
+import { withBasePath } from "@/lib/basePath";
 
 type Field = "newPassword" | "confirmPassword";
 
@@ -80,7 +81,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
     try {
       await axios.post("/api/auth/reset-password", { token, newPassword });
       // Full reload: this browser's session (if any) was just revoked too.
-      window.location.replace("/login?reset=1");
+      window.location.replace(withBasePath("/login?reset=1"));
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 429) {
         // nginx's limit_req answers with an HTML page, as on the login form.

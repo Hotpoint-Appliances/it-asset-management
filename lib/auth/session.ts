@@ -3,8 +3,12 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { findActiveSessionUser } from "@/lib/db/users";
+import { BASE_PATH } from "@/lib/basePath";
 
 export const SESSION_COOKIE = "itam_session";
+/** Scoped to the base path, so other apps on the same host never receive it. A delete must name
+ * the same path or the browser keeps the cookie. */
+const SESSION_COOKIE_PATH = BASE_PATH || "/";
 const SESSION_DURATION_SECONDS = 60 * 60 * 8; // 8h workday session
 
 function getSecretKey(): Uint8Array {
@@ -66,13 +70,18 @@ export async function setSessionCookie(payload: SessionPayload): Promise<void> {
     secure: isSecureCookie(),
     sameSite: "strict",
     maxAge: SESSION_DURATION_SECONDS,
-    path: "/",
+    path: SESSION_COOKIE_PATH,
   });
+}
+
+/** The name + path a delete needs (`cookies().delete(...)`, `response.cookies.delete(...)`). */
+export function sessionCookieDeletion() {
+  return { name: SESSION_COOKIE, path: SESSION_COOKIE_PATH };
 }
 
 export async function clearSessionCookie(): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.delete(SESSION_COOKIE);
+  cookieStore.delete(sessionCookieDeletion());
 }
 
 /** Verifies the token, then re-reads the user (phase-8 session revocation): null once they're

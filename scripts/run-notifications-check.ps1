@@ -28,7 +28,9 @@
 .PARAMETER AppUrl
     Base URL of the app. On the app server use the local Node port directly, e.g.
     http://127.0.0.1:3000: it skips nginx, DNS and certificate trust, and the secret never leaves
-    the host. Defaults to $env:ITAM_APP_URL.
+    the host. Defaults to $env:ITAM_APP_URL. If the app is built with NEXT_PUBLIC_BASE_PATH,
+    include it (http://127.0.0.1:3000/itam): Node serves every route under that prefix, so
+    without it the call returns 404.
 
 .PARAMETER SecretFile
     Path to a file whose only content is the app's CRON_SECRET value. Preferred over the

@@ -4,6 +4,7 @@ import * as React from "react";
 import { Download } from "lucide-react";
 import { Button, type ButtonProps } from "@/components/ui/Button";
 import { useUIStore } from "@/store";
+import { withBasePath } from "@/lib/basePath";
 
 /** `attachment; filename="asset-register-2026-10-27.xlsx"` -> the quoted name. */
 function fileNameFrom(disposition: string | null): string | null {
@@ -14,7 +15,8 @@ function fileNameFrom(disposition: string | null): string | null {
 /** Downloads a server-generated file (the /api/reports exports, the import template). A plain
  * `<a download>` shows nothing while the server builds the workbook, and a failure only surfaces
  * in the browser's download bar; fetching it here gives the button a spinner and turns a failure
- * into an error toast. The routes answer errors as JSON `{ error }`. */
+ * into an error toast. The routes answer errors as JSON `{ error }`. `href` is app-relative
+ * (`/api/...`); the base path is added here. */
 export function DownloadButton({
   href,
   children,
@@ -27,7 +29,7 @@ export function DownloadButton({
   async function handleClick() {
     setDownloading(true);
     try {
-      const res = await fetch(href);
+      const res = await fetch(withBasePath(href));
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         throw new Error(

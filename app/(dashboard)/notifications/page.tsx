@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { requireSession } from "@/lib/auth/session";
 import { listNotificationsForUser } from "@/lib/db/notifications";
 import { NotificationsList } from "@/components/notifications/NotificationsList";
+import { RefreshButton } from "@/components/shared/RefreshButton";
 
 const PAGE_SIZE = 20;
 
@@ -31,11 +32,16 @@ export default async function NotificationsPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Notifications</h1>
-        <p className="text-muted-foreground text-sm">
-          Assignments, transfers, and warranty and maintenance alerts.
-        </p>
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Notifications
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Assignments, transfers, and warranty and maintenance alerts.
+          </p>
+        </div>
+        <RefreshButton />
       </div>
       <NotificationsList
         page={page}

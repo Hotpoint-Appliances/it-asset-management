@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { useUIStore } from "@/store";
 import type { AssetAttachment } from "@/types/assetAttachment";
 import { formatDate } from "@/lib/format";
+import { withBasePath } from "@/lib/basePath";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -135,7 +136,9 @@ export function AssetAttachments({
               className="border-border flex items-center justify-between gap-3 rounded-lg border p-3"
             >
               <a
-                href={`/api/assets/${assetId}/attachments/${attachment.id}/file`}
+                href={withBasePath(
+                  `/api/assets/${assetId}/attachments/${attachment.id}/file`,
+                )}
                 target="_blank"
                 rel="noreferrer"
                 className="flex min-w-0 items-center gap-2 text-sm hover:underline"

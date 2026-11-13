@@ -142,7 +142,7 @@ export function AssetImport() {
     try {
       const done = await post("import", checked.blob, checked.name);
       const n = done.imported ?? 0;
-      router.push("/assets?sort=updated&dir=desc", undefined, () =>
+      router.pushFresh("/assets?sort=updated&dir=desc", () =>
         addToast({
           title: `Imported ${n} asset${n === 1 ? "" : "s"}`,
           variant: "success",

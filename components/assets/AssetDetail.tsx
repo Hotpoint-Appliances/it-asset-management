@@ -21,6 +21,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { RefreshButton } from "@/components/shared/RefreshButton";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
@@ -63,6 +64,7 @@ import type { AssetCondition } from "@/types/assetCondition";
 import type { AssetStatus } from "@/types/assetStatus";
 import type { Accessory, AssetAccessory } from "@/types/accessory";
 import type { IssueForm } from "@/types/issueForm";
+import { withBasePath } from "@/lib/basePath";
 
 function errorMessage(err: unknown): string {
   if (axios.isAxiosError(err) && err.response?.data?.error)
@@ -124,7 +126,7 @@ export function AssetDetail({
     setDeleting(true);
     try {
       await axios.delete(`/api/assets/${asset.id}`);
-      router.push("/assets", undefined, () =>
+      router.pushFresh("/assets", () =>
         addToast({ title: "Asset deleted", variant: "success" }),
       );
     } catch (err) {
@@ -146,7 +148,9 @@ export function AssetDetail({
           {asset.imagePath ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={`/api/assets/${asset.id}/image?v=${encodeURIComponent(asset.imagePath)}`}
+              src={withBasePath(
+                `/api/assets/${asset.id}/image?v=${encodeURIComponent(asset.imagePath)}`,
+              )}
               alt=""
               className="border-border h-32 w-32 shrink-0 rounded-lg border object-cover"
             />
@@ -166,6 +170,7 @@ export function AssetDetail({
                 </h1>
               </div>
               <div className="flex flex-wrap gap-2">
+                <RefreshButton />
                 <Button variant="outline" asChild>
                   <Link href={`/assets/${asset.id}/label`}>
                     <Printer className="h-4 w-4" />
@@ -428,7 +433,7 @@ function DisposalSummary({
       "Attachment",
       <a
         key="attachment"
-        href={`/api/assets/${assetId}/dispose/attachment`}
+        href={withBasePath(`/api/assets/${assetId}/dispose/attachment`)}
         target="_blank"
         rel="noopener noreferrer"
         className="text-primary underline-offset-4 hover:underline"

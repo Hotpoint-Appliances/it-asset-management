@@ -16,19 +16,27 @@ export const metadata: Metadata = {
 
 export default async function IssueFormPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string; formId: string }>;
+  searchParams: Promise<{ from?: string | string[] }>;
 }) {
   const session = await requireRole(["admin", "asset_manager"]);
   const { id, formId } = await params;
-  const asset = await getAssetForPage(id, session);
-  const form = asset ? await getIssueForm(id, formId) : null;
-  if (!asset || !form) notFound();
+  // The form is read on its own, so one whose asset was deleted stays reachable as evidence. The
+  // asset lookup hides deleted assets, so null here means the asset is gone.
+  const [asset, form] = await Promise.all([
+    getAssetForPage(id, session),
+    getIssueForm(id, formId),
+  ]);
+  if (!form) notFound();
+  // Opened from the register (or the asset is gone): back goes to the register, not the asset.
+  const toRegister = !asset || (await searchParams).from === "register";
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
       <Link
-        href={`/assets/${id}?tab=issue-forms`}
+        href={toRegister ? "/issue-forms" : `/assets/${id}?tab=issue-forms`}
         className="text-muted-foreground hover:text-foreground inline-flex min-h-11 w-fit items-center gap-1.5 text-sm sm:min-h-0"
       >
         <ArrowLeft aria-hidden="true" className="h-4 w-4" />
@@ -40,7 +48,9 @@ export default async function IssueFormPage({
             Equipment issue form
           </h1>
           <p className="text-muted-foreground text-sm break-words">
-            {asset.assetTag} - {asset.name}
+            {asset
+              ? `${asset.assetTag} - ${asset.name}`
+              : `${form.financeAssetNo} - ${form.equipmentType} (asset deleted)`}
           </p>
         </div>
         <DownloadButton

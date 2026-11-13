@@ -3,16 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import {
-  Plus,
-  Search,
-  X,
-  Boxes,
-  ArrowUp,
-  ArrowDown,
-  ArrowUpDown,
-  Upload,
-} from "lucide-react";
+import { Plus, Search, X, Boxes, Upload } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -28,8 +19,10 @@ import {
   stickyEndCellClass,
 } from "@/components/ui/Table";
 import { DownloadButton } from "@/components/shared/DownloadButton";
+import { RefreshButton } from "@/components/shared/RefreshButton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { MultiSelectFilter } from "@/components/shared/MultiSelectFilter";
+import { SortableHead } from "@/components/shared/SortableHead";
 import { AssetColumnsMenu } from "./AssetColumnsMenu";
 import { AssetRowActions } from "./AssetRowActions";
 import { useAssetColumns } from "@/lib/hooks/useAssetColumns";
@@ -205,6 +198,7 @@ export function AssetsList({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <RefreshButton />
           <DownloadButton href={exportHref} variant="outline">
             Export
           </DownloadButton>
@@ -472,57 +466,5 @@ export function AssetsList({
         </>
       )}
     </div>
-  );
-}
-
-/** A column header that sorts the list. `aria-sort` sits on the header cell (where assistive tech
- * reads it); the button's label says what a click will do next. */
-function SortableHead({
-  label,
-  direction,
-  onSort,
-}: {
-  label: string;
-  direction: "asc" | "desc" | null;
-  onSort: () => void;
-}) {
-  const Icon =
-    direction === "asc"
-      ? ArrowUp
-      : direction === "desc"
-        ? ArrowDown
-        : ArrowUpDown;
-  const next =
-    direction === null
-      ? "sort ascending"
-      : direction === "asc"
-        ? "sort descending"
-        : "clear sort";
-  return (
-    <TableHead
-      aria-sort={
-        direction === "asc"
-          ? "ascending"
-          : direction === "desc"
-            ? "descending"
-            : "none"
-      }
-    >
-      <button
-        type="button"
-        onClick={onSort}
-        aria-label={`${label}, ${next}`}
-        className={cn(
-          "hover:text-foreground focus-visible:ring-ring -mx-2 inline-flex min-h-11 items-center gap-1 rounded-md px-2 tracking-wide whitespace-nowrap uppercase focus-visible:ring-2 focus-visible:outline-none",
-          direction && "text-foreground",
-        )}
-      >
-        {label}
-        <Icon
-          aria-hidden="true"
-          className={cn("h-3.5 w-3.5", !direction && "opacity-40")}
-        />
-      </button>
-    </TableHead>
   );
 }
