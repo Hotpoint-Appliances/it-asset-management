@@ -35,6 +35,7 @@ import {
   stickyEndHeadClass,
 } from "@/components/ui/Table";
 import { DownloadButton } from "@/components/shared/DownloadButton";
+import { RefreshButton } from "@/components/shared/RefreshButton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { MultiSelectFilter } from "@/components/shared/MultiSelectFilter";
 import { SortableHead } from "@/components/shared/SortableHead";
@@ -222,13 +223,16 @@ export function IssueFormsList({
             {hasFilters ? " match" : ""}
           </p>
         </div>
-        <DownloadButton
-          href={exportHref}
-          variant="outline"
-          disabled={total === 0}
-        >
-          Export
-        </DownloadButton>
+        <div className="flex items-center gap-2">
+          <RefreshButton />
+          <DownloadButton
+            href={exportHref}
+            variant="outline"
+            disabled={total === 0}
+          >
+            Export
+          </DownloadButton>
+        </div>
       </div>
 
       {/* Status counts double as the status filter: each toggles in or out. They count under

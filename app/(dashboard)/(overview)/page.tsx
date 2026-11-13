@@ -31,6 +31,7 @@ import { RecentActivityCard } from "@/components/dashboard/RecentActivityCard";
 import { InRepairCard } from "@/components/dashboard/InRepairCard";
 import { LifecycleCard } from "@/components/dashboard/LifecycleCard";
 import { MovementTrendCard } from "@/components/dashboard/MovementTrendCard";
+import { RefreshButton } from "@/components/shared/RefreshButton";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -104,13 +105,16 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground text-sm">
-          {session.roleName === "viewer"
-            ? "Fleet overview for your department."
-            : "Fleet overview across all departments."}
-        </p>
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground text-sm">
+            {session.roleName === "viewer"
+              ? "Fleet overview for your department."
+              : "Fleet overview across all departments."}
+          </p>
+        </div>
+        <RefreshButton />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">

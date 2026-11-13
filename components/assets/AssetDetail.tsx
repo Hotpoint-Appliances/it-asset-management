@@ -21,6 +21,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { RefreshButton } from "@/components/shared/RefreshButton";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
@@ -169,6 +170,7 @@ export function AssetDetail({
                 </h1>
               </div>
               <div className="flex flex-wrap gap-2">
+                <RefreshButton />
                 <Button variant="outline" asChild>
                   <Link href={`/assets/${asset.id}/label`}>
                     <Printer className="h-4 w-4" />

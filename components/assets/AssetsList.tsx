@@ -19,6 +19,7 @@ import {
   stickyEndCellClass,
 } from "@/components/ui/Table";
 import { DownloadButton } from "@/components/shared/DownloadButton";
+import { RefreshButton } from "@/components/shared/RefreshButton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { MultiSelectFilter } from "@/components/shared/MultiSelectFilter";
 import { SortableHead } from "@/components/shared/SortableHead";
@@ -197,6 +198,7 @@ export function AssetsList({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <RefreshButton />
           <DownloadButton href={exportHref} variant="outline">
             Export
           </DownloadButton>
