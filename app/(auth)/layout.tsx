@@ -1,13 +1,23 @@
 import type { ReactNode } from "react";
-import { ClipboardCheck, ShieldCheck, Laptop } from "lucide-react";
+import {
+  ClipboardTextIcon,
+  LaptopIcon,
+  ShieldCheckIcon,
+} from "@phosphor-icons/react/ssr";
 import { AppLogo } from "@/components/shared/AppLogo";
 import { Footer } from "@/components/layout/Footer";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 const highlights = [
-  { icon: Laptop, text: "Track every device from purchase to retirement" },
-  { icon: ClipboardCheck, text: "Manage assignments and handovers with ease" },
-  { icon: ShieldCheck, text: "Keep your inventory accurate and accountable" },
+  { icon: LaptopIcon, text: "Track every device from purchase to retirement" },
+  {
+    icon: ClipboardTextIcon,
+    text: "Manage assignments and handovers with ease",
+  },
+  {
+    icon: ShieldCheckIcon,
+    text: "Keep your inventory accurate and accountable",
+  },
 ];
 
 /** The signed-out frame shared by sign-in, forgot password and reset password. Public pages use

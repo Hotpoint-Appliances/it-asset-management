@@ -1,7 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { Bell, CheckCheck, Inbox, List } from "lucide-react";
+import {
+  BellIcon,
+  ChecksIcon,
+  ListBulletsIcon,
+  TrayIcon,
+} from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import {
   DropdownMenu,
@@ -54,7 +59,7 @@ export function NotificationBell() {
             unread ? `Notifications, ${unread} unread` : "Notifications"
           }
         >
-          <Bell className="h-5 w-5" />
+          <BellIcon className="h-5 w-5" />
           {unread > 0 && (
             <span
               aria-hidden="true"
@@ -83,7 +88,7 @@ export function NotificationBell() {
         <DropdownMenuSeparator />
         {items.length === 0 ? (
           <div className="text-muted-foreground flex flex-col items-center gap-2 px-2 py-6 text-sm">
-            <Inbox className="h-6 w-6" />
+            <TrayIcon className="h-6 w-6" />
             You&apos;re all caught up.
           </div>
         ) : (
@@ -108,11 +113,11 @@ export function NotificationBell() {
             markAllRead.mutate();
           }}
         >
-          <CheckCheck className="h-4 w-4" />
+          <ChecksIcon className="h-4 w-4" />
           Mark all as read
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => router.push("/notifications")}>
-          <List className="h-4 w-4" />
+          <ListBulletsIcon className="h-4 w-4" />
           View all notifications
         </DropdownMenuItem>
       </DropdownMenuContent>

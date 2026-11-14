@@ -3,7 +3,12 @@
 import * as React from "react";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
-import { Plus, Pencil, Trash2, Flag } from "lucide-react";
+import {
+  FlagIcon,
+  PencilSimpleIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import {
@@ -140,14 +145,14 @@ export function AssetStatusesManager({
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate}>
-          <Plus className="h-4 w-4" />
+          <PlusIcon className="h-4 w-4" />
           New Status
         </Button>
       </div>
 
       {initialStatuses.length === 0 ? (
         <EmptyState
-          icon={Flag}
+          icon={FlagIcon}
           title="No statuses yet"
           description="Define the lifecycle statuses assets can be in (e.g. active, in repair, disposed)."
           action={<Button onClick={openCreate}>New Status</Button>}
@@ -172,7 +177,7 @@ export function AssetStatusesManager({
                     size="icon"
                     onClick={() => openEdit(status)}
                   >
-                    <Pencil className="h-4 w-4" />
+                    <PencilSimpleIcon className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
                   <Button
@@ -180,7 +185,7 @@ export function AssetStatusesManager({
                     size="icon"
                     onClick={() => setDeleting(status)}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <TrashIcon className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
                   </Button>
                 </TableCell>

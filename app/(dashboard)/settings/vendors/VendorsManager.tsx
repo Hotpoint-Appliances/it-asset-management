@@ -3,7 +3,12 @@
 import * as React from "react";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
-import { Plus, Pencil, Trash2, Truck } from "lucide-react";
+import {
+  PencilSimpleIcon,
+  PlusIcon,
+  TrashIcon,
+  TruckIcon,
+} from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import {
@@ -161,14 +166,14 @@ export function VendorsManager({
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate}>
-          <Plus className="h-4 w-4" />
+          <PlusIcon className="h-4 w-4" />
           New Vendor
         </Button>
       </div>
 
       {initialVendors.length === 0 ? (
         <EmptyState
-          icon={Truck}
+          icon={TruckIcon}
           title="No vendors yet"
           description="Add a vendor to track purchases, warranties, and repairs against."
           action={<Button onClick={openCreate}>New Vendor</Button>}
@@ -197,7 +202,7 @@ export function VendorsManager({
                     size="icon"
                     onClick={() => openEdit(vendor)}
                   >
-                    <Pencil className="h-4 w-4" />
+                    <PencilSimpleIcon className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
                   <Button
@@ -205,7 +210,7 @@ export function VendorsManager({
                     size="icon"
                     onClick={() => setDeleting(vendor)}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <TrashIcon className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
                   </Button>
                 </TableCell>

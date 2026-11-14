@@ -3,7 +3,12 @@
 import * as React from "react";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
-import { Plus, Pencil, Trash2, Cable } from "lucide-react";
+import {
+  PencilSimpleIcon,
+  PlugIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -148,14 +153,14 @@ export function AccessoriesManager({
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate}>
-          <Plus className="h-4 w-4" />
+          <PlusIcon className="h-4 w-4" />
           New Accessory
         </Button>
       </div>
 
       {initialAccessories.length === 0 ? (
         <EmptyState
-          icon={Cable}
+          icon={PlugIcon}
           title="No accessories yet"
           description="Define the accessories that can be attached to assets (e.g. charger, mouse, docking station)."
           action={<Button onClick={openCreate}>New Accessory</Button>}
@@ -193,7 +198,7 @@ export function AccessoriesManager({
                     size="icon"
                     onClick={() => openEdit(accessory)}
                   >
-                    <Pencil className="h-4 w-4" />
+                    <PencilSimpleIcon className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
                   <Button
@@ -201,7 +206,7 @@ export function AccessoriesManager({
                     size="icon"
                     onClick={() => setDeleting(accessory)}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <TrashIcon className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
                   </Button>
                 </TableCell>

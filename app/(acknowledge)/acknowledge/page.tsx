@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
-import { CheckCircle2, LinkIcon, MessageSquareWarning } from "lucide-react";
+import {
+  ChatCenteredTextIcon,
+  CheckCircleIcon,
+  LinkIcon,
+} from "@phosphor-icons/react/ssr";
 import { getIssueFormByToken } from "@/lib/db/issueForms";
 import { AcknowledgeForm } from "@/components/acknowledge/AcknowledgeForm";
 import { IssueFormSummary } from "@/components/acknowledge/IssueFormSummary";
@@ -67,7 +71,7 @@ export default async function AcknowledgePage({
       {form.status === "acknowledged" && (
         <Notice
           icon={
-            <CheckCircle2
+            <CheckCircleIcon
               aria-hidden="true"
               className="text-success mb-2 h-10 w-10"
             />
@@ -83,7 +87,7 @@ export default async function AcknowledgePage({
       {form.status === "disputed" && (
         <Notice
           icon={
-            <MessageSquareWarning
+            <ChatCenteredTextIcon
               aria-hidden="true"
               className="text-warning mb-2 h-10 w-10"
             />

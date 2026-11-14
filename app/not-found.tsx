@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { CompassIcon } from "lucide-react";
+import { CompassIcon } from "@phosphor-icons/react/ssr";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/Button";
 import { StandalonePage } from "@/components/shared/StandalonePage";

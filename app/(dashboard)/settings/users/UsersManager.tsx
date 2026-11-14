@@ -4,12 +4,12 @@ import * as React from "react";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
 import {
-  Plus,
-  Pencil,
-  UserRoundX,
-  UserRoundCheck,
-  UsersRound,
-} from "lucide-react";
+  PencilSimpleIcon,
+  PlusIcon,
+  UserCircleCheckIcon,
+  UserCircleMinusIcon,
+  UsersIcon,
+} from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
@@ -257,14 +257,14 @@ export function UsersManager({
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate}>
-          <Plus className="h-4 w-4" />
+          <PlusIcon className="h-4 w-4" />
           New User
         </Button>
       </div>
 
       {initialUsers.length === 0 ? (
         <EmptyState
-          icon={UsersRound}
+          icon={UsersIcon}
           title="No users yet"
           description="Create the first user account."
           action={<Button onClick={openCreate}>New User</Button>}
@@ -301,7 +301,7 @@ export function UsersManager({
                     size="icon"
                     onClick={() => openEdit(user)}
                   >
-                    <Pencil className="h-4 w-4" />
+                    <PencilSimpleIcon className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
                   <Button
@@ -310,9 +310,9 @@ export function UsersManager({
                     onClick={() => setDeactivating(user)}
                   >
                     {user.isActive ? (
-                      <UserRoundX className="h-4 w-4" />
+                      <UserCircleMinusIcon className="h-4 w-4" />
                     ) : (
-                      <UserRoundCheck className="h-4 w-4" />
+                      <UserCircleCheckIcon className="h-4 w-4" />
                     )}
                     <span className="sr-only">
                       {user.isActive ? "Deactivate" : "Reactivate"}

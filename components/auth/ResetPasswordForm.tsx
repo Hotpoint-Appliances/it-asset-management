@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import axios from "axios";
-import { ArrowLeft, LinkIcon } from "lucide-react";
+import { ArrowLeftIcon, LinkIcon } from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { AppLogo } from "@/components/shared/AppLogo";
@@ -36,7 +36,7 @@ export function ResetLinkInvalid() {
         href="/login"
         className="text-muted-foreground hover:text-foreground mt-2 flex items-center gap-1.5 text-sm"
       >
-        <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+        <ArrowLeftIcon aria-hidden="true" className="h-4 w-4" />
         Back to sign in
       </Link>
     </div>
