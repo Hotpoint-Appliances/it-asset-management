@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import {
-  Boxes,
-  CheckCircle2,
-  Wrench,
-  TriangleAlert,
-  ShieldAlert,
-} from "lucide-react";
+  CheckCircleIcon,
+  PackageIcon,
+  ShieldWarningIcon,
+  WarningIcon,
+  WrenchIcon,
+} from "@phosphor-icons/react/ssr";
 import { statusKey } from "@/lib/badgeVariants";
 import { requireSession } from "@/lib/auth/session";
 import {
@@ -121,24 +121,24 @@ export default async function DashboardPage() {
         <StatTile
           label="Total assets"
           value={overview.total}
-          icon={Boxes}
+          icon={PackageIcon}
           href="/assets"
         />
         <StatTile
           label="In service"
           value={overview.inService}
-          icon={CheckCircle2}
+          icon={CheckCircleIcon}
         />
         <StatTile
           label="In repair"
           value={inRepair}
-          icon={Wrench}
+          icon={WrenchIcon}
           tone={inRepair > 0 ? "warning" : "default"}
         />
         <StatTile
           label="Needs attention"
           value={needsAttention}
-          icon={TriangleAlert}
+          icon={WarningIcon}
           href={
             needsAttentionStatuses.length
               ? `/assets?statusId=${needsAttentionStatuses.map((s) => s.id).join(",")}`
@@ -149,7 +149,7 @@ export default async function DashboardPage() {
         <StatTile
           label={`Warranty ≤ ${windows[0]}d`}
           value={expiringSoon}
-          icon={ShieldAlert}
+          icon={ShieldWarningIcon}
           tone={expiringSoon > 0 ? "warning" : "default"}
         />
       </div>

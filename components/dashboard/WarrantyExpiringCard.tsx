@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ShieldAlert } from "lucide-react";
+import { ShieldWarningIcon } from "@phosphor-icons/react/ssr";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { formatDate } from "@/lib/format";
@@ -52,7 +52,7 @@ export function WarrantyExpiringCard({
       <CardContent className="pt-0">
         {visible.length === 0 ? (
           <div className="text-muted-foreground flex items-center gap-2 text-sm">
-            <ShieldAlert className="h-4 w-4" />
+            <ShieldWarningIcon className="h-4 w-4" />
             No warranties expire in the next {windowDays} days.
           </div>
         ) : (

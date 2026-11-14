@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ScrollText } from "lucide-react";
+import { ScrollIcon } from "@phosphor-icons/react/ssr";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { ReportCard } from "./ReportCard";
 
@@ -18,7 +18,7 @@ export function AuditTrailReportCard() {
 
   return (
     <ReportCard
-      icon={ScrollText}
+      icon={ScrollIcon}
       title="Audit trail"
       description="Every recorded change across assets, with old and new values resolved to names. Leave the dates empty for the full history."
       href={href}

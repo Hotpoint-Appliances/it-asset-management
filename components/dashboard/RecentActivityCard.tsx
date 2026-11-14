@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { History } from "lucide-react";
+import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/ssr";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ACTION_LABELS } from "@/components/assets/AuditLogTimeline";
 import { formatLookupName } from "@/lib/badgeVariants";
@@ -15,7 +15,7 @@ export function RecentActivityCard({ items }: { items: RecentActivityItem[] }) {
       <CardContent className="pt-0">
         {items.length === 0 ? (
           <div className="text-muted-foreground flex items-center gap-2 text-sm">
-            <History className="h-4 w-4" />
+            <ClockCounterClockwiseIcon className="h-4 w-4" />
             No activity yet.
           </div>
         ) : (
