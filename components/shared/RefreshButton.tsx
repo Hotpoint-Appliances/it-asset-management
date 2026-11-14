@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { RefreshCw } from "lucide-react";
+import { ArrowsClockwiseIcon } from "@phosphor-icons/react/ssr";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/Button";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
@@ -45,7 +45,8 @@ export function RefreshButton({ className }: { className?: string }) {
         title="Refresh"
         className={className}
       >
-        <RefreshCw
+        <ArrowsClockwiseIcon
+          weight="bold"
           aria-hidden="true"
           className={cn(refreshing && "motion-safe:animate-spin")}
         />

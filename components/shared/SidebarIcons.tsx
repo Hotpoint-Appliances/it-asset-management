@@ -4,8 +4,8 @@ import { cn } from "@/lib/utils";
 /* Sidebar toggle icons. A rounded window with a left rail, plus a chevron that
  * points the way the click will move the rail: left to collapse it, right to
  * expand it. The rail is tinted while the sidebar is open, so the icon shows
- * the current state as well as the action. Stroked on a 24px grid at width 2
- * with round caps, matching the lucide icons used elsewhere, and drawn in
+ * the current state as well as the action. Stroked on a 24px grid at width 2.25
+ * with round caps, matching the Phosphor bold icons used elsewhere, and drawn in
  * `currentColor` so they follow the surrounding text colour token in light and
  * dark mode. Size them with `className`. Decorative, since the toggle button
  * carries the aria-label. */
@@ -21,7 +21,7 @@ function SidebarFrame({
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={2}
+      strokeWidth={2.25}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"

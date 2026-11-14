@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
-import { CheckCircle2, LinkIcon, MessageSquareWarning } from "lucide-react";
+import {
+  ChatCenteredTextIcon,
+  CheckCircleIcon,
+  LinkIcon,
+} from "@phosphor-icons/react/ssr";
 import { getIssueFormByToken } from "@/lib/db/issueForms";
 import { AcknowledgeForm } from "@/components/acknowledge/AcknowledgeForm";
 import { IssueFormSummary } from "@/components/acknowledge/IssueFormSummary";
@@ -48,7 +52,7 @@ export default async function AcknowledgePage({
         <Notice
           icon={
             <span className="bg-destructive/10 text-destructive mb-2 flex h-12 w-12 items-center justify-center rounded-xl">
-              <LinkIcon aria-hidden="true" className="h-6 w-6" />
+              <LinkIcon weight="bold" aria-hidden="true" className="h-6 w-6" />
             </span>
           }
           title="This link is no longer valid"
@@ -67,7 +71,8 @@ export default async function AcknowledgePage({
       {form.status === "acknowledged" && (
         <Notice
           icon={
-            <CheckCircle2
+            <CheckCircleIcon
+              weight="bold"
               aria-hidden="true"
               className="text-success mb-2 h-10 w-10"
             />
@@ -83,7 +88,8 @@ export default async function AcknowledgePage({
       {form.status === "disputed" && (
         <Notice
           icon={
-            <MessageSquareWarning
+            <ChatCenteredTextIcon
+              weight="bold"
               aria-hidden="true"
               className="text-warning mb-2 h-10 w-10"
             />

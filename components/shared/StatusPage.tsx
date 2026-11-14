@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import {
   Card,
@@ -17,7 +17,7 @@ export function StatusPage({
   description,
   action,
 }: {
-  icon: LucideIcon;
+  icon: PhosphorIcon;
   iconClassName?: string;
   title: string;
   description?: string;
@@ -30,7 +30,10 @@ export function StatusPage({
           <AppLogo />
           <span className="text-sm font-semibold">IT Asset Manager</span>
         </div>
-        <Icon className={cn("text-muted-foreground h-8 w-8", iconClassName)} />
+        <Icon
+          weight="bold"
+          className={cn("text-muted-foreground h-8 w-8", iconClassName)}
+        />
         <CardTitle>{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>

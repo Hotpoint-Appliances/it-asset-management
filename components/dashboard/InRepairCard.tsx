@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Wrench } from "lucide-react";
+import { WrenchIcon } from "@phosphor-icons/react/ssr";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { formatRelativeTime } from "@/lib/format";
@@ -14,7 +14,7 @@ export function InRepairCard({ items }: { items: AssetInRepairItem[] }) {
       <CardContent className="pt-0">
         {items.length === 0 ? (
           <div className="text-muted-foreground flex items-center gap-2 text-sm">
-            <Wrench className="h-4 w-4" />
+            <WrenchIcon weight="bold" className="h-4 w-4" />
             Nothing is in repair right now.
           </div>
         ) : (

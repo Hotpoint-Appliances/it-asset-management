@@ -3,7 +3,12 @@
 import * as React from "react";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
-import { Loader2, Paperclip, Trash2, Upload } from "lucide-react";
+import {
+  CircleNotchIcon,
+  PaperclipIcon,
+  TrashIcon,
+  UploadSimpleIcon,
+} from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
@@ -93,7 +98,11 @@ export function AssetAttachments({
               role="status"
               className="text-muted-foreground flex items-center gap-2 text-sm"
             >
-              <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+              <CircleNotchIcon
+                weight="bold"
+                aria-hidden="true"
+                className="h-4 w-4 animate-spin"
+              />
               {uploading < 100 ? `Uploading… ${uploading}%` : "Saving…"}
             </p>
           )}
@@ -111,7 +120,7 @@ export function AssetAttachments({
 
       {initialAttachments.length === 0 ? (
         <EmptyState
-          icon={Paperclip}
+          icon={PaperclipIcon}
           title="No attachments yet"
           description="Upload invoices, warranty cards, or extra photos for this asset."
           action={
@@ -122,7 +131,9 @@ export function AssetAttachments({
                 loading={uploading !== null}
                 className="gap-1.5"
               >
-                {uploading === null && <Upload className="h-4 w-4" />}
+                {uploading === null && (
+                  <UploadSimpleIcon weight="bold" className="h-4 w-4" />
+                )}
                 Upload a file
               </Button>
             ) : undefined
@@ -143,7 +154,7 @@ export function AssetAttachments({
                 rel="noreferrer"
                 className="flex min-w-0 items-center gap-2 text-sm hover:underline"
               >
-                <Paperclip className="h-4 w-4 shrink-0" />
+                <PaperclipIcon weight="bold" className="h-4 w-4 shrink-0" />
                 <span className="truncate font-medium">
                   {attachment.fileName}
                 </span>
@@ -159,7 +170,7 @@ export function AssetAttachments({
                     size="icon"
                     onClick={() => setDeleting(attachment)}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <TrashIcon weight="bold" className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
                   </Button>
                 )}

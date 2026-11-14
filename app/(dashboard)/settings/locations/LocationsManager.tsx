@@ -4,13 +4,13 @@ import * as React from "react";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
 import {
-  Plus,
-  Pencil,
-  Trash2,
-  MapPin,
-  ChevronRight,
-  ChevronDown,
-} from "lucide-react";
+  CaretDownIcon,
+  CaretRightIcon,
+  MapPinIcon,
+  PencilSimpleIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import {
@@ -186,9 +186,9 @@ export function LocationsManager({
                   className="text-muted-foreground flex h-6 w-6 shrink-0 items-center justify-center"
                 >
                   {isCollapsed ? (
-                    <ChevronRight className="h-4 w-4" />
+                    <CaretRightIcon weight="bold" className="h-4 w-4" />
                   ) : (
-                    <ChevronDown className="h-4 w-4" />
+                    <CaretDownIcon weight="bold" className="h-4 w-4" />
                   )}
                 </button>
               ) : (
@@ -209,7 +209,7 @@ export function LocationsManager({
                 size="icon"
                 onClick={() => openCreate(node.item.id)}
               >
-                <Plus className="h-4 w-4" />
+                <PlusIcon weight="bold" className="h-4 w-4" />
                 <span className="sr-only">Add child location</span>
               </Button>
               <Button
@@ -217,7 +217,7 @@ export function LocationsManager({
                 size="icon"
                 onClick={() => openEdit(location)}
               >
-                <Pencil className="h-4 w-4" />
+                <PencilSimpleIcon weight="bold" className="h-4 w-4" />
                 <span className="sr-only">Edit</span>
               </Button>
               <Button
@@ -225,7 +225,7 @@ export function LocationsManager({
                 size="icon"
                 onClick={() => setDeleting(location)}
               >
-                <Trash2 className="h-4 w-4" />
+                <TrashIcon weight="bold" className="h-4 w-4" />
                 <span className="sr-only">Delete</span>
               </Button>
             </div>
@@ -240,14 +240,14 @@ export function LocationsManager({
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
         <Button onClick={() => openCreate(null)}>
-          <Plus className="h-4 w-4" />
+          <PlusIcon weight="bold" className="h-4 w-4" />
           New Location
         </Button>
       </div>
 
       {initialLocations.length === 0 ? (
         <EmptyState
-          icon={MapPin}
+          icon={MapPinIcon}
           title="No locations yet"
           description="Create your first location (e.g. a site or building) to start placing assets."
           action={

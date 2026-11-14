@@ -2,7 +2,12 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Eye, FileSignature, Send, XCircle } from "lucide-react";
+import {
+  EyeIcon,
+  PaperPlaneTiltIcon,
+  SignatureIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react/ssr";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import {
@@ -45,7 +50,7 @@ export function IssueFormsTab({
   if (forms.length === 0) {
     return (
       <EmptyState
-        icon={FileSignature}
+        icon={SignatureIcon}
         title="No issue forms yet"
         description="Forms issued for this asset will appear here. Start one from the Actions menu."
       />
@@ -104,7 +109,11 @@ export function IssueFormsTab({
                         href={`/assets/${assetId}/issue-forms/${form.id}`}
                         aria-label={`View ${form.formNumber}`}
                       >
-                        <Eye aria-hidden="true" className="h-4 w-4" />
+                        <EyeIcon
+                          weight="bold"
+                          aria-hidden="true"
+                          className="h-4 w-4"
+                        />
                         View
                       </Link>
                     </Button>
@@ -124,7 +133,11 @@ export function IssueFormsTab({
                         onClick={() => resend(form)}
                       >
                         {resending !== form.id && (
-                          <Send aria-hidden="true" className="h-4 w-4" />
+                          <PaperPlaneTiltIcon
+                            weight="bold"
+                            aria-hidden="true"
+                            className="h-4 w-4"
+                          />
                         )}
                         Re-send
                       </Button>
@@ -135,7 +148,11 @@ export function IssueFormsTab({
                         size="sm"
                         onClick={() => setVoiding(form)}
                       >
-                        <XCircle aria-hidden="true" className="h-4 w-4" />
+                        <XCircleIcon
+                          weight="bold"
+                          aria-hidden="true"
+                          className="h-4 w-4"
+                        />
                         Void
                       </Button>
                     )}

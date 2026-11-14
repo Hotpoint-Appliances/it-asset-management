@@ -1,36 +1,36 @@
 import {
-  Archive,
-  ArrowRightLeft,
-  Bell,
-  FileCheck,
-  FileClock,
-  FileWarning,
-  Hammer,
-  PencilLine,
-  ShieldAlert,
-  Trash2,
-  UserCheck,
-  UserMinus,
-  Wrench,
-  type LucideIcon,
-} from "lucide-react";
+  ArchiveIcon,
+  ArrowsLeftRightIcon,
+  BellIcon,
+  ClockCountdownIcon,
+  FileXIcon,
+  HammerIcon,
+  PencilLineIcon,
+  SealCheckIcon,
+  ShieldWarningIcon,
+  TrashIcon,
+  UserCheckIcon,
+  UserMinusIcon,
+  WrenchIcon,
+} from "@phosphor-icons/react/ssr";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { formatRelativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Notification, NotificationType } from "@/types/notification";
 
-const TYPE_ICONS: Record<NotificationType, LucideIcon> = {
-  asset_assigned: UserCheck,
-  asset_transferred: ArrowRightLeft,
-  asset_unassigned: UserMinus,
-  asset_updated: PencilLine,
-  asset_maintenance: Hammer,
-  asset_disposed: Archive,
-  asset_deleted: Trash2,
-  maintenance_due: Wrench,
-  warranty_expiring: ShieldAlert,
-  issue_form_acknowledged: FileCheck,
-  issue_form_disputed: FileWarning,
-  issue_form_expired: FileClock,
+const TYPE_ICONS: Record<NotificationType, PhosphorIcon> = {
+  asset_assigned: UserCheckIcon,
+  asset_transferred: ArrowsLeftRightIcon,
+  asset_unassigned: UserMinusIcon,
+  asset_updated: PencilLineIcon,
+  asset_maintenance: HammerIcon,
+  asset_disposed: ArchiveIcon,
+  asset_deleted: TrashIcon,
+  maintenance_due: WrenchIcon,
+  warranty_expiring: ShieldWarningIcon,
+  issue_form_acknowledged: SealCheckIcon,
+  issue_form_disputed: FileXIcon,
+  issue_form_expired: ClockCountdownIcon,
 };
 
 /** Presentational body shared by the bell dropdown and the /notifications page; the caller
@@ -43,11 +43,11 @@ export function NotificationItem({
   notification: Notification;
   compact?: boolean;
 }) {
-  const Icon = TYPE_ICONS[notification.type] ?? Bell;
+  const Icon = TYPE_ICONS[notification.type] ?? BellIcon;
   return (
     <span className="flex w-full min-w-0 items-start gap-3 text-left">
       <span className="bg-muted text-muted-foreground mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
-        <Icon className="h-4 w-4" />
+        <Icon weight="bold" className="h-4 w-4" />
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="flex items-baseline justify-between gap-3">

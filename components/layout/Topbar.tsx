@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, ChevronLeft } from "lucide-react";
+import { CaretLeftIcon, ListIcon } from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import {
   Sheet,
@@ -79,7 +79,7 @@ export function Topbar({
             className="nav:hidden"
             aria-label="Open navigation"
           >
-            <Menu className="h-6 w-6" />
+            <ListIcon weight="bold" className="h-6 w-6" />
           </Button>
         </SheetTrigger>
         <SheetContent side="left">
@@ -114,7 +114,7 @@ export function Topbar({
           aria-label="Go back"
           onClick={() => router.back()}
         >
-          <ChevronLeft className="h-5 w-5" />
+          <CaretLeftIcon weight="bold" className="h-5 w-5" />
         </Button>
         <NotificationBell />
         <ThemeToggle />

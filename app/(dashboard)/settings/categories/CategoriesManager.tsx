@@ -4,13 +4,13 @@ import * as React from "react";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
 import {
-  Plus,
-  Pencil,
-  Trash2,
-  FolderTree,
-  ChevronRight,
-  ChevronDown,
-} from "lucide-react";
+  CaretDownIcon,
+  CaretRightIcon,
+  PencilSimpleIcon,
+  PlusIcon,
+  TrashIcon,
+  TreeStructureIcon,
+} from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import {
@@ -190,9 +190,9 @@ export function CategoriesManager({
                   className="text-muted-foreground flex h-6 w-6 shrink-0 items-center justify-center"
                 >
                   {isCollapsed ? (
-                    <ChevronRight className="h-4 w-4" />
+                    <CaretRightIcon weight="bold" className="h-4 w-4" />
                   ) : (
-                    <ChevronDown className="h-4 w-4" />
+                    <CaretDownIcon weight="bold" className="h-4 w-4" />
                   )}
                 </button>
               ) : (
@@ -213,7 +213,7 @@ export function CategoriesManager({
                 size="icon"
                 onClick={() => openCreate(node.item.id)}
               >
-                <Plus className="h-4 w-4" />
+                <PlusIcon weight="bold" className="h-4 w-4" />
                 <span className="sr-only">Add child category</span>
               </Button>
               <Button
@@ -221,7 +221,7 @@ export function CategoriesManager({
                 size="icon"
                 onClick={() => openEdit(category)}
               >
-                <Pencil className="h-4 w-4" />
+                <PencilSimpleIcon weight="bold" className="h-4 w-4" />
                 <span className="sr-only">Edit</span>
               </Button>
               <Button
@@ -229,7 +229,7 @@ export function CategoriesManager({
                 size="icon"
                 onClick={() => setDeleting(category)}
               >
-                <Trash2 className="h-4 w-4" />
+                <TrashIcon weight="bold" className="h-4 w-4" />
                 <span className="sr-only">Delete</span>
               </Button>
             </div>
@@ -244,14 +244,14 @@ export function CategoriesManager({
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
         <Button onClick={() => openCreate(null)}>
-          <Plus className="h-4 w-4" />
+          <PlusIcon weight="bold" className="h-4 w-4" />
           New Category
         </Button>
       </div>
 
       {initialCategories.length === 0 ? (
         <EmptyState
-          icon={FolderTree}
+          icon={TreeStructureIcon}
           title="No categories yet"
           description="Create your first category (e.g. Hardware) to start organizing assets."
           action={

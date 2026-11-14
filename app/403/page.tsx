@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ShieldAlert } from "lucide-react";
+import { ShieldWarningIcon } from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { StandalonePage } from "@/components/shared/StandalonePage";
 import { StatusPage } from "@/components/shared/StatusPage";
@@ -14,7 +14,7 @@ export default function ForbiddenPage() {
   return (
     <StandalonePage>
       <StatusPage
-        icon={ShieldAlert}
+        icon={ShieldWarningIcon}
         iconClassName="text-destructive"
         title="Access denied"
         description="You don't have permission to view this page."

@@ -1,20 +1,20 @@
-import type { LucideIcon } from "lucide-react";
 import {
-  FolderTree,
-  MapPin,
-  Building2,
-  Truck,
-  Gauge,
-  Flag,
-  UsersRound,
-  Cable,
-} from "lucide-react";
+  BuildingsIcon,
+  FlagIcon,
+  GaugeIcon,
+  MapPinIcon,
+  PlugIcon,
+  TreeStructureIcon,
+  TruckIcon,
+  UsersIcon,
+} from "@phosphor-icons/react/ssr";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 
 export interface SettingsSection {
   href: string;
   label: string;
   description: string;
-  icon: LucideIcon;
+  icon: PhosphorIcon;
 }
 
 // Single source for the settings sections: the index page and its skeleton, SettingsNav, and
@@ -24,48 +24,48 @@ export const settingsSections: SettingsSection[] = [
     href: "/settings/categories",
     label: "Categories",
     description: "Asset category hierarchy",
-    icon: FolderTree,
+    icon: TreeStructureIcon,
   },
   {
     href: "/settings/locations",
     label: "Locations",
     description: "Sites, buildings, floors, rooms",
-    icon: MapPin,
+    icon: MapPinIcon,
   },
   {
     href: "/settings/departments",
     label: "Departments",
     description: "Org departments",
-    icon: Building2,
+    icon: BuildingsIcon,
   },
   {
     href: "/settings/vendors",
     label: "Vendors",
     description: "Suppliers and repair vendors",
-    icon: Truck,
+    icon: TruckIcon,
   },
   {
     href: "/settings/conditions",
     label: "Conditions",
     description: "Asset condition options",
-    icon: Gauge,
+    icon: GaugeIcon,
   },
   {
     href: "/settings/statuses",
     label: "Statuses",
     description: "Asset lifecycle statuses",
-    icon: Flag,
+    icon: FlagIcon,
   },
   {
     href: "/settings/accessories",
     label: "Accessories",
     description: "Accessories attachable to assets",
-    icon: Cable,
+    icon: PlugIcon,
   },
   {
     href: "/settings/users",
     label: "Users",
     description: "Accounts and roles",
-    icon: UsersRound,
+    icon: UsersIcon,
   },
 ];

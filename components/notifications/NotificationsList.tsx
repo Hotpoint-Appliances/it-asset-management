@@ -2,7 +2,12 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { BellOff, CheckCheck, Mail, MailOpen } from "lucide-react";
+import {
+  BellSlashIcon,
+  ChecksIcon,
+  EnvelopeIcon,
+  EnvelopeOpenIcon,
+} from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -89,14 +94,14 @@ export function NotificationsList({
           disabled={data.unreadCount === 0 || markAllRead.isPending}
           onClick={() => markAllRead.mutate()}
         >
-          <CheckCheck />
+          <ChecksIcon weight="bold" />
           Mark all as read
         </Button>
       </div>
 
       {data.items.length === 0 ? (
         <EmptyState
-          icon={BellOff}
+          icon={BellSlashIcon}
           title={
             unreadOnly ? "No unread notifications" : "No notifications yet"
           }
@@ -130,7 +135,11 @@ export function NotificationsList({
                 title={n.isRead ? "Mark as unread" : "Mark as read"}
                 onClick={() => setRead.mutate({ id: n.id, isRead: !n.isRead })}
               >
-                {n.isRead ? <Mail /> : <MailOpen />}
+                {n.isRead ? (
+                  <EnvelopeIcon weight="bold" />
+                ) : (
+                  <EnvelopeOpenIcon weight="bold" />
+                )}
               </Button>
             </div>
           ))}

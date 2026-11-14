@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
-import { Cable, Pencil } from "lucide-react";
+import { PencilSimpleIcon, PlugIcon } from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import {
@@ -141,7 +141,7 @@ export function AccessoriesTab({
           )}
           {editable && (
             <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
-              <Pencil className="h-4 w-4" />
+              <PencilSimpleIcon weight="bold" className="h-4 w-4" />
               Edit accessories
             </Button>
           )}
@@ -150,7 +150,7 @@ export function AccessoriesTab({
 
       {accessories.length === 0 ? (
         <EmptyState
-          icon={Cable}
+          icon={PlugIcon}
           title="No accessories"
           description="Accessories attached to this asset will appear here."
         />

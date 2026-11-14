@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircleIcon } from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
@@ -90,7 +90,8 @@ export function LoginForm() {
           role="status"
           className="border-success/40 bg-success/5 mb-6 flex gap-3 rounded-lg border p-3 text-sm"
         >
-          <CheckCircle2
+          <CheckCircleIcon
+            weight="bold"
             aria-hidden="true"
             className="text-success mt-0.5 h-4 w-4 shrink-0"
           />

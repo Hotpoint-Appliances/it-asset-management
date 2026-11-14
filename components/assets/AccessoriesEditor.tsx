@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Plus, X } from "lucide-react";
+import { PlusIcon, XIcon } from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -184,7 +184,7 @@ export function AccessoriesEditor({
               onClick={() => onChange(rows.filter((r) => r.key !== row.key))}
               className="shrink-0"
             >
-              <X className="h-4 w-4" />
+              <XIcon weight="bold" className="h-4 w-4" />
               <span className="sr-only">Remove {label.toLowerCase()}</span>
             </Button>
           </div>
@@ -198,7 +198,7 @@ export function AccessoriesEditor({
         onClick={addRow}
         className="w-fit"
       >
-        <Plus className="h-4 w-4" />
+        <PlusIcon weight="bold" className="h-4 w-4" />
         Add accessory
       </Button>
     </div>

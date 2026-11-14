@@ -1,5 +1,8 @@
 import * as React from "react";
-import { History, SearchX } from "lucide-react";
+import {
+  ClockCounterClockwiseIcon,
+  MagnifyingGlassMinusIcon,
+} from "@phosphor-icons/react/ssr";
 import { ListSearchInput, matchesQuery } from "@/components/ui/ListSearch";
 import { Pagination } from "@/components/shared/Pagination";
 import { usePagination } from "@/lib/hooks/usePagination";
@@ -156,7 +159,7 @@ export function AuditLogTimeline({
   if (entries.length === 0) {
     return (
       <EmptyState
-        icon={History}
+        icon={ClockCounterClockwiseIcon}
         title="No history yet"
         description="Actions on this asset will appear here."
       />
@@ -178,7 +181,7 @@ export function AuditLogTimeline({
       </div>
       {filtered.length === 0 ? (
         <EmptyState
-          icon={SearchX}
+          icon={MagnifyingGlassMinusIcon}
           title="No matching entries"
           description="Try a different search term."
         />

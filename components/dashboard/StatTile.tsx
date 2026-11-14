@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
@@ -14,7 +14,7 @@ export function StatTile({
 }: {
   label: string;
   value: number;
-  icon: LucideIcon;
+  icon: PhosphorIcon;
   href?: string;
   tone?: "default" | "warning" | "danger";
 }) {
@@ -41,7 +41,7 @@ export function StatTile({
             tone === "danger" && "bg-destructive/15 text-destructive",
           )}
         >
-          <Icon className="h-5 w-5" />
+          <Icon weight="bold" className="h-5 w-5" />
         </div>
       </CardContent>
     </Card>

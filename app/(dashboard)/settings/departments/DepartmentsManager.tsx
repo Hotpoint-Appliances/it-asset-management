@@ -3,7 +3,12 @@
 import * as React from "react";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
-import { Plus, Pencil, Trash2, Building2 } from "lucide-react";
+import {
+  BuildingsIcon,
+  PencilSimpleIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import {
@@ -140,14 +145,14 @@ export function DepartmentsManager({
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate}>
-          <Plus className="h-4 w-4" />
+          <PlusIcon weight="bold" className="h-4 w-4" />
           New Department
         </Button>
       </div>
 
       {initialDepartments.length === 0 ? (
         <EmptyState
-          icon={Building2}
+          icon={BuildingsIcon}
           title="No departments yet"
           description="Create your first department to start assigning assets and users to it."
           action={<Button onClick={openCreate}>New Department</Button>}
@@ -172,7 +177,7 @@ export function DepartmentsManager({
                     size="icon"
                     onClick={() => openEdit(department)}
                   >
-                    <Pencil className="h-4 w-4" />
+                    <PencilSimpleIcon weight="bold" className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
                   <Button
@@ -180,7 +185,7 @@ export function DepartmentsManager({
                     size="icon"
                     onClick={() => setDeleting(department)}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <TrashIcon weight="bold" className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
                   </Button>
                 </TableCell>

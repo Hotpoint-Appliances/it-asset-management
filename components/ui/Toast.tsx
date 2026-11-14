@@ -1,29 +1,27 @@
 "use client";
 
 import * as React from "react";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import {
-  X,
-  CheckCircle2,
-  CircleAlert,
-  TriangleAlert,
-  Info,
-  Loader2,
-} from "lucide-react";
+  CheckCircleIcon,
+  CircleNotchIcon,
+  InfoIcon,
+  WarningCircleIcon,
+  WarningIcon,
+  XIcon,
+} from "@phosphor-icons/react/ssr";
 import { cn } from "@/lib/utils";
 import { useUIStore, type Toast, type ToastVariant } from "@/store";
 import { Portal } from "@/components/ui/Portal";
 
 const AUTO_DISMISS_MS = 5000;
 
-const VARIANT_ICON: Record<
-  ToastVariant,
-  React.ComponentType<{ className?: string }>
-> = {
-  success: CheckCircle2,
-  error: CircleAlert,
-  warning: TriangleAlert,
-  info: Info,
-  loading: Loader2,
+const VARIANT_ICON: Record<ToastVariant, PhosphorIcon> = {
+  success: CheckCircleIcon,
+  error: WarningCircleIcon,
+  warning: WarningIcon,
+  info: InfoIcon,
+  loading: CircleNotchIcon,
 };
 
 const VARIANT_ICON_CLASS: Record<ToastVariant, string> = {
@@ -101,6 +99,7 @@ function ToastCard({
       }}
     >
       <Icon
+        weight="bold"
         className={cn("mt-0.5 h-7 w-7 shrink-0", VARIANT_ICON_CLASS[variant])}
       />
       <div className="flex-1 space-y-0.5">
@@ -141,7 +140,7 @@ function ToastCard({
         onClick={() => setClosing(true)}
         className="flex min-h-11 min-w-11 items-center justify-center opacity-70 hover:opacity-100"
       >
-        <X className="h-4 w-4" />
+        <XIcon weight="bold" className="h-4 w-4" />
         <span className="sr-only">Dismiss</span>
       </button>
     </div>

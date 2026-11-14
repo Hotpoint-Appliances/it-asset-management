@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
-import { Loader2 } from "lucide-react";
+import { CircleNotchIcon } from "@phosphor-icons/react/ssr";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
@@ -69,7 +69,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {/* Slot needs its single child, so asChild buttons never get the spinner. */}
         {loading && !asChild ? (
           <>
-            <Loader2 aria-hidden="true" className="animate-spin" />
+            <CircleNotchIcon
+              weight="bold"
+              aria-hidden="true"
+              className="animate-spin"
+            />
             {children}
           </>
         ) : (

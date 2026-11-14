@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import axios from "axios";
-import { Check, X } from "lucide-react";
+import { CheckIcon, XIcon } from "@phosphor-icons/react/ssr";
 import { Input } from "@/components/ui/Input";
 import { Portal } from "@/components/ui/Portal";
 import { cn } from "@/lib/utils";
@@ -194,7 +194,7 @@ export function UserTypeahead({
     return (
       <div className="border-border bg-muted/50 flex min-h-11 items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm">
         <span className="flex items-center gap-1.5">
-          <Check className="text-success h-4 w-4" />
+          <CheckIcon weight="bold" className="text-success h-4 w-4" />
           {displayName}
         </span>
         <button
@@ -207,7 +207,7 @@ export function UserTypeahead({
           className="text-muted-foreground hover:text-foreground focus-visible:ring-ring flex h-6 w-6 items-center justify-center rounded focus-visible:ring-2 focus-visible:outline-none"
           aria-label="Clear selected user"
         >
-          <X className="h-4 w-4" />
+          <XIcon weight="bold" className="h-4 w-4" />
         </button>
       </div>
     );

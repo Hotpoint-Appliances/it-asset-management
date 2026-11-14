@@ -1,7 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { CalendarDays, ChevronLeft, ChevronRight, X } from "lucide-react";
+import {
+  CalendarDotsIcon,
+  CaretLeftIcon,
+  CaretRightIcon,
+  XIcon,
+} from "@phosphor-icons/react/ssr";
 import { Select } from "@/components/ui/Select";
 import { cn } from "@/lib/utils";
 
@@ -359,7 +364,10 @@ export function DatePicker({
         <span className="truncate">
           {selected ? formatDisplay(selected) : placeholder}
         </span>
-        <CalendarDays className="text-muted-foreground h-4 w-4 shrink-0" />
+        <CalendarDotsIcon
+          weight="bold"
+          className="text-muted-foreground h-4 w-4 shrink-0"
+        />
       </button>
       {selected && !required && !disabled && (
         <button
@@ -368,7 +376,7 @@ export function DatePicker({
           onClick={() => onChange("")}
           className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-9 -translate-y-1/2 rounded p-0.5 focus-visible:ring-2 focus-visible:outline-none"
         >
-          <X className="h-3.5 w-3.5" />
+          <XIcon weight="bold" className="h-3.5 w-3.5" />
         </button>
       )}
       {/* Mirrors the value so native `required` validation and form submission still work. */}
@@ -403,7 +411,7 @@ export function DatePicker({
                 onClick={() => setCursor(addMonths(cursor, -1))}
                 className="hover:bg-muted focus-visible:ring-ring flex h-8 w-8 shrink-0 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <CaretLeftIcon weight="bold" className="h-4 w-4" />
               </button>
               <Select
                 aria-label="Month"
@@ -443,7 +451,7 @@ export function DatePicker({
                 onClick={() => setCursor(addMonths(cursor, 1))}
                 className="hover:bg-muted focus-visible:ring-ring flex h-8 w-8 shrink-0 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
               >
-                <ChevronRight className="h-4 w-4" />
+                <CaretRightIcon weight="bold" className="h-4 w-4" />
               </button>
             </div>
 

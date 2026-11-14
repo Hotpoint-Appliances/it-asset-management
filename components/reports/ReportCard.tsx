@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { DownloadButton } from "@/components/shared/DownloadButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -15,7 +15,7 @@ export function ReportCard({
   children,
   disabled,
 }: {
-  icon: LucideIcon;
+  icon: PhosphorIcon;
   title: string;
   description: string;
   href: string;
@@ -27,7 +27,7 @@ export function ReportCard({
     <Card className="flex flex-col overflow-visible">
       <CardHeader className="flex flex-row items-start gap-3 pb-3">
         <div className="bg-muted text-muted-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
-          <Icon className="h-5 w-5" />
+          <Icon weight="bold" className="h-5 w-5" />
         </div>
         <div className="min-w-0 space-y-1">
           <CardTitle className="text-base">{title}</CardTitle>

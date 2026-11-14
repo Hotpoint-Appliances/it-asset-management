@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronDown } from "lucide-react";
+import { CaretDownIcon } from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import {
   DropdownMenu,
@@ -97,7 +97,7 @@ export function MultiSelectFilter({
               {selected.length}
             </span>
           )}
-          <ChevronDown className="h-3.5 w-3.5" />
+          <CaretDownIcon weight="bold" className="h-3.5 w-3.5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

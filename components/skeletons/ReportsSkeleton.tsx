@@ -1,5 +1,10 @@
-import type { LucideIcon } from "lucide-react";
-import { ClipboardList, ScrollText, Trash2, TrendingDown } from "lucide-react";
+import {
+  ClipboardTextIcon,
+  ScrollIcon,
+  TrashIcon,
+  TrendDownIcon,
+} from "@phosphor-icons/react/ssr";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PageHeaderSkeleton } from "./PageHeaderSkeleton";
@@ -14,14 +19,14 @@ export function ReportsSkeleton() {
         description="Excel exports for finance and audit."
       />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <ReportCardSkeleton icon={ClipboardList} title="Asset register" />
+        <ReportCardSkeleton icon={ClipboardTextIcon} title="Asset register" />
         <ReportCardSkeleton
-          icon={ScrollText}
+          icon={ScrollIcon}
           title="Audit trail"
           withDateRange
         />
-        <ReportCardSkeleton icon={Trash2} title="Disposal register" />
-        <ReportCardSkeleton icon={TrendingDown} title="Depreciation summary" />
+        <ReportCardSkeleton icon={TrashIcon} title="Disposal register" />
+        <ReportCardSkeleton icon={TrendDownIcon} title="Depreciation summary" />
       </div>
     </div>
   );
@@ -32,7 +37,7 @@ function ReportCardSkeleton({
   title,
   withDateRange = false,
 }: {
-  icon: LucideIcon;
+  icon: PhosphorIcon;
   title: string;
   withDateRange?: boolean;
 }) {
@@ -40,7 +45,7 @@ function ReportCardSkeleton({
     <Card className="flex flex-col">
       <CardHeader className="flex flex-row items-start gap-3 pb-3">
         <div className="bg-muted text-muted-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
-          <Icon className="h-5 w-5" />
+          <Icon weight="bold" className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1 space-y-1">
           <CardTitle className="text-base">{title}</CardTitle>

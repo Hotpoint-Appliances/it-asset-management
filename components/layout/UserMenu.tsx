@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import axios from "axios";
-import { KeyRound, LogOut } from "lucide-react";
+import { KeyIcon, SignOutIcon } from "@phosphor-icons/react/ssr";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,11 +73,11 @@ export function UserMenu() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => setPasswordOpen(true)}>
-            <KeyRound className="h-4 w-4" />
+            <KeyIcon weight="bold" className="h-4 w-4" />
             Change password
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={handleLogout} disabled={loggingOut}>
-            <LogOut className="h-4 w-4" />
+            <SignOutIcon weight="bold" className="h-4 w-4" />
             Sign out
           </DropdownMenuItem>
         </DropdownMenuContent>
