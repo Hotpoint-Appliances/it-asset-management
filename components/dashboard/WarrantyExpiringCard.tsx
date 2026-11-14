@@ -52,7 +52,7 @@ export function WarrantyExpiringCard({
       <CardContent className="pt-0">
         {visible.length === 0 ? (
           <div className="text-muted-foreground flex items-center gap-2 text-sm">
-            <ShieldWarningIcon className="h-4 w-4" />
+            <ShieldWarningIcon weight="bold" className="h-4 w-4" />
             No warranties expire in the next {windowDays} days.
           </div>
         ) : (

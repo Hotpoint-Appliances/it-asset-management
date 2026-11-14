@@ -30,7 +30,10 @@ export function StatusPage({
           <AppLogo />
           <span className="text-sm font-semibold">IT Asset Manager</span>
         </div>
-        <Icon className={cn("text-muted-foreground h-8 w-8", iconClassName)} />
+        <Icon
+          weight="bold"
+          className={cn("text-muted-foreground h-8 w-8", iconClassName)}
+        />
         <CardTitle>{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>

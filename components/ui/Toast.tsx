@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import {
   CheckCircleIcon,
   CircleNotchIcon,
@@ -15,10 +16,7 @@ import { Portal } from "@/components/ui/Portal";
 
 const AUTO_DISMISS_MS = 5000;
 
-const VARIANT_ICON: Record<
-  ToastVariant,
-  React.ComponentType<{ className?: string }>
-> = {
+const VARIANT_ICON: Record<ToastVariant, PhosphorIcon> = {
   success: CheckCircleIcon,
   error: WarningCircleIcon,
   warning: WarningIcon,
@@ -101,6 +99,7 @@ function ToastCard({
       }}
     >
       <Icon
+        weight="bold"
         className={cn("mt-0.5 h-7 w-7 shrink-0", VARIANT_ICON_CLASS[variant])}
       />
       <div className="flex-1 space-y-0.5">
@@ -141,7 +140,7 @@ function ToastCard({
         onClick={() => setClosing(true)}
         className="flex min-h-11 min-w-11 items-center justify-center opacity-70 hover:opacity-100"
       >
-        <XIcon className="h-4 w-4" />
+        <XIcon weight="bold" className="h-4 w-4" />
         <span className="sr-only">Dismiss</span>
       </button>
     </div>

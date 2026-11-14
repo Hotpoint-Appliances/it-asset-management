@@ -73,11 +73,11 @@ export function UserMenu() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => setPasswordOpen(true)}>
-            <KeyIcon className="h-4 w-4" />
+            <KeyIcon weight="bold" className="h-4 w-4" />
             Change password
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={handleLogout} disabled={loggingOut}>
-            <SignOutIcon className="h-4 w-4" />
+            <SignOutIcon weight="bold" className="h-4 w-4" />
             Sign out
           </DropdownMenuItem>
         </DropdownMenuContent>

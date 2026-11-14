@@ -94,7 +94,7 @@ export function NotificationsList({
           disabled={data.unreadCount === 0 || markAllRead.isPending}
           onClick={() => markAllRead.mutate()}
         >
-          <ChecksIcon />
+          <ChecksIcon weight="bold" />
           Mark all as read
         </Button>
       </div>
@@ -135,7 +135,11 @@ export function NotificationsList({
                 title={n.isRead ? "Mark as unread" : "Mark as read"}
                 onClick={() => setRead.mutate({ id: n.id, isRead: !n.isRead })}
               >
-                {n.isRead ? <EnvelopeIcon /> : <EnvelopeOpenIcon />}
+                {n.isRead ? (
+                  <EnvelopeIcon weight="bold" />
+                ) : (
+                  <EnvelopeOpenIcon weight="bold" />
+                )}
               </Button>
             </div>
           ))}

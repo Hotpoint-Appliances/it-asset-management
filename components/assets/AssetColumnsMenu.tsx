@@ -31,9 +31,9 @@ export function AssetColumnsMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="ml-auto gap-1.5">
-          <ColumnsIcon className="h-3.5 w-3.5" />
+          <ColumnsIcon weight="bold" className="h-3.5 w-3.5" />
           Columns
-          <CaretDownIcon className="h-3.5 w-3.5" />
+          <CaretDownIcon weight="bold" className="h-3.5 w-3.5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" customLayout>
@@ -65,7 +65,7 @@ export function AssetColumnsMenu({
               columns.reset();
             }}
           >
-            <ArrowCounterClockwiseIcon className="h-4 w-4" />
+            <ArrowCounterClockwiseIcon weight="bold" className="h-4 w-4" />
             Reset to default
           </DropdownMenuItem>
         </div>

@@ -264,7 +264,7 @@ export function MaintenanceTab({
             onClick={() => setCreateOpen(true)}
             className="gap-1.5"
           >
-            <PlusIcon className="h-4 w-4" />
+            <PlusIcon weight="bold" className="h-4 w-4" />
             Log maintenance
           </Button>
         </div>

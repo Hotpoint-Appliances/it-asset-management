@@ -165,7 +165,7 @@ export function QuickActions({ className }: { className?: string }) {
           className,
         )}
       >
-        <MagnifyingGlassIcon className="h-4 w-4 shrink-0" />
+        <MagnifyingGlassIcon weight="bold" className="h-4 w-4 shrink-0" />
         <span className="flex-1 truncate text-left">
           Quick actions, press{" "}
           <kbd className="border-border bg-background rounded border px-1.5 font-mono text-sm">
@@ -190,7 +190,10 @@ export function QuickActions({ className }: { className?: string }) {
             Quick actions
           </DialogPrimitive.Title>
           <div className="border-border flex h-14 shrink-0 items-center gap-2 border-b px-3">
-            <MagnifyingGlassIcon className="text-muted-foreground h-4 w-4 shrink-0" />
+            <MagnifyingGlassIcon
+              weight="bold"
+              className="text-muted-foreground h-4 w-4 shrink-0"
+            />
             <input
               autoFocus
               value={query}
@@ -232,10 +235,16 @@ export function QuickActions({ className }: { className?: string }) {
                           i === activeIndex && "bg-muted",
                         )}
                       >
-                        <Icon className="text-muted-foreground h-4 w-4 shrink-0" />
+                        <Icon
+                          weight="bold"
+                          className="text-muted-foreground h-4 w-4 shrink-0"
+                        />
                         <span className="flex-1 truncate">{action.label}</span>
                         {i === activeIndex && (
-                          <ArrowRightIcon className="text-muted-foreground h-4 w-4 shrink-0" />
+                          <ArrowRightIcon
+                            weight="bold"
+                            className="text-muted-foreground h-4 w-4 shrink-0"
+                          />
                         )}
                       </button>
                     </li>

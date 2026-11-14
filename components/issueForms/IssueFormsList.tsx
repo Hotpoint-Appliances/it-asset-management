@@ -275,7 +275,10 @@ export function IssueFormsList({
       <div className="flex flex-col gap-3">
         <form onSubmit={handleSearchSubmit} className="flex gap-2">
           <div className="relative flex-1">
-            <MagnifyingGlassIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+            <MagnifyingGlassIcon
+              weight="bold"
+              className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
+            />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -348,7 +351,7 @@ export function IssueFormsList({
               onClick={clearFilters}
               className="gap-1"
             >
-              <XIcon className="h-3.5 w-3.5" />
+              <XIcon weight="bold" className="h-3.5 w-3.5" />
               Clear filters
             </Button>
           )}
@@ -368,7 +371,7 @@ export function IssueFormsList({
             hasFilters ? undefined : (
               <Button asChild>
                 <Link href="/assets">
-                  <PackageIcon className="h-4 w-4" />
+                  <PackageIcon weight="bold" className="h-4 w-4" />
                   Go to assets
                 </Link>
               </Button>
@@ -611,28 +614,28 @@ function RowMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" loading={resending}>
-          {!resending && <DotsThreeIcon className="h-4 w-4" />}
+          {!resending && <DotsThreeIcon weight="bold" className="h-4 w-4" />}
           <span className="sr-only">More actions for {form.formNumber}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
           <Link href={href}>
-            <EyeIcon className="h-4 w-4" />
+            <EyeIcon weight="bold" className="h-4 w-4" />
             View form
           </Link>
         </DropdownMenuItem>
         {!form.assetDeleted && (
           <DropdownMenuItem asChild>
             <Link href={`/assets/${form.assetId}?tab=issue-forms`}>
-              <PackageIcon className="h-4 w-4" />
+              <PackageIcon weight="bold" className="h-4 w-4" />
               Open asset
             </Link>
           </DropdownMenuItem>
         )}
         {form.status === "pending" && (
           <DropdownMenuItem onSelect={onResend} disabled={resending}>
-            <PaperPlaneTiltIcon className="h-4 w-4" />
+            <PaperPlaneTiltIcon weight="bold" className="h-4 w-4" />
             Re-send email
           </DropdownMenuItem>
         )}
@@ -641,7 +644,7 @@ function RowMenu({
             onSelect={onVoid}
             className="text-destructive focus:text-destructive"
           >
-            <XCircleIcon className="h-4 w-4" />
+            <XCircleIcon weight="bold" className="h-4 w-4" />
             Void form
           </DropdownMenuItem>
         )}

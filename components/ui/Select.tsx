@@ -212,7 +212,10 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
             placeholder={placeholder ?? placeholderOption?.label}
           />
           <SelectPrimitive.Icon asChild>
-            <CaretDownIcon className="text-muted-foreground h-4 w-4 shrink-0 opacity-70" />
+            <CaretDownIcon
+              weight="bold"
+              className="text-muted-foreground h-4 w-4 shrink-0 opacity-70"
+            />
           </SelectPrimitive.Icon>
         </SelectPrimitive.Trigger>
         <SelectPrimitive.Portal>
@@ -271,7 +274,7 @@ const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
                     </span>
                     {showPath && <span aria-hidden>{option.searchLabel}</span>}
                     <SelectPrimitive.ItemIndicator className="absolute right-2 flex h-4 w-4 items-center justify-center">
-                      <CheckIcon className="h-4 w-4" />
+                      <CheckIcon weight="bold" className="h-4 w-4" />
                     </SelectPrimitive.ItemIndicator>
                   </SelectPrimitive.Item>
                 );

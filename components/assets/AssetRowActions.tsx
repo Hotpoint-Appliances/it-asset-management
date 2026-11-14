@@ -60,7 +60,7 @@ export function AssetRowActions({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
-            <DotsThreeIcon className="h-4 w-4" />
+            <DotsThreeIcon weight="bold" className="h-4 w-4" />
             <span className="sr-only">
               Actions for {asset.name}, {asset.assetTag}
             </span>
@@ -72,7 +72,7 @@ export function AssetRowActions({
               href={`/assets/${asset.id}`}
               onNavigate={navigateTo(`/assets/${asset.id}`)}
             >
-              <EyeIcon className="h-4 w-4" />
+              <EyeIcon weight="bold" className="h-4 w-4" />
               View
             </Link>
           </DropdownMenuItem>
@@ -82,14 +82,14 @@ export function AssetRowActions({
                 href={`/assets/${asset.id}/edit`}
                 onNavigate={navigateTo(`/assets/${asset.id}/edit`)}
               >
-                <PencilSimpleIcon className="h-4 w-4" />
+                <PencilSimpleIcon weight="bold" className="h-4 w-4" />
                 Edit
               </Link>
             </DropdownMenuItem>
           )}
           {canManage && !isDisposed && (
             <DropdownMenuItem onSelect={() => setTransferOpen(true)}>
-              <ArrowsLeftRightIcon className="h-4 w-4" />
+              <ArrowsLeftRightIcon weight="bold" className="h-4 w-4" />
               Transfer
             </DropdownMenuItem>
           )}
@@ -98,7 +98,7 @@ export function AssetRowActions({
               onSelect={() => setDisposeOpen(true)}
               className="text-destructive focus:text-destructive"
             >
-              <TrashIcon className="h-4 w-4" />
+              <TrashIcon weight="bold" className="h-4 w-4" />
               Dispose
             </DropdownMenuItem>
           )}

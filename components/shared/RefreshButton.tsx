@@ -46,6 +46,7 @@ export function RefreshButton({ className }: { className?: string }) {
         className={className}
       >
         <ArrowsClockwiseIcon
+          weight="bold"
           aria-hidden="true"
           className={cn(refreshing && "motion-safe:animate-spin")}
         />

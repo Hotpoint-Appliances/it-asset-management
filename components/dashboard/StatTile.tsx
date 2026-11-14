@@ -41,7 +41,7 @@ export function StatTile({
             tone === "danger" && "bg-destructive/15 text-destructive",
           )}
         >
-          <Icon className="h-5 w-5" />
+          <Icon weight="bold" className="h-5 w-5" />
         </div>
       </CardContent>
     </Card>

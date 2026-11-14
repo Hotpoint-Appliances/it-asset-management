@@ -166,7 +166,7 @@ export function VendorsManager({
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate}>
-          <PlusIcon className="h-4 w-4" />
+          <PlusIcon weight="bold" className="h-4 w-4" />
           New Vendor
         </Button>
       </div>
@@ -202,7 +202,7 @@ export function VendorsManager({
                     size="icon"
                     onClick={() => openEdit(vendor)}
                   >
-                    <PencilSimpleIcon className="h-4 w-4" />
+                    <PencilSimpleIcon weight="bold" className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
                   <Button
@@ -210,7 +210,7 @@ export function VendorsManager({
                     size="icon"
                     onClick={() => setDeleting(vendor)}
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    <TrashIcon weight="bold" className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
                   </Button>
                 </TableCell>

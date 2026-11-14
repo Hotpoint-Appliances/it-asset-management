@@ -52,7 +52,7 @@ export default async function AcknowledgePage({
         <Notice
           icon={
             <span className="bg-destructive/10 text-destructive mb-2 flex h-12 w-12 items-center justify-center rounded-xl">
-              <LinkIcon aria-hidden="true" className="h-6 w-6" />
+              <LinkIcon weight="bold" aria-hidden="true" className="h-6 w-6" />
             </span>
           }
           title="This link is no longer valid"
@@ -72,6 +72,7 @@ export default async function AcknowledgePage({
         <Notice
           icon={
             <CheckCircleIcon
+              weight="bold"
               aria-hidden="true"
               className="text-success mb-2 h-10 w-10"
             />
@@ -88,6 +89,7 @@ export default async function AcknowledgePage({
         <Notice
           icon={
             <ChatCenteredTextIcon
+              weight="bold"
               aria-hidden="true"
               className="text-warning mb-2 h-10 w-10"
             />

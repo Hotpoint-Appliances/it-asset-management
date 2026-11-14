@@ -97,7 +97,7 @@ export function MultiSelectFilter({
               {selected.length}
             </span>
           )}
-          <CaretDownIcon className="h-3.5 w-3.5" />
+          <CaretDownIcon weight="bold" className="h-3.5 w-3.5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

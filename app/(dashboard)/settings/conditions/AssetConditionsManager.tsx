@@ -145,7 +145,7 @@ export function AssetConditionsManager({
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate}>
-          <PlusIcon className="h-4 w-4" />
+          <PlusIcon weight="bold" className="h-4 w-4" />
           New Condition
         </Button>
       </div>
@@ -177,7 +177,7 @@ export function AssetConditionsManager({
                     size="icon"
                     onClick={() => openEdit(condition)}
                   >
-                    <PencilSimpleIcon className="h-4 w-4" />
+                    <PencilSimpleIcon weight="bold" className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
                   <Button
@@ -185,7 +185,7 @@ export function AssetConditionsManager({
                     size="icon"
                     onClick={() => setDeleting(condition)}
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    <TrashIcon weight="bold" className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
                   </Button>
                 </TableCell>

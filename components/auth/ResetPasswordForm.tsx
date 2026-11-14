@@ -22,7 +22,7 @@ export function ResetLinkInvalid() {
   return (
     <div className="flex w-full max-w-sm flex-col items-center gap-2 text-center">
       <span className="bg-destructive/10 text-destructive mb-2 flex h-12 w-12 items-center justify-center rounded-xl">
-        <LinkIcon aria-hidden="true" className="h-6 w-6" />
+        <LinkIcon weight="bold" aria-hidden="true" className="h-6 w-6" />
       </span>
       <h1 className="text-3xl font-bold tracking-tight">Link expired</h1>
       <p className="text-muted-foreground text-sm">
@@ -36,7 +36,7 @@ export function ResetLinkInvalid() {
         href="/login"
         className="text-muted-foreground hover:text-foreground mt-2 flex items-center gap-1.5 text-sm"
       >
-        <ArrowLeftIcon aria-hidden="true" className="h-4 w-4" />
+        <ArrowLeftIcon weight="bold" aria-hidden="true" className="h-4 w-4" />
         Back to sign in
       </Link>
     </div>

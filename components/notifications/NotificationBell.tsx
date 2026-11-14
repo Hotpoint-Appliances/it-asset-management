@@ -59,7 +59,7 @@ export function NotificationBell() {
             unread ? `Notifications, ${unread} unread` : "Notifications"
           }
         >
-          <BellIcon className="h-5 w-5" />
+          <BellIcon weight="bold" className="h-5 w-5" />
           {unread > 0 && (
             <span
               aria-hidden="true"
@@ -88,7 +88,7 @@ export function NotificationBell() {
         <DropdownMenuSeparator />
         {items.length === 0 ? (
           <div className="text-muted-foreground flex flex-col items-center gap-2 px-2 py-6 text-sm">
-            <TrayIcon className="h-6 w-6" />
+            <TrayIcon weight="bold" className="h-6 w-6" />
             You&apos;re all caught up.
           </div>
         ) : (
@@ -113,11 +113,11 @@ export function NotificationBell() {
             markAllRead.mutate();
           }}
         >
-          <ChecksIcon className="h-4 w-4" />
+          <ChecksIcon weight="bold" className="h-4 w-4" />
           Mark all as read
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => router.push("/notifications")}>
-          <ListBulletsIcon className="h-4 w-4" />
+          <ListBulletsIcon weight="bold" className="h-4 w-4" />
           View all notifications
         </DropdownMenuItem>
       </DropdownMenuContent>

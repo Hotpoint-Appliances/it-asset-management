@@ -59,7 +59,11 @@ export function ForgotPasswordForm() {
     return (
       <div className="flex w-full max-w-sm flex-col items-center gap-2 text-center">
         <span className="bg-primary/10 text-primary mb-2 flex h-12 w-12 items-center justify-center rounded-xl">
-          <EnvelopeSimpleOpenIcon aria-hidden="true" className="h-6 w-6" />
+          <EnvelopeSimpleOpenIcon
+            weight="bold"
+            aria-hidden="true"
+            className="h-6 w-6"
+          />
         </span>
         <h1
           ref={sentRef}
@@ -86,7 +90,11 @@ export function ForgotPasswordForm() {
         </p>
         <Button variant="outline" asChild className="mt-6 w-full">
           <Link href="/login">
-            <ArrowLeftIcon aria-hidden="true" className="h-4 w-4" />
+            <ArrowLeftIcon
+              weight="bold"
+              aria-hidden="true"
+              className="h-4 w-4"
+            />
             Back to sign in
           </Link>
         </Button>
@@ -139,7 +147,7 @@ export function ForgotPasswordForm() {
           href="/login"
           className="text-muted-foreground hover:text-foreground mx-auto flex items-center gap-1.5 text-sm"
         >
-          <ArrowLeftIcon aria-hidden="true" className="h-4 w-4" />
+          <ArrowLeftIcon weight="bold" aria-hidden="true" className="h-4 w-4" />
           Back to sign in
         </Link>
       </form>

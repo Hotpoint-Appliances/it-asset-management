@@ -109,7 +109,11 @@ export function IssueFormsTab({
                         href={`/assets/${assetId}/issue-forms/${form.id}`}
                         aria-label={`View ${form.formNumber}`}
                       >
-                        <EyeIcon aria-hidden="true" className="h-4 w-4" />
+                        <EyeIcon
+                          weight="bold"
+                          aria-hidden="true"
+                          className="h-4 w-4"
+                        />
                         View
                       </Link>
                     </Button>
@@ -130,6 +134,7 @@ export function IssueFormsTab({
                       >
                         {resending !== form.id && (
                           <PaperPlaneTiltIcon
+                            weight="bold"
                             aria-hidden="true"
                             className="h-4 w-4"
                           />
@@ -143,7 +148,11 @@ export function IssueFormsTab({
                         size="sm"
                         onClick={() => setVoiding(form)}
                       >
-                        <XCircleIcon aria-hidden="true" className="h-4 w-4" />
+                        <XCircleIcon
+                          weight="bold"
+                          aria-hidden="true"
+                          className="h-4 w-4"
+                        />
                         Void
                       </Button>
                     )}

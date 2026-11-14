@@ -91,6 +91,7 @@ export function LoginForm() {
           className="border-success/40 bg-success/5 mb-6 flex gap-3 rounded-lg border p-3 text-sm"
         >
           <CheckCircleIcon
+            weight="bold"
             aria-hidden="true"
             className="text-success mt-0.5 h-4 w-4 shrink-0"
           />

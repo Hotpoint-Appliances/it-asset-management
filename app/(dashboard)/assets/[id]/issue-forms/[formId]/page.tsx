@@ -39,7 +39,7 @@ export default async function IssueFormPage({
         href={toRegister ? "/issue-forms" : `/assets/${id}?tab=issue-forms`}
         className="text-muted-foreground hover:text-foreground inline-flex min-h-11 w-fit items-center gap-1.5 text-sm sm:min-h-0"
       >
-        <ArrowLeftIcon aria-hidden="true" className="h-4 w-4" />
+        <ArrowLeftIcon weight="bold" aria-hidden="true" className="h-4 w-4" />
         Back to issue forms
       </Link>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">

@@ -72,7 +72,11 @@ export function DownloadButton({
       {...props}
     >
       {!downloading && (
-        <DownloadSimpleIcon aria-hidden="true" className="h-4 w-4" />
+        <DownloadSimpleIcon
+          weight="bold"
+          aria-hidden="true"
+          className="h-4 w-4"
+        />
       )}
       {children}
     </Button>

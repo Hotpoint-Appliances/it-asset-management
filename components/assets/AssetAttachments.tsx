@@ -99,6 +99,7 @@ export function AssetAttachments({
               className="text-muted-foreground flex items-center gap-2 text-sm"
             >
               <CircleNotchIcon
+                weight="bold"
                 aria-hidden="true"
                 className="h-4 w-4 animate-spin"
               />
@@ -130,7 +131,9 @@ export function AssetAttachments({
                 loading={uploading !== null}
                 className="gap-1.5"
               >
-                {uploading === null && <UploadSimpleIcon className="h-4 w-4" />}
+                {uploading === null && (
+                  <UploadSimpleIcon weight="bold" className="h-4 w-4" />
+                )}
                 Upload a file
               </Button>
             ) : undefined
@@ -151,7 +154,7 @@ export function AssetAttachments({
                 rel="noreferrer"
                 className="flex min-w-0 items-center gap-2 text-sm hover:underline"
               >
-                <PaperclipIcon className="h-4 w-4 shrink-0" />
+                <PaperclipIcon weight="bold" className="h-4 w-4 shrink-0" />
                 <span className="truncate font-medium">
                   {attachment.fileName}
                 </span>
@@ -167,7 +170,7 @@ export function AssetAttachments({
                     size="icon"
                     onClick={() => setDeleting(attachment)}
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    <TrashIcon weight="bold" className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
                   </Button>
                 )}

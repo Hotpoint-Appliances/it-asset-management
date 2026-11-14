@@ -257,7 +257,7 @@ export function UsersManager({
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate}>
-          <PlusIcon className="h-4 w-4" />
+          <PlusIcon weight="bold" className="h-4 w-4" />
           New User
         </Button>
       </div>
@@ -301,7 +301,7 @@ export function UsersManager({
                     size="icon"
                     onClick={() => openEdit(user)}
                   >
-                    <PencilSimpleIcon className="h-4 w-4" />
+                    <PencilSimpleIcon weight="bold" className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
                   <Button
@@ -310,9 +310,9 @@ export function UsersManager({
                     onClick={() => setDeactivating(user)}
                   >
                     {user.isActive ? (
-                      <UserCircleMinusIcon className="h-4 w-4" />
+                      <UserCircleMinusIcon weight="bold" className="h-4 w-4" />
                     ) : (
-                      <UserCircleCheckIcon className="h-4 w-4" />
+                      <UserCircleCheckIcon weight="bold" className="h-4 w-4" />
                     )}
                     <span className="sr-only">
                       {user.isActive ? "Deactivate" : "Reactivate"}

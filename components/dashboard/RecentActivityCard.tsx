@@ -15,7 +15,7 @@ export function RecentActivityCard({ items }: { items: RecentActivityItem[] }) {
       <CardContent className="pt-0">
         {items.length === 0 ? (
           <div className="text-muted-foreground flex items-center gap-2 text-sm">
-            <ClockCounterClockwiseIcon className="h-4 w-4" />
+            <ClockCounterClockwiseIcon weight="bold" className="h-4 w-4" />
             No activity yet.
           </div>
         ) : (

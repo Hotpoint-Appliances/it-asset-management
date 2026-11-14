@@ -44,8 +44,8 @@ export function ThemeToggle() {
           aria-keyshortcuts="D"
           onClick={toggle}
         >
-          <MoonIcon className="h-5 w-5 dark:hidden" />
-          <SunIcon className="hidden h-5 w-5 dark:block" />
+          <MoonIcon weight="bold" className="h-5 w-5 dark:hidden" />
+          <SunIcon weight="bold" className="hidden h-5 w-5 dark:block" />
         </Button>
       </TooltipTrigger>
       <TooltipContent side="bottom" className="flex items-center gap-2">

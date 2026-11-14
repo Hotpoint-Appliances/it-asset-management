@@ -69,7 +69,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {/* Slot needs its single child, so asChild buttons never get the spinner. */}
         {loading && !asChild ? (
           <>
-            <CircleNotchIcon aria-hidden="true" className="animate-spin" />
+            <CircleNotchIcon
+              weight="bold"
+              aria-hidden="true"
+              className="animate-spin"
+            />
             {children}
           </>
         ) : (

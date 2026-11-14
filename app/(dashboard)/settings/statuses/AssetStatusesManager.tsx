@@ -145,7 +145,7 @@ export function AssetStatusesManager({
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate}>
-          <PlusIcon className="h-4 w-4" />
+          <PlusIcon weight="bold" className="h-4 w-4" />
           New Status
         </Button>
       </div>
@@ -177,7 +177,7 @@ export function AssetStatusesManager({
                     size="icon"
                     onClick={() => openEdit(status)}
                   >
-                    <PencilSimpleIcon className="h-4 w-4" />
+                    <PencilSimpleIcon weight="bold" className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
                   <Button
@@ -185,7 +185,7 @@ export function AssetStatusesManager({
                     size="icon"
                     onClick={() => setDeleting(status)}
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    <TrashIcon weight="bold" className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
                   </Button>
                 </TableCell>

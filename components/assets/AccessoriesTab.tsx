@@ -141,7 +141,7 @@ export function AccessoriesTab({
           )}
           {editable && (
             <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
-              <PencilSimpleIcon className="h-4 w-4" />
+              <PencilSimpleIcon weight="bold" className="h-4 w-4" />
               Edit accessories
             </Button>
           )}

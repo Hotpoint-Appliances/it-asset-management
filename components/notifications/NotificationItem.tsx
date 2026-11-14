@@ -47,7 +47,7 @@ export function NotificationItem({
   return (
     <span className="flex w-full min-w-0 items-start gap-3 text-left">
       <span className="bg-muted text-muted-foreground mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
-        <Icon className="h-4 w-4" />
+        <Icon weight="bold" className="h-4 w-4" />
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="flex items-baseline justify-between gap-3">

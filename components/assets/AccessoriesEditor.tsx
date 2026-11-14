@@ -184,7 +184,7 @@ export function AccessoriesEditor({
               onClick={() => onChange(rows.filter((r) => r.key !== row.key))}
               className="shrink-0"
             >
-              <XIcon className="h-4 w-4" />
+              <XIcon weight="bold" className="h-4 w-4" />
               <span className="sr-only">Remove {label.toLowerCase()}</span>
             </Button>
           </div>
@@ -198,7 +198,7 @@ export function AccessoriesEditor({
         onClick={addRow}
         className="w-fit"
       >
-        <PlusIcon className="h-4 w-4" />
+        <PlusIcon weight="bold" className="h-4 w-4" />
         Add accessory
       </Button>
     </div>

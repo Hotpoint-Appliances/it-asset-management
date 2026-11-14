@@ -153,7 +153,7 @@ export function AccessoriesManager({
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
         <Button onClick={openCreate}>
-          <PlusIcon className="h-4 w-4" />
+          <PlusIcon weight="bold" className="h-4 w-4" />
           New Accessory
         </Button>
       </div>
@@ -198,7 +198,7 @@ export function AccessoriesManager({
                     size="icon"
                     onClick={() => openEdit(accessory)}
                   >
-                    <PencilSimpleIcon className="h-4 w-4" />
+                    <PencilSimpleIcon weight="bold" className="h-4 w-4" />
                     <span className="sr-only">Edit</span>
                   </Button>
                   <Button
@@ -206,7 +206,7 @@ export function AccessoriesManager({
                     size="icon"
                     onClick={() => setDeleting(accessory)}
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    <TrashIcon weight="bold" className="h-4 w-4" />
                     <span className="sr-only">Delete</span>
                   </Button>
                 </TableCell>

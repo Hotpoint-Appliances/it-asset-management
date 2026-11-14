@@ -76,6 +76,7 @@ function LogoutScreen() {
           />
         </svg>
         <SignOutIcon
+          weight="bold"
           className="text-primary h-6 w-6 translate-x-px"
           aria-hidden="true"
         />

@@ -917,7 +917,10 @@ export function AssetForm({
               />
             ) : (
               <div className="border-border bg-muted flex h-16 w-16 items-center justify-center rounded-lg border">
-                <ImageIcon className="text-muted-foreground h-5 w-5" />
+                <ImageIcon
+                  weight="bold"
+                  className="text-muted-foreground h-5 w-5"
+                />
               </div>
             )}
             <div className="flex flex-col gap-1">
@@ -941,7 +944,7 @@ export function AssetForm({
                   onClick={clearImage}
                   className="w-fit gap-1"
                 >
-                  <XIcon className="h-3.5 w-3.5" />
+                  <XIcon weight="bold" className="h-3.5 w-3.5" />
                   Remove
                 </Button>
               )}

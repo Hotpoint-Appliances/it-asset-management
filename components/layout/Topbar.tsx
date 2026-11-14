@@ -79,7 +79,7 @@ export function Topbar({
             className="nav:hidden"
             aria-label="Open navigation"
           >
-            <ListIcon className="h-6 w-6" />
+            <ListIcon weight="bold" className="h-6 w-6" />
           </Button>
         </SheetTrigger>
         <SheetContent side="left">
@@ -114,7 +114,7 @@ export function Topbar({
           aria-label="Go back"
           onClick={() => router.back()}
         >
-          <CaretLeftIcon className="h-5 w-5" />
+          <CaretLeftIcon weight="bold" className="h-5 w-5" />
         </Button>
         <NotificationBell />
         <ThemeToggle />

@@ -30,9 +30,9 @@ const PasswordInput = React.forwardRef<
         className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-lg transition-colors focus-visible:ring-2 focus-visible:outline-none"
       >
         {visible ? (
-          <EyeSlashIcon aria-hidden="true" className="size-4" />
+          <EyeSlashIcon weight="bold" aria-hidden="true" className="size-4" />
         ) : (
-          <EyeIcon aria-hidden="true" className="size-4" />
+          <EyeIcon weight="bold" aria-hidden="true" className="size-4" />
         )}
       </button>
     </div>

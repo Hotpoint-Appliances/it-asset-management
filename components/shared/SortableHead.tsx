@@ -52,6 +52,7 @@ export function SortableHead({
       >
         {label}
         <Icon
+          weight="bold"
           aria-hidden="true"
           className={cn("h-3.5 w-3.5", !direction && "opacity-40")}
         />

@@ -186,9 +186,9 @@ export function LocationsManager({
                   className="text-muted-foreground flex h-6 w-6 shrink-0 items-center justify-center"
                 >
                   {isCollapsed ? (
-                    <CaretRightIcon className="h-4 w-4" />
+                    <CaretRightIcon weight="bold" className="h-4 w-4" />
                   ) : (
-                    <CaretDownIcon className="h-4 w-4" />
+                    <CaretDownIcon weight="bold" className="h-4 w-4" />
                   )}
                 </button>
               ) : (
@@ -209,7 +209,7 @@ export function LocationsManager({
                 size="icon"
                 onClick={() => openCreate(node.item.id)}
               >
-                <PlusIcon className="h-4 w-4" />
+                <PlusIcon weight="bold" className="h-4 w-4" />
                 <span className="sr-only">Add child location</span>
               </Button>
               <Button
@@ -217,7 +217,7 @@ export function LocationsManager({
                 size="icon"
                 onClick={() => openEdit(location)}
               >
-                <PencilSimpleIcon className="h-4 w-4" />
+                <PencilSimpleIcon weight="bold" className="h-4 w-4" />
                 <span className="sr-only">Edit</span>
               </Button>
               <Button
@@ -225,7 +225,7 @@ export function LocationsManager({
                 size="icon"
                 onClick={() => setDeleting(location)}
               >
-                <TrashIcon className="h-4 w-4" />
+                <TrashIcon weight="bold" className="h-4 w-4" />
                 <span className="sr-only">Delete</span>
               </Button>
             </div>
@@ -240,7 +240,7 @@ export function LocationsManager({
     <div className="flex flex-col gap-4">
       <div className="flex justify-end">
         <Button onClick={() => openCreate(null)}>
-          <PlusIcon className="h-4 w-4" />
+          <PlusIcon weight="bold" className="h-4 w-4" />
           New Location
         </Button>
       </div>

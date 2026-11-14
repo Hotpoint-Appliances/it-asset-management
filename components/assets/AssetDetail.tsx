@@ -156,7 +156,10 @@ export function AssetDetail({
             />
           ) : (
             <div className="border-border bg-muted flex h-32 w-32 shrink-0 items-center justify-center rounded-lg border">
-              <TagIcon className="text-muted-foreground h-8 w-8" />
+              <TagIcon
+                weight="bold"
+                className="text-muted-foreground h-8 w-8"
+              />
             </div>
           )}
           <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -173,14 +176,14 @@ export function AssetDetail({
                 <RefreshButton />
                 <Button variant="outline" asChild>
                   <Link href={`/assets/${asset.id}/label`}>
-                    <PrinterIcon className="h-4 w-4" />
+                    <PrinterIcon weight="bold" className="h-4 w-4" />
                     Print label
                   </Link>
                 </Button>
                 {canManage && !isDisposed && (
                   <Button variant="outline" asChild>
                     <Link href={`/assets/${asset.id}/edit`}>
-                      <PencilSimpleIcon className="h-4 w-4" />
+                      <PencilSimpleIcon weight="bold" className="h-4 w-4" />
                       Edit
                     </Link>
                   </Button>
@@ -190,7 +193,7 @@ export function AssetDetail({
                     <DropdownMenuTrigger asChild>
                       <Button>
                         Actions
-                        <CaretDownIcon className="h-4 w-4" />
+                        <CaretDownIcon weight="bold" className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -200,33 +203,42 @@ export function AssetDetail({
                             <DropdownMenuItem
                               onSelect={() => setActiveDialog("issue")}
                             >
-                              <SignatureIcon className="h-4 w-4" />
+                              <SignatureIcon
+                                weight="bold"
+                                className="h-4 w-4"
+                              />
                               Issue form
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuItem
                             onSelect={() => setActiveDialog("transfer")}
                           >
-                            <ArrowsLeftRightIcon className="h-4 w-4" />
+                            <ArrowsLeftRightIcon
+                              weight="bold"
+                              className="h-4 w-4"
+                            />
                             Transfer
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onSelect={() => setActiveDialog("condition")}
                           >
-                            <BroomIcon className="h-4 w-4" />
+                            <BroomIcon weight="bold" className="h-4 w-4" />
                             Change condition
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onSelect={() => setActiveDialog("status")}
                           >
-                            <RepeatIcon className="h-4 w-4" />
+                            <RepeatIcon weight="bold" className="h-4 w-4" />
                             Change status
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onSelect={() => setActiveDialog("dispose")}
                             className="text-destructive focus:text-destructive"
                           >
-                            <WarningOctagonIcon className="h-4 w-4" />
+                            <WarningOctagonIcon
+                              weight="bold"
+                              className="h-4 w-4"
+                            />
                             Dispose
                           </DropdownMenuItem>
                         </>
@@ -238,7 +250,7 @@ export function AssetDetail({
                             onSelect={() => setActiveDialog("delete")}
                             className="text-destructive focus:text-destructive"
                           >
-                            <TrashIcon className="h-4 w-4" />
+                            <TrashIcon weight="bold" className="h-4 w-4" />
                             Delete (data-entry correction)
                           </DropdownMenuItem>
                         </>
@@ -258,15 +270,24 @@ export function AssetDetail({
             </div>
             <dl className="grid grid-cols-1 gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
               <div className="flex items-center gap-1.5">
-                <MapPinIcon className="text-muted-foreground h-3.5 w-3.5" />
+                <MapPinIcon
+                  weight="bold"
+                  className="text-muted-foreground h-3.5 w-3.5"
+                />
                 <span>{asset.locationName}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <BuildingsIcon className="text-muted-foreground h-3.5 w-3.5" />
+                <BuildingsIcon
+                  weight="bold"
+                  className="text-muted-foreground h-3.5 w-3.5"
+                />
                 <span>{asset.departmentName}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <UserIcon className="text-muted-foreground h-3.5 w-3.5" />
+                <UserIcon
+                  weight="bold"
+                  className="text-muted-foreground h-3.5 w-3.5"
+                />
                 <span>
                   {asset.assignedUserName ?? asset.ownerName ?? "Unassigned"}
                 </span>
@@ -447,7 +468,10 @@ function DisposalSummary({
     <Card>
       <CardContent className="flex flex-col gap-4 p-6">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
-          <WarningOctagonIcon className="text-destructive h-4 w-4" />
+          <WarningOctagonIcon
+            weight="bold"
+            className="text-destructive h-4 w-4"
+          />
           Disposal record
         </h2>
         <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">

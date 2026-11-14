@@ -33,7 +33,7 @@ export function ErrorFallback({
         action={
           <div className="flex flex-wrap justify-center gap-2">
             <Button onClick={() => retry()}>
-              <ArrowClockwiseIcon className="h-4 w-4" />
+              <ArrowClockwiseIcon weight="bold" className="h-4 w-4" />
               Try again
             </Button>
             {showHomeLink && (
