@@ -6,20 +6,20 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import axios from "axios";
 import {
-  Pencil,
-  Printer,
-  Building2,
-  MapPin,
-  Tag,
-  ChevronDown,
-  ArrowRightLeft,
-  Repeat,
-  FileSignature,
-  Trash2,
-  AlertOctagon,
-  BroomSparkles,
-  UserRound,
-} from "lucide-react";
+  ArrowsLeftRightIcon,
+  BroomIcon,
+  BuildingsIcon,
+  CaretDownIcon,
+  MapPinIcon,
+  PencilSimpleIcon,
+  PrinterIcon,
+  RepeatIcon,
+  SignatureIcon,
+  TagIcon,
+  TrashIcon,
+  UserIcon,
+  WarningOctagonIcon,
+} from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { RefreshButton } from "@/components/shared/RefreshButton";
 import { Badge } from "@/components/ui/Badge";
@@ -156,7 +156,7 @@ export function AssetDetail({
             />
           ) : (
             <div className="border-border bg-muted flex h-32 w-32 shrink-0 items-center justify-center rounded-lg border">
-              <Tag className="text-muted-foreground h-8 w-8" />
+              <TagIcon className="text-muted-foreground h-8 w-8" />
             </div>
           )}
           <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -173,14 +173,14 @@ export function AssetDetail({
                 <RefreshButton />
                 <Button variant="outline" asChild>
                   <Link href={`/assets/${asset.id}/label`}>
-                    <Printer className="h-4 w-4" />
+                    <PrinterIcon className="h-4 w-4" />
                     Print label
                   </Link>
                 </Button>
                 {canManage && !isDisposed && (
                   <Button variant="outline" asChild>
                     <Link href={`/assets/${asset.id}/edit`}>
-                      <Pencil className="h-4 w-4" />
+                      <PencilSimpleIcon className="h-4 w-4" />
                       Edit
                     </Link>
                   </Button>
@@ -190,7 +190,7 @@ export function AssetDetail({
                     <DropdownMenuTrigger asChild>
                       <Button>
                         Actions
-                        <ChevronDown className="h-4 w-4" />
+                        <CaretDownIcon className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -200,33 +200,33 @@ export function AssetDetail({
                             <DropdownMenuItem
                               onSelect={() => setActiveDialog("issue")}
                             >
-                              <FileSignature className="h-4 w-4" />
+                              <SignatureIcon className="h-4 w-4" />
                               Issue form
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuItem
                             onSelect={() => setActiveDialog("transfer")}
                           >
-                            <ArrowRightLeft className="h-4 w-4" />
+                            <ArrowsLeftRightIcon className="h-4 w-4" />
                             Transfer
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onSelect={() => setActiveDialog("condition")}
                           >
-                            <BroomSparkles className="h-4 w-4" />
+                            <BroomIcon className="h-4 w-4" />
                             Change condition
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onSelect={() => setActiveDialog("status")}
                           >
-                            <Repeat className="h-4 w-4" />
+                            <RepeatIcon className="h-4 w-4" />
                             Change status
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onSelect={() => setActiveDialog("dispose")}
                             className="text-destructive focus:text-destructive"
                           >
-                            <AlertOctagon className="h-4 w-4" />
+                            <WarningOctagonIcon className="h-4 w-4" />
                             Dispose
                           </DropdownMenuItem>
                         </>
@@ -238,7 +238,7 @@ export function AssetDetail({
                             onSelect={() => setActiveDialog("delete")}
                             className="text-destructive focus:text-destructive"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <TrashIcon className="h-4 w-4" />
                             Delete (data-entry correction)
                           </DropdownMenuItem>
                         </>
@@ -258,15 +258,15 @@ export function AssetDetail({
             </div>
             <dl className="grid grid-cols-1 gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
               <div className="flex items-center gap-1.5">
-                <MapPin className="text-muted-foreground h-3.5 w-3.5" />
+                <MapPinIcon className="text-muted-foreground h-3.5 w-3.5" />
                 <span>{asset.locationName}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Building2 className="text-muted-foreground h-3.5 w-3.5" />
+                <BuildingsIcon className="text-muted-foreground h-3.5 w-3.5" />
                 <span>{asset.departmentName}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <UserRound className="text-muted-foreground h-3.5 w-3.5" />
+                <UserIcon className="text-muted-foreground h-3.5 w-3.5" />
                 <span>
                   {asset.assignedUserName ?? asset.ownerName ?? "Unassigned"}
                 </span>
@@ -447,7 +447,7 @@ function DisposalSummary({
     <Card>
       <CardContent className="flex flex-col gap-4 p-6">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
-          <AlertOctagon className="text-destructive h-4 w-4" />
+          <WarningOctagonIcon className="text-destructive h-4 w-4" />
           Disposal record
         </h2>
         <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">

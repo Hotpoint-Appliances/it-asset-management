@@ -3,12 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import {
-  MoreHorizontal,
-  Eye,
-  Pencil,
-  ArrowRightLeft,
-  Trash2,
-} from "lucide-react";
+  ArrowsLeftRightIcon,
+  DotsThreeIcon,
+  EyeIcon,
+  PencilSimpleIcon,
+  TrashIcon,
+} from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import {
   DropdownMenu,
@@ -60,7 +60,7 @@ export function AssetRowActions({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
-            <MoreHorizontal className="h-4 w-4" />
+            <DotsThreeIcon className="h-4 w-4" />
             <span className="sr-only">
               Actions for {asset.name}, {asset.assetTag}
             </span>
@@ -72,7 +72,7 @@ export function AssetRowActions({
               href={`/assets/${asset.id}`}
               onNavigate={navigateTo(`/assets/${asset.id}`)}
             >
-              <Eye className="h-4 w-4" />
+              <EyeIcon className="h-4 w-4" />
               View
             </Link>
           </DropdownMenuItem>
@@ -82,14 +82,14 @@ export function AssetRowActions({
                 href={`/assets/${asset.id}/edit`}
                 onNavigate={navigateTo(`/assets/${asset.id}/edit`)}
               >
-                <Pencil className="h-4 w-4" />
+                <PencilSimpleIcon className="h-4 w-4" />
                 Edit
               </Link>
             </DropdownMenuItem>
           )}
           {canManage && !isDisposed && (
             <DropdownMenuItem onSelect={() => setTransferOpen(true)}>
-              <ArrowRightLeft className="h-4 w-4" />
+              <ArrowsLeftRightIcon className="h-4 w-4" />
               Transfer
             </DropdownMenuItem>
           )}
@@ -98,7 +98,7 @@ export function AssetRowActions({
               onSelect={() => setDisposeOpen(true)}
               className="text-destructive focus:text-destructive"
             >
-              <Trash2 className="h-4 w-4" />
+              <TrashIcon className="h-4 w-4" />
               Dispose
             </DropdownMenuItem>
           )}

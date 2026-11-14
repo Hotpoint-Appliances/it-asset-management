@@ -1,6 +1,10 @@
 "use client";
 
-import { ChevronDown, Columns3, RotateCcw } from "lucide-react";
+import {
+  ArrowCounterClockwiseIcon,
+  CaretDownIcon,
+  ColumnsIcon,
+} from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import {
   DropdownMenu,
@@ -27,9 +31,9 @@ export function AssetColumnsMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="ml-auto gap-1.5">
-          <Columns3 className="h-3.5 w-3.5" />
+          <ColumnsIcon className="h-3.5 w-3.5" />
           Columns
-          <ChevronDown className="h-3.5 w-3.5" />
+          <CaretDownIcon className="h-3.5 w-3.5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" customLayout>
@@ -61,7 +65,7 @@ export function AssetColumnsMenu({
               columns.reset();
             }}
           >
-            <RotateCcw className="h-4 w-4" />
+            <ArrowCounterClockwiseIcon className="h-4 w-4" />
             Reset to default
           </DropdownMenuItem>
         </div>

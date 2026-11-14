@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
-import { Image as LucideImage, X } from "lucide-react";
+import { ImageIcon, XIcon } from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -917,7 +917,7 @@ export function AssetForm({
               />
             ) : (
               <div className="border-border bg-muted flex h-16 w-16 items-center justify-center rounded-lg border">
-                <LucideImage className="text-muted-foreground h-5 w-5" />
+                <ImageIcon className="text-muted-foreground h-5 w-5" />
               </div>
             )}
             <div className="flex flex-col gap-1">
@@ -941,7 +941,7 @@ export function AssetForm({
                   onClick={clearImage}
                   className="w-fit gap-1"
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <XIcon className="h-3.5 w-3.5" />
                   Remove
                 </Button>
               )}

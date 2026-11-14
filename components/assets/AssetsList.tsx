@@ -3,7 +3,13 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Plus, Search, X, Boxes, Upload } from "lucide-react";
+import {
+  MagnifyingGlassIcon,
+  PackageIcon,
+  PlusIcon,
+  UploadSimpleIcon,
+  XIcon,
+} from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -205,7 +211,7 @@ export function AssetsList({
           {canManage && (
             <Button variant="outline" asChild>
               <Link href="/assets/import" aria-label="Import assets">
-                <Upload className="h-4 w-4" />
+                <UploadSimpleIcon className="h-4 w-4" />
                 <span className="hidden sm:inline">Import</span>
               </Link>
             </Button>
@@ -213,7 +219,7 @@ export function AssetsList({
           {canManage && (
             <Button asChild>
               <Link href="/assets/new">
-                <Plus className="h-4 w-4" />
+                <PlusIcon className="h-4 w-4" />
                 New Asset
               </Link>
             </Button>
@@ -224,7 +230,7 @@ export function AssetsList({
       <div className="flex flex-col gap-3">
         <form onSubmit={handleSearchSubmit} className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+            <MagnifyingGlassIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -290,7 +296,7 @@ export function AssetsList({
               onClick={clearFilters}
               className="gap-1"
             >
-              <X className="h-3.5 w-3.5" />
+              <XIcon className="h-3.5 w-3.5" />
               Clear filters
             </Button>
           )}
@@ -300,7 +306,7 @@ export function AssetsList({
 
       {assets.length === 0 ? (
         <EmptyState
-          icon={Boxes}
+          icon={PackageIcon}
           title="No assets found"
           description={
             hasFilters

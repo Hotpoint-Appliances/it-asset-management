@@ -3,12 +3,12 @@
 import * as React from "react";
 import axios from "axios";
 import {
-  AlertTriangle,
-  CheckCircle2,
-  FileSpreadsheet,
-  Upload,
-  XCircle,
-} from "lucide-react";
+  CheckCircleIcon,
+  FileXlsIcon,
+  UploadSimpleIcon,
+  WarningIcon,
+  XCircleIcon,
+} from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import {
@@ -234,7 +234,7 @@ export function AssetImport() {
               disabled={busy !== null || !file}
               className="self-start sm:self-auto"
             >
-              {busy !== "check" && <FileSpreadsheet className="h-4 w-4" />}
+              {busy !== "check" && <FileXlsIcon className="h-4 w-4" />}
               {busy === "check"
                 ? "Checking…"
                 : result
@@ -268,7 +268,9 @@ export function AssetImport() {
                     disabled={busy !== null}
                     className="self-start"
                   >
-                    {busy !== "import" && <Upload className="h-4 w-4" />}
+                    {busy !== "import" && (
+                      <UploadSimpleIcon className="h-4 w-4" />
+                    )}
                     {busy === "import"
                       ? "Importing…"
                       : `Import ${result.preview.length} asset${result.preview.length === 1 ? "" : "s"}`}
@@ -300,7 +302,7 @@ function ResultSummary({
         role="alert"
         className="border-destructive/40 bg-destructive/5 flex gap-3 rounded-lg border p-3 text-sm"
       >
-        <XCircle
+        <XCircleIcon
           aria-hidden="true"
           className="text-destructive mt-0.5 h-4 w-4 shrink-0"
         />
@@ -324,7 +326,7 @@ function ResultSummary({
       role="status"
       className="border-success/40 bg-success/5 flex gap-3 rounded-lg border p-3 text-sm"
     >
-      <CheckCircle2
+      <CheckCircleIcon
         aria-hidden="true"
         className="text-success mt-0.5 h-4 w-4 shrink-0"
       />
@@ -357,7 +359,7 @@ function IssueTable({
     <section className="flex flex-col gap-2" aria-label={label}>
       <h3 className="flex items-center gap-2 text-sm font-medium">
         {isWarning && (
-          <AlertTriangle aria-hidden="true" className="text-warning h-4 w-4" />
+          <WarningIcon aria-hidden="true" className="text-warning h-4 w-4" />
         )}
         {label}
       </h3>

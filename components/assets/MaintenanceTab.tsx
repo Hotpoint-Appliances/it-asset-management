@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import axios from "axios";
-import { Wrench, Plus } from "lucide-react";
+import { PlusIcon, WrenchIcon } from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { DatePicker } from "@/components/ui/DatePicker";
@@ -264,7 +264,7 @@ export function MaintenanceTab({
             onClick={() => setCreateOpen(true)}
             className="gap-1.5"
           >
-            <Plus className="h-4 w-4" />
+            <PlusIcon className="h-4 w-4" />
             Log maintenance
           </Button>
         </div>
@@ -272,7 +272,7 @@ export function MaintenanceTab({
 
       {initialMaintenance.length === 0 ? (
         <EmptyState
-          icon={Wrench}
+          icon={WrenchIcon}
           title="No maintenance records"
           description="Repair, service, and inspection events for this asset will appear here."
         />
