@@ -1,4 +1,4 @@
-import { Building2, MapPin, UserRound } from "lucide-react";
+import { BuildingsIcon, MapPinIcon, UserIcon } from "@phosphor-icons/react/ssr";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils";
@@ -49,7 +49,7 @@ export function AssetDetailSkeleton() {
               <Skeleton className="h-5.5 w-20 rounded-full" />
             </div>
             <div className="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2">
-              {[MapPin, Building2, UserRound].map((Icon, i) => (
+              {[MapPinIcon, BuildingsIcon, UserIcon].map((Icon, i) => (
                 <div key={i} className="flex h-5 items-center gap-1.5">
                   <Icon className="text-muted-foreground h-3.5 w-3.5" />
                   <Skeleton className={cn("h-4", VALUE_WIDTHS[i])} />

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useTheme } from "next-themes";
-import { Moon, Sun } from "lucide-react";
+import { MoonIcon, SunIcon } from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import {
   Tooltip,
@@ -44,8 +44,8 @@ export function ThemeToggle() {
           aria-keyshortcuts="D"
           onClick={toggle}
         >
-          <Moon className="h-5 w-5 dark:hidden" />
-          <Sun className="hidden h-5 w-5 dark:block" />
+          <MoonIcon className="h-5 w-5 dark:hidden" />
+          <SunIcon className="hidden h-5 w-5 dark:block" />
         </Button>
       </TooltipTrigger>
       <TooltipContent side="bottom" className="flex items-center gap-2">

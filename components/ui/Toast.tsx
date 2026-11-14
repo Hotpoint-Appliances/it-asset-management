@@ -2,13 +2,13 @@
 
 import * as React from "react";
 import {
-  X,
-  CheckCircle2,
-  CircleAlert,
-  TriangleAlert,
-  Info,
-  Loader2,
-} from "lucide-react";
+  CheckCircleIcon,
+  CircleNotchIcon,
+  InfoIcon,
+  WarningCircleIcon,
+  WarningIcon,
+  XIcon,
+} from "@phosphor-icons/react/ssr";
 import { cn } from "@/lib/utils";
 import { useUIStore, type Toast, type ToastVariant } from "@/store";
 import { Portal } from "@/components/ui/Portal";
@@ -19,11 +19,11 @@ const VARIANT_ICON: Record<
   ToastVariant,
   React.ComponentType<{ className?: string }>
 > = {
-  success: CheckCircle2,
-  error: CircleAlert,
-  warning: TriangleAlert,
-  info: Info,
-  loading: Loader2,
+  success: CheckCircleIcon,
+  error: WarningCircleIcon,
+  warning: WarningIcon,
+  info: InfoIcon,
+  loading: CircleNotchIcon,
 };
 
 const VARIANT_ICON_CLASS: Record<ToastVariant, string> = {
@@ -141,7 +141,7 @@ function ToastCard({
         onClick={() => setClosing(true)}
         className="flex min-h-11 min-w-11 items-center justify-center opacity-70 hover:opacity-100"
       >
-        <X className="h-4 w-4" />
+        <XIcon className="h-4 w-4" />
         <span className="sr-only">Dismiss</span>
       </button>
     </div>

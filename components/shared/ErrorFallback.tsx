@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { TriangleAlert, RotateCw } from "lucide-react";
+import { ArrowClockwiseIcon, WarningIcon } from "@phosphor-icons/react/ssr";
 import { Button } from "@/components/ui/Button";
 import { StatusPage } from "./StatusPage";
 
@@ -26,14 +26,14 @@ export function ErrorFallback({
   return (
     <div className="flex flex-col items-center gap-3">
       <StatusPage
-        icon={TriangleAlert}
+        icon={WarningIcon}
         iconClassName="text-destructive"
         title="Something went wrong"
         description="This page couldn't be loaded. It may be a temporary problem; try again, and contact IT if it keeps happening."
         action={
           <div className="flex flex-wrap justify-center gap-2">
             <Button onClick={() => retry()}>
-              <RotateCw className="h-4 w-4" />
+              <ArrowClockwiseIcon className="h-4 w-4" />
               Try again
             </Button>
             {showHomeLink && (

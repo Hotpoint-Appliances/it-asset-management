@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Download } from "lucide-react";
+import { DownloadSimpleIcon } from "@phosphor-icons/react/ssr";
 import { Button, type ButtonProps } from "@/components/ui/Button";
 import { useUIStore } from "@/store";
 import { withBasePath } from "@/lib/basePath";
@@ -71,7 +71,9 @@ export function DownloadButton({
       loading={downloading}
       {...props}
     >
-      {!downloading && <Download aria-hidden="true" className="h-4 w-4" />}
+      {!downloading && (
+        <DownloadSimpleIcon aria-hidden="true" className="h-4 w-4" />
+      )}
       {children}
     </Button>
   );

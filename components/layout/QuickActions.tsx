@@ -4,15 +4,15 @@ import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useTheme } from "next-themes";
 import {
-  ArrowRight,
-  Boxes,
-  FileBarChart,
-  LayoutDashboard,
-  Moon,
-  Plus,
-  Search,
-  type LucideIcon,
-} from "lucide-react";
+  ArrowRightIcon,
+  ChartBarIcon,
+  MagnifyingGlassIcon,
+  MoonIcon,
+  PackageIcon,
+  PlusIcon,
+  SquaresFourIcon,
+} from "@phosphor-icons/react/ssr";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { useRouteLoadingRouter } from "@/lib/hooks/useRouteLoadingRouter";
 import { useSession } from "@/lib/auth/session-context";
 import { settingsSections } from "@/components/layout/settings-sections";
@@ -22,7 +22,7 @@ import { cn, isTypingTarget } from "@/lib/utils";
 interface QuickAction {
   id: string;
   label: string;
-  icon: LucideIcon;
+  icon: PhosphorIcon;
   /** Navigates when set, otherwise `run` is called. */
   href?: string;
   run?: () => void;
@@ -75,7 +75,7 @@ export function QuickActions({ className }: { className?: string }) {
       {
         id: "new-asset",
         label: "New asset",
-        icon: Plus,
+        icon: PlusIcon,
         href: "/assets/new",
         roles: ["admin", "asset_manager"],
         keywords: "add create register",
@@ -83,21 +83,21 @@ export function QuickActions({ className }: { className?: string }) {
       {
         id: "assets",
         label: "All assets",
-        icon: Boxes,
+        icon: PackageIcon,
         href: "/assets",
         keywords: "list inventory",
       },
       {
         id: "dashboard",
         label: "Dashboard",
-        icon: LayoutDashboard,
+        icon: SquaresFourIcon,
         href: "/",
         keywords: "home overview",
       },
       {
         id: "reports",
         label: "Reports",
-        icon: FileBarChart,
+        icon: ChartBarIcon,
         href: "/reports",
         keywords:
           "export excel xlsx download register audit trail disposal depreciation",
@@ -115,7 +115,7 @@ export function QuickActions({ className }: { className?: string }) {
       {
         id: "theme",
         label: "Toggle theme",
-        icon: Moon,
+        icon: MoonIcon,
         run: () => setTheme(resolvedTheme === "dark" ? "light" : "dark"),
         keywords: "dark light mode appearance",
       },
@@ -165,7 +165,7 @@ export function QuickActions({ className }: { className?: string }) {
           className,
         )}
       >
-        <Search className="h-4 w-4 shrink-0" />
+        <MagnifyingGlassIcon className="h-4 w-4 shrink-0" />
         <span className="flex-1 truncate text-left">
           Quick actions, press{" "}
           <kbd className="border-border bg-background rounded border px-1.5 font-mono text-sm">
@@ -190,7 +190,7 @@ export function QuickActions({ className }: { className?: string }) {
             Quick actions
           </DialogPrimitive.Title>
           <div className="border-border flex h-14 shrink-0 items-center gap-2 border-b px-3">
-            <Search className="text-muted-foreground h-4 w-4 shrink-0" />
+            <MagnifyingGlassIcon className="text-muted-foreground h-4 w-4 shrink-0" />
             <input
               autoFocus
               value={query}
@@ -235,7 +235,7 @@ export function QuickActions({ className }: { className?: string }) {
                         <Icon className="text-muted-foreground h-4 w-4 shrink-0" />
                         <span className="flex-1 truncate">{action.label}</span>
                         {i === activeIndex && (
-                          <ArrowRight className="text-muted-foreground h-4 w-4 shrink-0" />
+                          <ArrowRightIcon className="text-muted-foreground h-4 w-4 shrink-0" />
                         )}
                       </button>
                     </li>

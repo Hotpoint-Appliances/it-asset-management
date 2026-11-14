@@ -1,11 +1,11 @@
-import type { LucideIcon } from "lucide-react";
 import {
-  Boxes,
-  CheckCircle2,
-  Wrench,
-  TriangleAlert,
-  ShieldAlert,
-} from "lucide-react";
+  CheckCircleIcon,
+  PackageIcon,
+  ShieldWarningIcon,
+  WarningIcon,
+  WrenchIcon,
+} from "@phosphor-icons/react/ssr";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils";
@@ -19,12 +19,12 @@ export function DashboardSkeleton() {
       <PageHeaderSkeleton title="Dashboard" />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        <StatTileSkeleton label="Total assets" icon={Boxes} />
-        <StatTileSkeleton label="In service" icon={CheckCircle2} />
-        <StatTileSkeleton label="In repair" icon={Wrench} />
-        <StatTileSkeleton label="Needs attention" icon={TriangleAlert} />
+        <StatTileSkeleton label="Total assets" icon={PackageIcon} />
+        <StatTileSkeleton label="In service" icon={CheckCircleIcon} />
+        <StatTileSkeleton label="In repair" icon={WrenchIcon} />
+        <StatTileSkeleton label="Needs attention" icon={WarningIcon} />
         {/* The warranty label carries the configured window, so it's data. */}
-        <StatTileSkeleton icon={ShieldAlert} />
+        <StatTileSkeleton icon={ShieldWarningIcon} />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -54,7 +54,7 @@ function StatTileSkeleton({
   icon: Icon,
 }: {
   label?: string;
-  icon: LucideIcon;
+  icon: PhosphorIcon;
 }) {
   return (
     <Card className="h-full">

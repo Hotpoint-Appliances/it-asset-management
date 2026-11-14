@@ -1,6 +1,10 @@
 "use client";
 
-import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  ArrowsDownUpIcon,
+} from "@phosphor-icons/react/ssr";
 import { TableHead } from "@/components/ui/Table";
 import { cn } from "@/lib/utils";
 
@@ -17,10 +21,10 @@ export function SortableHead({
 }) {
   const Icon =
     direction === "asc"
-      ? ArrowUp
+      ? ArrowUpIcon
       : direction === "desc"
-        ? ArrowDown
-        : ArrowUpDown;
+        ? ArrowDownIcon
+        : ArrowsDownUpIcon;
   const next =
     direction === null
       ? "sort ascending"

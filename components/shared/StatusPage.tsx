@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import {
   Card,
@@ -17,7 +17,7 @@ export function StatusPage({
   description,
   action,
 }: {
-  icon: LucideIcon;
+  icon: PhosphorIcon;
   iconClassName?: string;
   title: string;
   description?: string;

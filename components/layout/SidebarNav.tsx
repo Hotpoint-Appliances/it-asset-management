@@ -47,7 +47,10 @@ export function SidebarNav({
                   "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
             )}
           >
-            <Icon className="h-4 w-4 shrink-0" />
+            <Icon
+              weight={active ? "fill" : "regular"}
+              className="h-4 w-4 shrink-0"
+            />
             {!collapsed && <span className="truncate">{item.label}</span>}
           </Link>
         );

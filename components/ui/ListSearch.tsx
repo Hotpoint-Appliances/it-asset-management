@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, X } from "lucide-react";
+import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react/ssr";
 import { cn } from "@/lib/utils";
 
 /** Option count at which a dropdown (Select, MultiSelectFilter) grows a sticky search box. Below
@@ -66,7 +66,7 @@ export const ListSearchInput = React.forwardRef<
 
     return (
       <div className="relative">
-        <Search
+        <MagnifyingGlassIcon
           aria-hidden
           className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2"
         />
@@ -98,7 +98,7 @@ export const ListSearchInput = React.forwardRef<
             }}
             className="text-muted-foreground hover:text-foreground absolute top-1/2 right-1.5 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded"
           >
-            <X className="h-3.5 w-3.5" />
+            <XIcon className="h-3.5 w-3.5" />
           </button>
         )}
       </div>

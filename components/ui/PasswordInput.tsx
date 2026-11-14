@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { EyeIcon, EyeSlashIcon } from "@phosphor-icons/react/ssr";
 import { Input, type InputProps } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
 
@@ -30,9 +30,9 @@ const PasswordInput = React.forwardRef<
         className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-lg transition-colors focus-visible:ring-2 focus-visible:outline-none"
       >
         {visible ? (
-          <EyeOff aria-hidden="true" className="size-4" />
+          <EyeSlashIcon aria-hidden="true" className="size-4" />
         ) : (
-          <Eye aria-hidden="true" className="size-4" />
+          <EyeIcon aria-hidden="true" className="size-4" />
         )}
       </button>
     </div>

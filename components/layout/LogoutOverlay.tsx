@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { LogOut } from "lucide-react";
+import { SignOutIcon } from "@phosphor-icons/react/ssr";
 import { Portal } from "@/components/ui/Portal";
 import { AppLogo } from "@/components/shared/AppLogo";
 import { useUIStore } from "@/store";
@@ -75,7 +75,10 @@ function LogoutScreen() {
             className="origin-center animate-spin [animation-duration:0.9s]"
           />
         </svg>
-        <LogOut className="text-primary h-6 w-6 translate-x-px" aria-hidden="true" />
+        <SignOutIcon
+          className="text-primary h-6 w-6 translate-x-px"
+          aria-hidden="true"
+        />
       </div>
       <p className="text-sm font-medium">Signing out…</p>
     </div>
