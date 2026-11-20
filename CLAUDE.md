@@ -21,5 +21,5 @@ or what a role may do, update the matching topic in the same change:
 - A new feature area gets a new topic (slug, summary, icon, `who`); give a section its own `who`
   when only some roles can do it.
 - Check every claim against the code, not against older docs.
-- If the change affects the homepage's feature or role copy (`app/(public)/welcome/page.tsx`),
-  update that too.
+- If the change affects the homepage (`app/(public)/welcome/page.tsx`: its example record, the
+  four lifecycle stages and their guide links, or the signed-out help), update that too.
