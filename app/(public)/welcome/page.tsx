@@ -1,199 +1,246 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  BellIcon,
-  BookOpenTextIcon,
-  ChartBarIcon,
-  ClockCounterClockwiseIcon,
-  PackageIcon,
-  QrCodeIcon,
-  ShieldCheckIcon,
-  SignatureIcon,
-  UserGearIcon,
-  UsersThreeIcon,
-  WrenchIcon,
-  ArrowsLeftRightIcon,
-  EyeIcon,
-} from "@phosphor-icons/react/ssr";
+import { ArrowRightIcon } from "@phosphor-icons/react/ssr";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { conditionBadgeVariant, statusBadgeVariant } from "@/lib/badgeVariants";
 
 export const metadata: Metadata = {
   // Absolute: this is the app's front page, so it carries the app name alone.
   title: { absolute: "IT Asset Manager" },
   description:
-    "Track every IT asset from purchase to disposal: registration and QR labels, assignment, maintenance, issue forms, reports and notifications.",
+    "Hotpoint's register of IT equipment: who has each laptop, desktop and phone, where it is, and everything that's happened to it.",
 };
 
-const features = [
+/** An example audit trail for the hero's record preview. Illustrative only: the DEMO- tag
+ * matches what `npm run seed:demo` creates, and none of it is read from the database. */
+const PREVIEW_LOG = [
+  { what: "Issue form EIF-000231 acknowledged", when: "12 Mar 2026" },
+  { what: "Transferred to Finance, Head Office", when: "10 Mar 2026" },
+  { what: "Repair completed, back to active", when: "21 Jan 2026" },
+  { what: "Registered from purchase order", when: "4 Sep 2025" },
+];
+
+/** How an asset moves through the system, each stage pointing at its guide topic. */
+const STAGES = [
   {
-    icon: QrCodeIcon,
-    title: "Register and label",
-    text: "Add assets one at a time or import them from Excel, then print QR labels that open the asset's record.",
+    title: "Register it",
+    text: "ICT adds the asset, or imports a batch from Excel, and prints a QR label for it.",
+    href: "/guide/registering-assets",
   },
   {
-    icon: ArrowsLeftRightIcon,
-    title: "Assign and transfer",
-    text: "Move assets between people, departments and locations, with every change written to the audit trail.",
+    title: "Hand it over",
+    text: "It's assigned to someone, who signs an issue form from a link in their email.",
+    href: "/guide/issue-forms",
   },
   {
-    icon: SignatureIcon,
-    title: "Issue forms",
-    text: "Hand equipment over with an issue form that the recipient acknowledges or disputes from an emailed link.",
+    title: "Look after it",
+    text: "Moves, repairs and condition changes are logged as they happen. Nothing is overwritten.",
+    href: "/guide/maintenance",
   },
   {
-    icon: WrenchIcon,
-    title: "Maintenance",
-    text: "Log repairs, services and inspections. Starting a repair marks the asset in repair and finishing it restores its status.",
-  },
-  {
-    icon: ChartBarIcon,
-    title: "Dashboard and reports",
-    text: "See the fleet at a glance and export the asset register, depreciation, disposals and the audit trail to Excel.",
-  },
-  {
-    icon: BellIcon,
-    title: "Notifications",
-    text: "Get in-app and email alerts for warranties about to expire, maintenance coming due and new assignments.",
+    title: "Retire it",
+    text: "When it's sold, scrapped or written off, it's disposed of with an approver, and its history stays.",
+    href: "/guide/disposal",
   },
 ];
 
-const roles = [
+/** The common reasons someone lands here without being signed in. */
+const HELP = [
   {
-    icon: UserGearIcon,
-    name: "Admin",
-    text: "Everything an asset manager can do, plus users, lookup lists and system settings.",
+    title: "Signing for equipment?",
+    text: "Use the link in your email. You don't need an account to acknowledge an issue form.",
+    link: { href: "/guide/issue-forms#recipient", label: "How signing works" },
   },
   {
-    icon: UsersThreeIcon,
-    name: "Asset manager",
-    text: "Registers, assigns, maintains and disposes of assets across every department.",
+    title: "Forgotten your password?",
+    text: "We'll email a reset link to the address on your account.",
+    link: { href: "/forgot-password", label: "Reset your password" },
   },
   {
-    icon: EyeIcon,
-    name: "Viewer",
-    text: "Read-only access to their own department's assets, dashboard and reports.",
+    title: "Need an account?",
+    text: "Accounts are set up by the ICT department. Ask them for access and the right role.",
+    link: { href: "/guide#roles", label: "What each role can do" },
   },
 ];
+
+function RecordPreview() {
+  return (
+    <figure className="w-full">
+      <div className="bg-card border-border overflow-clip rounded-xl border shadow-sm">
+        <div className="border-border flex flex-col gap-3 border-b p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-muted-foreground font-mono text-xs">
+                DEMO-014
+              </p>
+              <p className="truncate font-semibold">
+                Lenovo ThinkPad T14 Gen 3
+              </p>
+            </div>
+            <div className="flex shrink-0 gap-1.5">
+              <Badge variant={statusBadgeVariant("active")}>Active</Badge>
+              <Badge variant={conditionBadgeVariant("good")}>Good</Badge>
+            </div>
+          </div>
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+            <div>
+              <dt className="text-muted-foreground text-xs">Owner</dt>
+              <dd>W. Kamau</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground text-xs">Department</dt>
+              <dd>Finance</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground text-xs">Location</dt>
+              <dd>Head Office, 2nd floor</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground text-xs">Warranty</dt>
+              <dd>Until Sep 2028</dd>
+            </div>
+          </dl>
+        </div>
+        <div className="bg-canvas/60 p-5">
+          <p className="text-muted-foreground mb-3 text-xs font-medium">
+            Audit log
+          </p>
+          <ol className="flex flex-col">
+            {PREVIEW_LOG.map(({ what, when }, i) => (
+              <li key={what} className="relative flex gap-3 pb-3 last:pb-0">
+                {/* The rail joining the dots, stopping at the last entry. */}
+                {i < PREVIEW_LOG.length - 1 && (
+                  <span
+                    aria-hidden="true"
+                    className="bg-border absolute top-3 bottom-0 left-[3px] w-px"
+                  />
+                )}
+                <span
+                  aria-hidden="true"
+                  className={`mt-1.5 h-[7px] w-[7px] shrink-0 rounded-full ${i === 0 ? "bg-primary" : "bg-muted-foreground/40"}`}
+                />
+                <div className="flex min-w-0 flex-1 flex-wrap items-baseline justify-between gap-x-3 text-sm">
+                  <span className="min-w-0">{what}</span>
+                  <span className="text-muted-foreground text-xs">{when}</span>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+      <figcaption className="text-muted-foreground mt-2 text-xs">
+        An example asset record.
+      </figcaption>
+    </figure>
+  );
+}
 
 /** The signed-out homepage. proxy.ts serves it at `/` when there's no session (the dashboard
  * takes `/` otherwise) and redirects direct visits to `/welcome` back to `/`. */
 export default function WelcomePage() {
   return (
     <main>
-      <section className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 pt-16 pb-14 text-center sm:px-6 sm:pt-24 sm:pb-20">
-        <span className="bg-primary/10 text-primary inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium">
-          <PackageIcon weight="bold" className="h-3.5 w-3.5" />
-          Hotpoint IT asset management
-        </span>
-        <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-balance sm:text-5xl">
-          All your IT assets, in one place.
-        </h1>
-        <p className="text-muted-foreground max-w-2xl text-base text-pretty sm:text-lg">
-          A single source of truth for hardware, software and the people who use
-          them, from the day an asset is bought to the day it&apos;s disposed
-          of.
-        </p>
-        <div className="flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row">
-          <Button asChild size="lg">
-            <Link href="/login">Sign in</Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link href="/guide">
-              <BookOpenTextIcon weight="bold" />
-              Read the guide
+      <section className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] items-center gap-12 px-4 pt-12 pb-16 sm:px-6 lg:grid-cols-[minmax(0,1fr)_26rem] lg:gap-16 lg:pt-20 lg:pb-24">
+        <div className="flex flex-col gap-6">
+          <p className="text-primary text-sm font-medium">
+            Hotpoint Appliances · ICT department
+          </p>
+          <h1 className="max-w-xl text-3xl font-bold tracking-tight text-balance sm:text-4xl">
+            Who has which laptop, where it is, and what&apos;s happened to it.
+          </h1>
+          <p className="text-muted-foreground max-w-xl text-base text-pretty">
+            IT Asset Manager is where ICT keeps the record of every laptop,
+            desktop and phone the company owns: who it&apos;s issued to, the
+            forms they signed, its repairs, and how it was finally disposed of.
+          </p>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <Button asChild size="lg">
+              <Link href="/login">Sign in</Link>
+            </Button>
+            <Link
+              href="/guide"
+              className="text-primary inline-flex items-center gap-1.5 text-sm font-medium underline-offset-4 hover:underline"
+            >
+              How it works
+              <ArrowRightIcon weight="bold" className="h-4 w-4" />
             </Link>
-          </Button>
+          </div>
         </div>
+        <RecordPreview />
       </section>
 
       <section
-        aria-labelledby="features-heading"
+        aria-labelledby="stages-heading"
         className="bg-canvas border-border border-y"
       >
-        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
-          <div className="mb-10 flex flex-col gap-2 text-center">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[18rem_minmax(0,1fr)] lg:gap-16 lg:py-20">
+          <div className="flex flex-col gap-3">
             <h2
-              id="features-heading"
-              className="text-2xl font-semibold tracking-tight sm:text-3xl"
+              id="stages-heading"
+              className="text-2xl font-semibold tracking-tight"
             >
-              The whole asset lifecycle
+              From purchase to disposal
             </h2>
-            <p className="text-muted-foreground mx-auto max-w-2xl text-sm sm:text-base">
-              Every change is recorded, so you can always tell who had what,
-              where it was and what happened to it.
+            <p className="text-muted-foreground text-sm">
+              Every asset goes through the same four stages, and every change
+              along the way is recorded with who made it and when.
             </p>
           </div>
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map(({ icon: Icon, title, text }) => (
+          <ol className="border-border divide-border divide-y border-t sm:border-t-0">
+            {STAGES.map(({ title, text, href }, i) => (
               <li
                 key={title}
-                className="bg-card border-border flex flex-col gap-3 rounded-xl border p-6 shadow-sm"
+                className="grid gap-x-6 gap-y-1 py-5 first:pt-5 sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:items-baseline sm:first:pt-0"
               >
-                <span className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-lg">
-                  <Icon weight="bold" className="h-5 w-5" />
+                <span className="text-muted-foreground font-mono text-sm">
+                  0{i + 1}
                 </span>
-                <h3 className="font-semibold">{title}</h3>
-                <p className="text-muted-foreground text-sm">{text}</p>
+                <div className="flex flex-col gap-1">
+                  <h3 className="font-semibold">{title}</h3>
+                  <p className="text-muted-foreground text-sm">{text}</p>
+                </div>
+                <Link
+                  href={href}
+                  className="text-primary mt-1 text-sm font-medium whitespace-nowrap underline-offset-4 hover:underline sm:mt-0"
+                >
+                  Read more
+                  <span className="sr-only">
+                    {" "}
+                    about how to {title.toLowerCase()}
+                  </span>
+                </Link>
               </li>
             ))}
-          </ul>
+          </ol>
         </div>
       </section>
 
       <section
-        aria-labelledby="roles-heading"
-        className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20"
+        aria-labelledby="help-heading"
+        className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20"
       >
-        <div className="mb-10 flex flex-col gap-2 text-center">
-          <h2
-            id="roles-heading"
-            className="text-2xl font-semibold tracking-tight sm:text-3xl"
-          >
-            Access that fits the job
-          </h2>
-          <p className="text-muted-foreground mx-auto max-w-2xl text-sm sm:text-base">
-            Accounts are created by an admin. What you can see and do depends on
-            your role.
-          </p>
-        </div>
-        <ul className="grid gap-4 md:grid-cols-3">
-          {roles.map(({ icon: Icon, name, text }) => (
-            <li
-              key={name}
-              className="border-border flex gap-4 rounded-xl border p-5"
-            >
-              <span className="bg-muted text-foreground flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
-                <Icon weight="bold" className="h-5 w-5" />
-              </span>
-              <div className="flex flex-col gap-1">
-                <h3 className="font-semibold">{name}</h3>
-                <p className="text-muted-foreground text-sm">{text}</p>
-              </div>
+        <h2
+          id="help-heading"
+          className="mb-8 text-2xl font-semibold tracking-tight"
+        >
+          Not here to sign in?
+        </h2>
+        <ul className="grid gap-x-10 gap-y-8 md:grid-cols-3">
+          {HELP.map(({ title, text, link }) => (
+            <li key={title} className="border-primary/30 border-l-2 pl-4">
+              <h3 className="font-semibold">{title}</h3>
+              <p className="text-muted-foreground mt-1 text-sm">{text}</p>
+              <Link
+                href={link.href}
+                className="text-primary mt-3 inline-flex items-center gap-1.5 text-sm font-medium underline-offset-4 hover:underline"
+              >
+                {link.label}
+                <ArrowRightIcon weight="bold" className="h-3.5 w-3.5" />
+              </Link>
             </li>
           ))}
         </ul>
-        <div className="mt-12 flex flex-col items-center gap-4 text-center">
-          <div className="text-muted-foreground flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm">
-            <span className="inline-flex items-center gap-2">
-              <ShieldCheckIcon weight="bold" className="h-4 w-4" />
-              Role-based access
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <ClockCounterClockwiseIcon weight="bold" className="h-4 w-4" />
-              Full audit trail
-            </span>
-          </div>
-          <p className="text-muted-foreground text-sm">
-            New here?{" "}
-            <Link
-              href="/guide"
-              className="text-primary font-medium underline-offset-4 hover:underline"
-            >
-              Start with the guide
-            </Link>
-            , or ask an admin for an account.
-          </p>
-        </div>
       </section>
     </main>
   );
