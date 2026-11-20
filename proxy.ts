@@ -11,6 +11,8 @@ const GUEST_PATHS = ["/login", "/forgot-password"];
 // Open either way: an emailed reset link can be followed from a browser that's still signed in
 // (the reset signs that session out too).
 const OPEN_PATHS = ["/reset-password", "/acknowledge"];
+// The signed-out homepage's real route; visitors only ever see it at `/` (see below).
+const HOMEPAGE_PATH = "/welcome";
 
 /** An app-relative URL on this request's origin. Built from `nextUrl`, not
  * `new URL(path, request.url)`: nextUrl keeps the base path, a plain URL would drop it.
@@ -40,7 +42,14 @@ export async function proxy(request: NextRequest) {
   const staleCookie = Boolean(token) && !session;
 
   let response: NextResponse;
-  if (!isPublicPath && !session) {
+  if (pathname === HOMEPAGE_PATH) {
+    // The homepage only ever shows at `/`, so it has one URL to share.
+    response = NextResponse.redirect(appUrl(request, "/"));
+  } else if (pathname === "/" && !session) {
+    // Signed out, `/` is the public homepage, not a trip to /login (as GitHub does it): a
+    // rewrite, so the address bar keeps `/`. Signed in, `/` stays the dashboard.
+    response = NextResponse.rewrite(appUrl(request, HOMEPAGE_PATH));
+  } else if (!isPublicPath && !session) {
     response = NextResponse.redirect(
       appUrl(request, "/login", { from: pathname }),
     );
@@ -59,7 +68,10 @@ export const config = {
   // itam-conventions) and return JSON 401/403 rather than an HTML redirect.
   // App icons are excluded too: redirecting them to /login hands the browser an
   // HTML page instead of an image (Firefox prefers icon.svg over favicon.ico).
+  // `/` is listed on its own: under a base path the bare root (`/itam`) doesn't match the
+  // pattern below, so the proxy never saw it and the homepage rewrite was skipped.
   matcher: [
+    "/",
     "/((?!api|_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png|logo-dark.svg|logo-white.svg).*)",
   ],
 };
