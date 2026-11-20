@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import {
   ClipboardTextIcon,
   LaptopIcon,
@@ -7,6 +8,11 @@ import {
 import { AppLogo } from "@/components/shared/AppLogo";
 import { Footer } from "@/components/layout/Footer";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
+import { cn } from "@/lib/utils";
+
+/** The logo and name lead back to the homepage. */
+const homeLinkClass =
+  "focus-visible:ring-ring flex h-10 items-center gap-2 rounded-lg focus-visible:ring-2 focus-visible:outline-none";
 
 const highlights = [
   { icon: LaptopIcon, text: "Track every device from purchase to retirement" },
@@ -30,10 +36,10 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           corner stays visible. Below `lg` it's hidden and the logo moves into the form header. */}
       <div className="bg-canvas text-foreground hidden min-h-full flex-col lg:flex">
         <div className="flex items-center gap-2 p-6">
-          <div className="flex h-10 items-center gap-2">
+          <Link href="/" className={homeLinkClass}>
             <AppLogo />
             <span className="text-sm font-semibold">IT Asset Manager</span>
-          </div>
+          </Link>
         </div>
         <div className="flex flex-1 flex-col justify-center gap-10 px-12 pb-22 xl:px-16">
           <div className="flex flex-col gap-3">
@@ -59,10 +65,10 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       </div>
       <div className="flex min-h-full flex-col">
         <div className="flex items-center justify-between gap-2 p-4 sm:p-6 lg:justify-end">
-          <div className="flex items-center gap-2 lg:hidden">
+          <Link href="/" className={cn(homeLinkClass, "lg:hidden")}>
             <AppLogo />
             <span className="text-sm font-semibold">IT Asset Manager</span>
-          </div>
+          </Link>
           <ThemeToggle />
         </div>
         <div className="flex flex-1 items-center justify-center p-6">
