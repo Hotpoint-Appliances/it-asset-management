@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CaretDownIcon, HouseIcon } from "@phosphor-icons/react";
+import { CaretDownIcon, HouseIcon } from "@phosphor-icons/react/ssr";
 import { cn } from "@/lib/utils";
 import { guideTopics } from "@/lib/guide/topics";
 
@@ -31,7 +31,10 @@ function NavLinks({ pathname }: { pathname: string }) {
                   : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
               )}
             >
-              <Icon weight="bold" className="h-4 w-4 shrink-0" />
+              <Icon
+                weight={active ? "fill" : "bold"}
+                className="h-4 w-4 shrink-0"
+              />
               {title}
             </Link>
           </li>
