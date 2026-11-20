@@ -2,7 +2,12 @@
 
 import * as React from "react";
 import axios from "axios";
-import { KeyIcon, SignOutIcon } from "@phosphor-icons/react/ssr";
+import Link from "next/link";
+import {
+  BookOpenTextIcon,
+  KeyIcon,
+  SignOutIcon,
+} from "@phosphor-icons/react/ssr";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,8 +45,8 @@ export function UserMenu() {
       await axios.post("/api/auth/logout");
       // Full reload (not next/navigation) so every client-only React and store state resets,
       // matches the login flow's own full reload. `replace`, not `assign`, so Back can't land on
-      // a stale authenticated page.
-      window.location.replace(withBasePath("/login"));
+      // a stale authenticated page. `/` is the public homepage once signed out.
+      window.location.replace(withBasePath("/"));
     } catch {
       setLoggingOut(false);
       addToast({
@@ -72,6 +77,12 @@ export function UserMenu() {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href="/guide">
+              <BookOpenTextIcon weight="bold" className="h-4 w-4" />
+              Guide
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setPasswordOpen(true)}>
             <KeyIcon weight="bold" className="h-4 w-4" />
             Change password

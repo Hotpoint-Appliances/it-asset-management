@@ -38,7 +38,14 @@ decorative borders, or texture beyond what's specified below.
 - `Tooltip` (`components/ui/Tooltip.tsx`, Radix-based) is mounted app-wide via `TooltipProvider`
   in `components/providers.tsx`. Required on any icon-only control whose label is hidden
   (collapsed sidebar nav items, icon buttons without visible text).
-- Icons: `lucide-react` exclusively — do not mix icon sets.
+- Icons: Phosphor (`@phosphor-icons/react`) exclusively — `lucide-react` was removed; do not mix
+  icon sets. Import icons from `@phosphor-icons/react/ssr` (works in server and client components);
+  import only the `Icon` type from the package root (`import type { Icon as PhosphorIcon }`) for
+  props that take an icon. Every icon renders at `weight="bold"`, set at each render site (the
+  `/ssr` icons don't read `IconContext`), including shared components that render an icon passed
+  in as a prop; the active sidebar item is the one exception, at `weight="fill"`. The only custom
+  icons are the sidebar toggle SVGs in `components/shared/SidebarIcons.tsx`, stroked at 2.25 on a
+  24px grid to match Phosphor bold.
 - `Dialog`, `Sheet`, `DropdownMenu`, `Select`, and `Tooltip` already render into
   `document.body` via Radix's own `Portal` primitive — don't wrap their content in anything
   else. `components/ui/Portal.tsx` (a plain mount-guarded `createPortal`) exists only for
@@ -103,7 +110,7 @@ decorative borders, or texture beyond what's specified below.
   `DropdownMenuContent`, the `Select` viewport, `TreePicker`, `UserTypeahead`'s results panel,
   the collapsed sidebar's nav list). Never leave a scrollable container with the bare browser
   default — pick whichever of the two matches its role. The one exception is the page scroller of
-  public pages (the `(auth)` layout, and `StandalonePage` for `/403`, the signed-out 404 and the
+  public pages (the `(auth)` and `(public)` layouts, and `StandalonePage` for `/403`, the signed-out 404 and the
   error boundaries): they use `.scroll-native`, the browser's own scrollbar with its arrow buttons,
   tinted via `scrollbar-color` with the `--scrollbar-thumb` token on a transparent track. Don't
   style it with `::-webkit-scrollbar*` — that drops Chromium's arrow buttons. `.scroll-native`
@@ -183,26 +190,37 @@ sidebar/drawer switch below; don't reach for it elsewhere. (Confirmed in Phase 8
     straight side segment). From `nav` up the `::after` is hidden and `nav:border-b` is the plain
     divider inside the inset panel.
   - **Collapse-to-icons**: `sidebarCollapsed` lives in the zustand `useUIStore`
-    (`store/index.ts`), persisted to `localStorage` via zustand's `persist` middleware
-    (partialized to just that one field — don't persist `mobileNavOpen` or `toasts`). Toggled by
-    a chevron button pinned at the bottom of the sidebar (`ChevronsLeft` expanded / `ChevronsRight`
-    collapsed). Collapsed width is `76px` (icon + padding, meets the 44px touch-target rule with
+    (`store/index.ts`) and is persisted in the `itam_sidebar_collapsed` cookie (not
+    `localStorage`), which `app/(dashboard)/layout.tsx` reads so the server renders the right width
+    with no flash; the store's `null` means "not toggled yet, use the server default". Toggled by
+    a button at the left of the topbar (`nav` and up only) showing `SidebarExpandedIcon` /
+    `SidebarCollapsedIcon` from `components/shared/SidebarIcons.tsx`. Collapsed width is `76px` (icon + padding, meets the 44px touch-target rule with
     room either side); expanded is the existing `16rem`/`w-64`. `SidebarNav` takes a `collapsed`
     prop — collapsed nav items are icon-only, centered, and each wrapped in a `Tooltip` (`side="right"`)
     carrying the label, since the text disappears. Because this reads client state, `Sidebar` and
     `SidebarNav` are client components.
   - **Topbar** (`components/layout/Topbar.tsx`) carries, left to right: mobile hamburger
-    (`nav:hidden`, opens the Sheet drawer), a `router.back()` button (always visible, every page —
-    this is the app's only back-navigation affordance, don't add a second one per-page unless a
-    flow genuinely needs breadcrumbs instead), then notifications bell / theme toggle / user menu
-    on the right.
-  - **Footer** (`components/layout/Footer.tsx`) is shared between the dashboard shell and the
-    login page — a single thin bar (`© year IT Asset Manager — Internal Tool` / version), not
+    (`nav:hidden`, opens the Sheet drawer), the sidebar collapse toggle (`nav` and up), the quick
+    actions bar in the middle (`QuickActions`, desktop only, opened with `/`), then on the right a
+    `router.back()` button (always visible, every page — this is the app's only back-navigation
+    affordance, don't add a second one per-page unless a flow genuinely needs breadcrumbs
+    instead), notifications bell, theme toggle and user menu (which also links to the guide).
+  - **Footer** (`components/layout/Footer.tsx`) is shared by the dashboard shell, the `(auth)`
+    layout and the `(public)` layout — a single thin bar (`© year IT Asset Manager - Internal
+    Tool`), not
     fixed to the viewport; it scrolls with content and sits after `main` in the DOM so it lands at
     the true bottom of the page. Reuse this component rather than duplicating footer markup if a
     third standalone layout (e.g. a future print/report view) needs one.
-  - Sidebar groups: Dashboard, Assets, Reports, Settings (admin-only), driven by
-    `components/layout/nav-items.ts`.
+  - Sidebar groups: Dashboard, Assets, Issue forms (admin / asset_manager), Reports, Settings
+    (admin-only), driven by `components/layout/nav-items.ts`.
+- **Public pages** (`app/(public)/`): the signed-out homepage (route `/welcome`, served at `/` by
+  `proxy.ts`'s rewrite when there's no session) and the guide (`/guide`, open to everyone). Their
+  layout is a sticky `PublicHeader` (logo home, Guide, theme toggle, Sign in or Dashboard) over a
+  centered `max-w-6xl` column and the shared `Footer`, scrolling inside its own `h-dvh`
+  `.scroll-native` container like the `(auth)` layout. Section bands use `bg-canvas` with
+  `border-y` for contrast, never a gradient. The guide is two columns from `lg` (a sticky,
+  self-scrolling topic list beside the page) and a collapsible `<details>` topic list above the
+  page below `lg`.
 - **List/table pages** (assets, users, etc.): data table, filter bar above (status, category,
   department, location, condition as multi-select filters), search input, pagination footer,
   row-level actions via `DropdownMenu` (View, Edit, Transfer, Dispose).

@@ -17,7 +17,7 @@ first when starting any implementation work on the IT Asset Management System.
 - `bcryptjs` — password hashing
 - `axios` — HTTP requests (internal API calls from client components)
 - `exceljs` — data export (reports phase)
-- `lucide-react` — icons
+- `@phosphor-icons/react` — icons (replaced `lucide-react`; see itam-design-system for usage)
 - `recharts` (v3) — dashboard charts only (status donut, trend line); added after Phase 8 with
   its `react-is` peer. Charts are client components fed server data, and every chart sits beside
   a list or label with the exact numbers, so nothing is readable from the chart alone
