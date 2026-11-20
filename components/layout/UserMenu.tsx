@@ -2,7 +2,12 @@
 
 import * as React from "react";
 import axios from "axios";
-import { KeyIcon, SignOutIcon } from "@phosphor-icons/react/ssr";
+import Link from "next/link";
+import {
+  BookOpenTextIcon,
+  KeyIcon,
+  SignOutIcon,
+} from "@phosphor-icons/react/ssr";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -72,6 +77,12 @@ export function UserMenu() {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href="/guide">
+              <BookOpenTextIcon weight="bold" className="h-4 w-4" />
+              Guide
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setPasswordOpen(true)}>
             <KeyIcon weight="bold" className="h-4 w-4" />
             Change password
