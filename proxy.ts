@@ -11,6 +11,8 @@ const GUEST_PATHS = ["/login", "/forgot-password"];
 // Open either way: an emailed reset link can be followed from a browser that's still signed in
 // (the reset signs that session out too).
 const OPEN_PATHS = ["/reset-password", "/acknowledge"];
+// Open either way, with everything under them: the guide is for signed-out readers too.
+const OPEN_PREFIXES = ["/guide"];
 // The signed-out homepage's real route; visitors only ever see it at `/` (see below).
 const HOMEPAGE_PATH = "/welcome";
 
@@ -31,7 +33,10 @@ function appUrl(
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isGuestPath = GUEST_PATHS.includes(pathname);
-  const isPublicPath = isGuestPath || OPEN_PATHS.includes(pathname);
+  const isPublicPath =
+    isGuestPath ||
+    OPEN_PATHS.includes(pathname) ||
+    OPEN_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
   // The same DB-backed check getSession() uses (Proxy runs on Node.js in Next 16, so pg works
   // here). A token-only check would loop for a deactivated user: the layout would send them to
