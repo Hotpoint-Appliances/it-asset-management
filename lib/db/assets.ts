@@ -428,10 +428,11 @@ const AUDIT_ACTION_BY_FIELD: Record<string, string> = {
   status_id: "status_change",
 };
 
-/** Columns considered for audit-log diffing on update, everything mutable via the edit form
- * except asset_tag/name, which change rarely enough that a generic "updated" row still covers
- * them if they do. */
+/** Columns considered for audit-log diffing on update: everything mutable via the edit form.
+ * asset_tag is included so replacing a placeholder tag (e.g. REDEEMED-001 or NOTAG-001 from the
+ * legacy import) with the real label keeps the old tag in the asset's history. */
 const TRACKED_FIELDS: { column: string; get: (i: AssetInput) => unknown }[] = [
+  { column: "asset_tag", get: (i) => i.assetTag },
   { column: "name", get: (i) => i.name },
   { column: "category_id", get: (i) => i.categoryId },
   { column: "model_number", get: (i) => i.modelNumber },
@@ -455,6 +456,7 @@ const TRACKED_FIELDS: { column: string; get: (i: AssetInput) => unknown }[] = [
 
 function fieldFromAsset(asset: Asset, column: string): unknown {
   const map: Record<string, unknown> = {
+    asset_tag: asset.assetTag,
     name: asset.name,
     category_id: asset.categoryId,
     model_number: asset.modelNumber,
